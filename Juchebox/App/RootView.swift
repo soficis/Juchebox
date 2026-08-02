@@ -54,6 +54,11 @@ struct RootView: View {
 
                     ChollimaTabBar(selectedTab: $selectedTab, language: appLanguage)
                 }
+                .overlay(alignment: .topLeading) {
+                    if CommandLine.arguments.contains("--online-player-probe") {
+                        OnlineBridgeProbe(bridge: jsBridge)
+                    }
+                }
                 .background(AppTheme.background)
             } else {
                 OnboardingView {
@@ -62,6 +67,32 @@ struct RootView: View {
             }
         }
         .background(AppTheme.background)
+    }
+}
+
+/// Test-only overlay (launch arg `--online-player-probe`) rendering the player
+/// bridge's REAL connection status and parsed state — the online UI test reads
+/// its label. Never shows fabricated data: `waiting` until the injected script
+/// posts its first message, then `connected` with the site's actual state.
+private struct OnlineBridgeProbe: View {
+    @ObservedObject var bridge: JSPlayerBridge
+
+    var body: some View {
+        Text(probeText)
+            .font(.caption2)
+            .monospaced()
+            .foregroundStyle(AppTheme.mutedText)
+            .padding(6)
+            .background(AppTheme.surface)
+            .accessibilityIdentifier(AccessibilityID.onlineBridgeProbe)
+            .allowsHitTesting(false)
+    }
+
+    private var probeText: String {
+        guard bridge.messageCount > 0 else { return "bridge:waiting" }
+        let state = bridge.latestState
+        let title = state.currentTrack?.title ?? "none"
+        return "bridge:connected:msgs=\(bridge.messageCount):playing=\(state.isPlaying):title=\(title)"
     }
 }
 

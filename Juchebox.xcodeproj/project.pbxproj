@@ -34,6 +34,7 @@
 		A1B2C3D4E5F607182900B104 /* TranslationCompletenessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */; };
 		A1B2C3D4E5F607182900B105 /* PureTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */; };
 		A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */; };
+		A1B2C3D4E5F607182900B202 /* OnlinePlayerBridgeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F202 /* OnlinePlayerBridgeUITests.swift */; };
 		A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F014 /* domain-allowlist.json */; };
 		A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F098 /* Assets.xcassets */; };
 		A1B2C3D4E5F607182900B017 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F017 /* PlayerState.swift */; };
@@ -93,6 +94,7 @@
 		A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationCompletenessTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PureTypeTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JucheboxUITests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F202 /* OnlinePlayerBridgeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlinePlayerBridgeUITests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F017 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F018 /* PlayerProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProtocols.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPlayerBridge.swift; sourceTree = "<group>"; };
@@ -300,6 +302,7 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */,
+				A1B2C3D4E5F607182900F202 /* OnlinePlayerBridgeUITests.swift */,
 			);
 			path = JucheboxUITests;
 			sourceTree = "<group>";
@@ -482,6 +485,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */,
+				A1B2C3D4E5F607182900B202 /* OnlinePlayerBridgeUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

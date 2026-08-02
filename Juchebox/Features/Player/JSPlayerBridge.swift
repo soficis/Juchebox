@@ -10,6 +10,11 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
 
     private(set) var latestState: PlayerState = .empty
 
+    /// Number of state messages parsed from the injected script. 0 = the bridge
+    /// has not heard from the page yet (script not installed, page not loaded,
+    /// or JS error). Monotonic once connected — the probe view renders it.
+    @Published private(set) var messageCount = 0
+
     private weak var webView: WKWebView?
     private let contentWorld = WKContentWorld.world(name: "juchebox_player")
     private let messageHandlerName = "playerBridge"
@@ -59,6 +64,7 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
         Task { @MainActor [weak self] in
             guard let self else { return }
             self.latestState = self.parseState(from: body)
+            self.messageCount += 1
         }
     }
 

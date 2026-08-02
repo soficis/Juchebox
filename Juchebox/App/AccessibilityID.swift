@@ -21,5 +21,6 @@ enum AccessibilityID {
     static let nowPlayingTab = "nowPlayingTab"
     static let homeTab = "homeTab"
     static let settingsTab = "settingsTab"
+    static let onlineBridgeProbe = "onlineBridgeProbe"
 }
 
