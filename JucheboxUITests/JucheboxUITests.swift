@@ -57,19 +57,11 @@ final class JucheboxUITests: XCTestCase {
 
         app.buttons["settingsTab"].tap()
         XCTAssertTrue(app.staticTexts["Language Selection"].waitForExistence(timeout: 5))
-        let versionText = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '0.2'")).firstMatch
-        for _ in 0..<4 where !versionText.exists {
-            scrollUp(app)
+        let versionValue = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '0.2'")).firstMatch
+        for _ in 0..<4 where !versionValue.exists {
+            app.swipeUp()
         }
-        XCTAssertTrue(versionText.waitForExistence(timeout: 3), "Version row not reachable by scrolling")
-    }
-
-    /// Drags from upper-center to lower-center — starts inside the List,
-    /// avoiding the tab bar that would otherwise swallow the gesture.
-    private func scrollUp(_ app: XCUIApplication) {
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
-        start.press(forDuration: 0.05, thenDragTo: end)
+        XCTAssertTrue(versionValue.waitForExistence(timeout: 3), "Version value not reachable by scrolling")
     }
 
     private func launchAcceptedApp() -> XCUIApplication {
