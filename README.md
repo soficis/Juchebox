@@ -55,7 +55,7 @@ xcodebuild -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=i
 xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Git (this repo)
-git log --oneline        # 15 commits, all atomic
+git log --oneline        # 32 commits, all atomic
 git status               # working tree should be clean
 ```
 
