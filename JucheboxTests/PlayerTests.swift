@@ -19,7 +19,7 @@ final class PlayerStateTests: XCTestCase {
     func testPlayerStateDurationFormatted() {
         let state = PlayerState(duration: 247)
 
-        XCTAssertEqual(state.durationFormatted, "4:07")
+        XCTAssertEqual(state.durationFormatted, "04:07")
     }
 
     func testPlayerStateDurationFormattedZero() {

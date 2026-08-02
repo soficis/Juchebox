@@ -22,6 +22,8 @@ final class PureTypeTests: XCTestCase {
             AccessibilityID.searchButton,
             AccessibilityID.savePageButton,
             AccessibilityID.nowPlayingTab,
+            AccessibilityID.homeTab,
+            AccessibilityID.settingsTab,
         ]
 
         XCTAssertEqual(identifiers.count, Set(identifiers).count, "Accessibility identifiers must be unique")

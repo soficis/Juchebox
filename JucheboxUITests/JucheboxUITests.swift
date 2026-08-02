@@ -50,7 +50,8 @@ final class JucheboxUITests: XCTestCase {
 
         XCTAssertTrue(app.switches["ephemeralSessionToggle"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["clearWebsiteDataButton"].exists)
-        XCTAssertTrue(app.buttons["exportDiagnosticsButton"].exists)
+        app.swipeUp()
+        XCTAssertTrue(app.buttons["exportDiagnosticsButton"].waitForExistence(timeout: 5))
     }
 
     func testClearWebsiteDataConfirmation() throws {
@@ -104,8 +105,8 @@ final class JucheboxUITests: XCTestCase {
 
         XCTAssertTrue(app.webViews["mainWebView"].waitForExistence(timeout: 10))
 
-        app.buttons["Now Playing"].tap()
-        app.buttons["Home"].tap()
+        app.buttons["nowPlayingTab"].tap()
+        app.buttons["homeTab"].tap()
 
         XCTAssertTrue(app.webViews["mainWebView"].exists)
     }

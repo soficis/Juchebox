@@ -74,7 +74,8 @@ private struct ChollimaTabBar: View {
             tabButton(
                 title: t(.toolbarHome, language: language),
                 systemImage: selectedTab == 0 ? "globe.americas.fill" : "globe",
-                isSelected: selectedTab == 0
+                isSelected: selectedTab == 0,
+                accessibilityIdentifier: AccessibilityID.homeTab
             ) {
                 selectedTab = 0
             }
@@ -91,7 +92,8 @@ private struct ChollimaTabBar: View {
             tabButton(
                 title: t(.toolbarSettings, language: language),
                 systemImage: selectedTab == 2 ? "gearshape.fill" : "gearshape",
-                isSelected: selectedTab == 2
+                isSelected: selectedTab == 2,
+                accessibilityIdentifier: AccessibilityID.settingsTab
             ) {
                 selectedTab = 2
             }
