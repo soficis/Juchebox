@@ -104,61 +104,6 @@ final class QueueStateTests: XCTestCase {
     }
 }
 
-// MARK: - JSBridgeTests
-
-final class JSBridgeTests: XCTestCase {
-    func testParseStateFromJSON() async {
-        let bridge = await MainActor.run { JSPlayerBridge() }
-        let body: [String: Any] = [
-            "playing": true,
-            "title": "Test Song",
-            "artist": "Test Artist",
-            "streamUrl": "https://example.com/audio.mp3",
-            "currentTime": 30.0,
-            "duration": 180.0,
-        ]
-
-        let state = await MainActor.run { bridge.parseState(from: body) }
-
-        XCTAssertTrue(state.isPlaying)
-        XCTAssertEqual(state.currentTrack?.title, "Test Song")
-        XCTAssertEqual(state.currentTrack?.artist, "Test Artist")
-        XCTAssertEqual(state.streamURL?.absoluteString, "https://example.com/audio.mp3")
-        XCTAssertEqual(state.currentTime, 30.0)
-        XCTAssertEqual(state.duration, 180.0)
-        XCTAssertFalse(state.isStalled)
-    }
-
-    func testParseStateMinimal() async {
-        let bridge = await MainActor.run { JSPlayerBridge() }
-        let body: [String: Any] = ["playing": false]
-
-        let state = await MainActor.run { bridge.parseState(from: body) }
-
-        XCTAssertFalse(state.isPlaying)
-        XCTAssertNil(state.currentTrack)
-        XCTAssertEqual(state.currentTime, 0)
-        XCTAssertEqual(state.duration, 0)
-        XCTAssertNil(state.streamURL)
-    }
-
-    func testParseStateEmptyDict() async {
-        // userContentController guards against non-dict body via `as? [String: Any]`;
-        // an empty dict is the closest edge-case we can test without constructing
-        // a WKScriptMessage (which has `init()` marked NS_UNAVAILABLE).
-        let bridge = await MainActor.run { JSPlayerBridge() }
-        let body: [String: Any] = [:]
-
-        let state = await MainActor.run { bridge.parseState(from: body) }
-
-        XCTAssertFalse(state.isPlaying)
-        XCTAssertNil(state.currentTrack)
-        XCTAssertEqual(state.currentTime, 0)
-        XCTAssertEqual(state.duration, 0)
-        XCTAssertNil(state.streamURL)
-    }
-}
-
 // MARK: - PlayerControllerMockTests
 
 @MainActor

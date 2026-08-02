@@ -7,115 +7,62 @@ final class JucheboxUITests: XCTestCase {
 
     func testFirstRunDisclaimerAcceptance() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--reset-onboarding", "--ui-testing-offline"]
+        app.launchArguments = ["--reset-onboarding"]
         app.launch()
 
         let acceptButton = app.buttons["onboardingAcceptButton"]
         XCTAssertTrue(acceptButton.waitForExistence(timeout: 5))
         acceptButton.tap()
 
-        XCTAssertTrue(app.webViews["mainWebView"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["homeTab"].waitForExistence(timeout: 10))
     }
 
-    func testNativeNavigationControlsExposeAccessibilityIdentifiers() throws {
+    func testTabBarExposesAllTabs() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.webViews["mainWebView"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["backButton"].exists)
-        XCTAssertTrue(app.buttons["forwardButton"].exists)
-        XCTAssertTrue(app.buttons["reloadButton"].exists)
-        XCTAssertTrue(app.buttons["homeButton"].exists)
-        XCTAssertTrue(app.buttons["shareButton"].exists)
-        XCTAssertTrue(app.buttons["searchButton"].exists)
-        XCTAssertTrue(app.buttons["savePageButton"].exists)
+        XCTAssertTrue(app.buttons["homeTab"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["searchTab"].exists)
+        XCTAssertTrue(app.buttons["libraryTab"].exists)
+        XCTAssertTrue(app.buttons["nowPlayingTab"].exists)
     }
 
-    func testReloadAndChromeVisibilityControls() throws {
+    func testSearchFieldExistsAndAcceptsInput() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.buttons["reloadButton"].waitForExistence(timeout: 10))
-        app.buttons["reloadButton"].tap()
-
-        app.buttons["hideControlsButton"].tap()
-        XCTAssertTrue(app.buttons["showControlsButton"].waitForExistence(timeout: 3))
-        app.buttons["showControlsButton"].tap()
-        XCTAssertTrue(app.buttons["reloadButton"].waitForExistence(timeout: 3))
+        app.buttons["searchTab"].tap()
+        let field = app.textFields["searchField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("arirang")
+        XCTAssertEqual(field.value as? String, "arirang")
     }
 
-    func testSettingsPrivacyControls() throws {
+    func testLibraryShowsSignInPromptWhenSignedOut() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 10))
-        app.buttons["Settings"].tap()
-
-        XCTAssertTrue(app.switches["ephemeralSessionToggle"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["clearWebsiteDataButton"].exists)
-        app.swipeUp()
-        XCTAssertTrue(app.buttons["exportDiagnosticsButton"].waitForExistence(timeout: 5))
+        app.buttons["libraryTab"].tap()
+        XCTAssertTrue(app.buttons["signInButton"].waitForExistence(timeout: 5))
     }
 
-    func testClearWebsiteDataConfirmation() throws {
+    func testNowPlayingShowsEmptyState() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 10))
-        app.buttons["Settings"].tap()
-        XCTAssertTrue(app.buttons["clearWebsiteDataButton"].waitForExistence(timeout: 5))
-        app.buttons["clearWebsiteDataButton"].tap()
-
-        XCTAssertTrue(app.buttons["Purge Web Data & Sign Out"].waitForExistence(timeout: 5))
-        app.buttons["Cancel"].tap()
-    }
-
-    func testExternalLinkConfirmation() throws {
-        let app = launchAcceptedApp(extraArguments: ["--show-external-link-confirmation"])
-
-        XCTAssertTrue(app.buttons["Open in External Web Browser"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["Copy Link"].exists)
-        app.buttons["Cancel"].tap()
-    }
-
-    func testNetworkErrorPresentation() throws {
-        let app = launchAcceptedApp(extraArguments: ["--show-network-error"])
-
-        XCTAssertTrue(app.staticTexts["webErrorTitle"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["webErrorReloadButton"].exists)
-    }
-
-    func testNowPlayingTabAccessible() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["--accept-onboarding", "--ui-testing-offline", "--show-player-bar"]
-        app.launch()
-
-        XCTAssertTrue(app.buttons["nowPlayingTab"].waitForExistence(timeout: 10))
         app.buttons["nowPlayingTab"].tap()
-
         XCTAssertTrue(app.staticTexts["No track playing"].waitForExistence(timeout: 5))
     }
 
-    func testMiniPlayerBarAppears() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["--accept-onboarding", "--ui-testing-offline", "--show-player-bar"]
-        app.launch()
-
-        XCTAssertTrue(app.buttons["No track playing"].waitForExistence(timeout: 10))
-    }
-
-    func testTabSwitchPreservesWebView() throws {
+    func testSettingsExposesLanguageAndVersion() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.webViews["mainWebView"].waitForExistence(timeout: 10))
-
-        app.buttons["nowPlayingTab"].tap()
-        app.buttons["homeTab"].tap()
-
-        XCTAssertTrue(app.webViews["mainWebView"].exists)
+        app.buttons["settingsTab"].tap()
+        XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Language Selection"].exists)
     }
 
-    private func launchAcceptedApp(extraArguments: [String] = []) -> XCUIApplication {
+    private func launchAcceptedApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--accept-onboarding", "--ui-testing-offline"] + extraArguments
+        app.launchArguments = ["--accept-onboarding"]
         app.launch()
         return app
     }
 }
-

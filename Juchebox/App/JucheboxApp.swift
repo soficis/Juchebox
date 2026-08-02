@@ -12,31 +12,34 @@ struct JucheboxApp: App {
         }
     }
 
-    @StateObject private var appState = AppState()
+    @StateObject private var authStore = AuthStore()
+    @StateObject private var appState: AppState
     @StateObject private var audioSessionController = AudioSessionController()
-    @StateObject private var diagnosticsLog = DiagnosticsLog()
-    @StateObject private var privacySettings = PrivacySettings()
-    private let jsBridge = JSPlayerBridge()
+    @StateObject private var catalog: CatalogStore
     private let playerController = AVPlayerController()
 
-    private let domainPolicy = DomainPolicy.bundled()
+    init() {
+        let auth = AuthStore()
+        _authStore = StateObject(wrappedValue: auth)
+
+        let api = JuchifyAPIClient(tokenProvider: { auth.tokenProvider() })
+        _appState = StateObject(wrappedValue: AppState(apiClient: api, authStore: auth))
+        _catalog = StateObject(wrappedValue: CatalogStore(apiClient: api))
+    }
 
     var body: some Scene {
         WindowGroup {
             RootView(
                 appState: appState,
                 audioSessionController: audioSessionController,
-                diagnosticsLog: diagnosticsLog,
-                domainPolicy: domainPolicy,
-                privacySettings: privacySettings,
-                jsBridge: jsBridge,
-                playerController: playerController
+                catalog: catalog,
+                authStore: authStore
             )
             .preferredColorScheme(.dark)
             .onAppear {
                 audioSessionController.start()
                 audioSessionController.configure(player: playerController)
-                appState.configurePlayer(controller: playerController, bridge: jsBridge)
+                appState.configurePlayer(controller: playerController)
             }
         }
     }

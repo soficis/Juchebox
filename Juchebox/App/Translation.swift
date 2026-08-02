@@ -139,6 +139,34 @@ enum Translation {
         case playerLockscreenPaused
         case playerArtworkAccessibility
 
+        case tabBrowse
+        case tabSearch
+        case tabLibrary
+        case homePopularSongs
+        case homeNewReleases
+        case homeNewTracks
+        case homePopularAlbums
+        case homeSongCount
+        case homeLoadError
+        case retry
+        case searchSongs
+        case searchAlbums
+        case searchArtists
+        case searchPrompt
+        case clearSearch
+        case playAlbum
+        case librarySignInPrompt
+        case librarySignInButton
+        case libraryLikedSongs
+        case libraryRecentlyPlayed
+        case libraryPlaylists
+        case signInTitle
+        case usernamePlaceholder
+        case passwordPlaceholder
+        case signInSubmit
+        case signInFailed
+        case signOutButton
+
         var englishValue: String {
             switch self {
             case .appName: return "Juchebox"
@@ -250,6 +278,33 @@ enum Translation {
             case .playerAirplayLabel: return "AirPlay"
             case .playerLockscreenPaused: return "Paused"
             case .playerArtworkAccessibility: return "Album artwork"
+            case .tabBrowse: return "Browse"
+            case .tabSearch: return "Search"
+            case .tabLibrary: return "Library"
+            case .homePopularSongs: return "Popular Songs"
+            case .homeNewReleases: return "New Releases"
+            case .homeNewTracks: return "New Tracks"
+            case .homePopularAlbums: return "Popular Albums"
+            case .homeSongCount: return "songs"
+            case .homeLoadError: return "Could not load the catalog."
+            case .retry: return "Retry"
+            case .searchSongs: return "Songs"
+            case .searchAlbums: return "Albums"
+            case .searchArtists: return "Artists"
+            case .searchPrompt: return "Search songs, albums, and artists"
+            case .clearSearch: return "Clear search"
+            case .playAlbum: return "Play Album"
+            case .librarySignInPrompt: return "Sign in to sync likes, playlists, and history."
+            case .librarySignInButton: return "Sign In"
+            case .libraryLikedSongs: return "Liked Songs"
+            case .libraryRecentlyPlayed: return "Recently Played"
+            case .libraryPlaylists: return "Playlists"
+            case .signInTitle: return "Sign In to Juchify"
+            case .usernamePlaceholder: return "Username"
+            case .passwordPlaceholder: return "Password"
+            case .signInSubmit: return "Sign In"
+            case .signInFailed: return "Sign-in failed. Check your credentials."
+            case .signOutButton: return "Sign Out"
             }
         }
 
@@ -364,6 +419,33 @@ enum Translation {
             case .playerAirplayLabel: return "에어플레이"
             case .playerLockscreenPaused: return "중지됨"
             case .playerArtworkAccessibility: return "음반화상"
+            case .tabBrowse: return "탐색"
+            case .tabSearch: return "검색"
+            case .tabLibrary: return "음악고"
+            case .homePopularSongs: return "인기 노래"
+            case .homeNewReleases: return "새로 나온 음반"
+            case .homeNewTracks: return "새 노래"
+            case .homePopularAlbums: return "인기 음반"
+            case .homeSongCount: return "곡"
+            case .homeLoadError: return "음악고를 불러올수 없습네다."
+            case .retry: return "다시시도"
+            case .searchSongs: return "노래"
+            case .searchAlbums: return "음반"
+            case .searchArtists: return "연주자"
+            case .searchPrompt: return "노래, 음반, 연주자 검색"
+            case .clearSearch: return "검색 지우기"
+            case .playAlbum: return "음반 재생"
+            case .librarySignInPrompt: return "접속하면 좋아요, 재생목록, 력사가 동기화됩네다."
+            case .librarySignInButton: return "접속"
+            case .libraryLikedSongs: return "좋아요한 노래"
+            case .libraryRecentlyPlayed: return "최근에 련주한 노래"
+            case .libraryPlaylists: return "재생목록"
+            case .signInTitle: return "주체음악에 접속"
+            case .usernamePlaceholder: return "사용자명"
+            case .passwordPlaceholder: return "비밀번호"
+            case .signInSubmit: return "접속"
+            case .signInFailed: return "접속 실패. 자격증명을 확인하십시요."
+            case .signOutButton: return "퇴장"
             }
         }
     }

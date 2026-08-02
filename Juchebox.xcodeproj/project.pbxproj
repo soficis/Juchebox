@@ -15,35 +15,27 @@
 		A1B2C3D4E5F607182900B005 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F005 /* AudioSessionController.swift */; };
 		A1B2C3D4E5F607182900B006 /* JucheboxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F006 /* JucheboxApp.swift */; };
 		A1B2C3D4E5F607182900B007 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F007 /* RootView.swift */; };
-		A1B2C3D4E5F607182900B008 /* DomainPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F008 /* DomainPolicy.swift */; };
-		A1B2C3D4E5F607182900B009 /* PrivacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F009 /* PrivacySettings.swift */; };
-		A1B2C3D4E5F607182900B00A /* WebsiteDataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00A /* WebsiteDataCleaner.swift */; };
-		A1B2C3D4E5F607182900B00B /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00B /* DiagnosticsLog.swift */; };
-		A1B2C3D4E5F607182900B016 /* NavigationBreadcrumb.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F016 /* NavigationBreadcrumb.swift */; };
 		A1B2C3D4E5F607182900B00C /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00C /* OnboardingView.swift */; };
 		A1B2C3D4E5F607182900B00D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00D /* SettingsView.swift */; };
-		A1B2C3D4E5F607182900B00E /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00E /* ActivityView.swift */; };
-		A1B2C3D4E5F607182900B00F /* ExternalLinkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00F /* ExternalLinkRequest.swift */; };
-		A1B2C3D4E5F607182900B010 /* WebContentError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F010 /* WebContentError.swift */; };
-		A1B2C3D4E5F607182900B011 /* WebNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F011 /* WebNavigationCoordinator.swift */; };
-		A1B2C3D4E5F607182900B012 /* WebScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F012 /* WebScreen.swift */; };
-		A1B2C3D4E5F607182900B013 /* WebViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */; };
-		A1B2C3D4E5F607182900B101 /* DiagnosticsLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */; };
-		A1B2C3D4E5F607182900B102 /* DomainPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */; };
-		A1B2C3D4E5F607182900B103 /* WebContentErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F103 /* WebContentErrorTests.swift */; };
 		A1B2C3D4E5F607182900B104 /* TranslationCompletenessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */; };
 		A1B2C3D4E5F607182900B105 /* PureTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */; };
 		A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */; };
-		A1B2C3D4E5F607182900B202 /* OnlinePlayerBridgeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F202 /* OnlinePlayerBridgeUITests.swift */; };
-		A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F014 /* domain-allowlist.json */; };
 		A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F098 /* Assets.xcassets */; };
 		A1B2C3D4E5F607182900B017 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F017 /* PlayerState.swift */; };
 		A1B2C3D4E5F607182900B018 /* PlayerProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F018 /* PlayerProtocols.swift */; };
-		A1B2C3D4E5F607182900B019 /* JSPlayerBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */; };
 		A1B2C3D4E5F607182900B01A /* AVPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F01A /* AVPlayerController.swift */; };
 		A1B2C3D4E5F607182900B01B /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F01B /* MiniPlayerBar.swift */; };
 		A1B2C3D4E5F607182900B01C /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F01C /* NowPlayingView.swift */; };
 		A1B2C3D4E5F607182900B106 /* PlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F106 /* PlayerTests.swift */; };
+		A1B2C3D4E5F607182900B008 /* JuchifyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F008 /* JuchifyModels.swift */; };
+		A1B2C3D4E5F607182900B009 /* JuchifyAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F009 /* JuchifyAPIClient.swift */; };
+		A1B2C3D4E5F607182900B00A /* CatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00A /* CatalogStore.swift */; };
+		A1B2C3D4E5F607182900B00B /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00B /* AuthStore.swift */; };
+		A1B2C3D4E5F607182900B00E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00E /* HomeView.swift */; };
+		A1B2C3D4E5F607182900B00F /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00F /* SearchView.swift */; };
+		A1B2C3D4E5F607182900B010 /* AlbumView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F010 /* AlbumView.swift */; };
+		A1B2C3D4E5F607182900B011 /* ArtistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F011 /* ArtistView.swift */; };
+		A1B2C3D4E5F607182900B012 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F012 /* LibraryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,32 +64,15 @@
 		A1B2C3D4E5F607182900F005 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F006 /* JucheboxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JucheboxApp.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F007 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F008 /* DomainPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainPolicy.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F009 /* PrivacySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettings.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F00A /* WebsiteDataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteDataCleaner.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F00B /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F016 /* NavigationBreadcrumb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationBreadcrumb.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F00C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F00D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F00E /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F00F /* ExternalLinkRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRequest.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F010 /* WebContentError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentError.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F011 /* WebNavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebNavigationCoordinator.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F012 /* WebScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebScreen.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewContainer.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F014 /* domain-allowlist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "domain-allowlist.json"; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F098 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLogTests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainPolicyTests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F103 /* WebContentErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentErrorTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationCompletenessTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PureTypeTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JucheboxUITests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F202 /* OnlinePlayerBridgeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlinePlayerBridgeUITests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F017 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F018 /* PlayerProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProtocols.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPlayerBridge.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F01A /* AVPlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerController.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F01B /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F01C /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
@@ -105,6 +80,15 @@
 		A1B2C3D4E5F607182900P001 /* Juchebox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Juchebox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F607182900P002 /* JucheboxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F607182900P003 /* JucheboxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F607182900F008 /* JuchifyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JuchifyModels.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F009 /* JuchifyAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JuchifyAPIClient.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00A /* CatalogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogStore.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00B /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00E /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00F /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F010 /* AlbumView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F011 /* ArtistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F012 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,9 +165,9 @@
 		A1B2C3D4E5F607182900G003 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F607182900G004 /* DomainPolicy */,
-				A1B2C3D4E5F607182900G005 /* Privacy */,
 				A1B2C3D4E5F607182900G00C /* Player */,
+				A1B2C3D4E5F607182900G004 /* API */,
+				A1B2C3D4E5F607182900G005 /* Auth */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -197,31 +181,14 @@
 			path = Player;
 			sourceTree = "<group>";
 		};
-		A1B2C3D4E5F607182900G004 /* DomainPolicy */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F607182900F008 /* DomainPolicy.swift */,
-			);
-			path = DomainPolicy;
-			sourceTree = "<group>";
-		};
-		A1B2C3D4E5F607182900G005 /* Privacy */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F607182900F009 /* PrivacySettings.swift */,
-				A1B2C3D4E5F607182900F00A /* WebsiteDataCleaner.swift */,
-			);
-			path = Privacy;
-			sourceTree = "<group>";
-		};
 		A1B2C3D4E5F607182900G006 /* Features */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F607182900G007 /* Diagnostics */,
 				A1B2C3D4E5F607182900G008 /* Onboarding */,
 				A1B2C3D4E5F607182900G009 /* Settings */,
-				A1B2C3D4E5F607182900G00A /* Web */,
 				A1B2C3D4E5F607182900G00D /* Player */,
+				A1B2C3D4E5F607182900G007 /* Catalog */,
+				A1B2C3D4E5F607182900G00A /* Library */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -230,20 +197,10 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F607182900F01A /* AVPlayerController.swift */,
-				A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */,
 				A1B2C3D4E5F607182900F01B /* MiniPlayerBar.swift */,
 				A1B2C3D4E5F607182900F01C /* NowPlayingView.swift */,
 			);
 			path = Player;
-			sourceTree = "<group>";
-		};
-		A1B2C3D4E5F607182900G007 /* Diagnostics */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F607182900F00B /* DiagnosticsLog.swift */,
-				A1B2C3D4E5F607182900F016 /* NavigationBreadcrumb.swift */,
-			);
-			path = Diagnostics;
 			sourceTree = "<group>";
 		};
 		A1B2C3D4E5F607182900G008 /* Onboarding */ = {
@@ -262,24 +219,10 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		A1B2C3D4E5F607182900G00A /* Web */ = {
-			isa = PBXGroup;
-			children = (
-				A1B2C3D4E5F607182900F00E /* ActivityView.swift */,
-				A1B2C3D4E5F607182900F00F /* ExternalLinkRequest.swift */,
-				A1B2C3D4E5F607182900F010 /* WebContentError.swift */,
-				A1B2C3D4E5F607182900F011 /* WebNavigationCoordinator.swift */,
-				A1B2C3D4E5F607182900F012 /* WebScreen.swift */,
-				A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */,
-			);
-			path = Web;
-			sourceTree = "<group>";
-		};
 		A1B2C3D4E5F607182900G00B /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F607182900F098 /* Assets.xcassets */,
-				A1B2C3D4E5F607182900F014 /* domain-allowlist.json */,
 				A1B2C3D4E5F607182900F015 /* Info.plist */,
 			);
 			path = Resources;
@@ -288,9 +231,6 @@
 		A1B2C3D4E5F607182900G010 /* JucheboxTests */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */,
-				A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */,
-				A1B2C3D4E5F607182900F103 /* WebContentErrorTests.swift */,
 				A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */,
 				A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */,
 				A1B2C3D4E5F607182900F106 /* PlayerTests.swift */,
@@ -302,9 +242,45 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */,
-				A1B2C3D4E5F607182900F202 /* OnlinePlayerBridgeUITests.swift */,
 			);
 			path = JucheboxUITests;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G004 /* API */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F008 /* JuchifyModels.swift */,
+				A1B2C3D4E5F607182900F009 /* JuchifyAPIClient.swift */,
+				A1B2C3D4E5F607182900F00A /* CatalogStore.swift */,
+			);
+			path = API;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G005 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F00B /* AuthStore.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G007 /* Catalog */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F00E /* HomeView.swift */,
+				A1B2C3D4E5F607182900F00F /* SearchView.swift */,
+				A1B2C3D4E5F607182900F010 /* AlbumView.swift */,
+				A1B2C3D4E5F607182900F011 /* ArtistView.swift */,
+			);
+			path = Catalog;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G00A /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F012 /* LibraryView.swift */,
+			);
+			path = Library;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -411,7 +387,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */,
 				A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -445,25 +420,22 @@
 				A1B2C3D4E5F607182900B005 /* AudioSessionController.swift in Sources */,
 				A1B2C3D4E5F607182900B006 /* JucheboxApp.swift in Sources */,
 				A1B2C3D4E5F607182900B007 /* RootView.swift in Sources */,
-				A1B2C3D4E5F607182900B008 /* DomainPolicy.swift in Sources */,
-				A1B2C3D4E5F607182900B009 /* PrivacySettings.swift in Sources */,
-				A1B2C3D4E5F607182900B00A /* WebsiteDataCleaner.swift in Sources */,
-				A1B2C3D4E5F607182900B00B /* DiagnosticsLog.swift in Sources */,
-				A1B2C3D4E5F607182900B016 /* NavigationBreadcrumb.swift in Sources */,
 				A1B2C3D4E5F607182900B00C /* OnboardingView.swift in Sources */,
 				A1B2C3D4E5F607182900B00D /* SettingsView.swift in Sources */,
-				A1B2C3D4E5F607182900B00E /* ActivityView.swift in Sources */,
-				A1B2C3D4E5F607182900B00F /* ExternalLinkRequest.swift in Sources */,
-				A1B2C3D4E5F607182900B010 /* WebContentError.swift in Sources */,
-				A1B2C3D4E5F607182900B011 /* WebNavigationCoordinator.swift in Sources */,
-				A1B2C3D4E5F607182900B012 /* WebScreen.swift in Sources */,
-				A1B2C3D4E5F607182900B013 /* WebViewContainer.swift in Sources */,
 				A1B2C3D4E5F607182900B017 /* PlayerState.swift in Sources */,
 				A1B2C3D4E5F607182900B018 /* PlayerProtocols.swift in Sources */,
-				A1B2C3D4E5F607182900B019 /* JSPlayerBridge.swift in Sources */,
 				A1B2C3D4E5F607182900B01A /* AVPlayerController.swift in Sources */,
 				A1B2C3D4E5F607182900B01B /* MiniPlayerBar.swift in Sources */,
 				A1B2C3D4E5F607182900B01C /* NowPlayingView.swift in Sources */,
+				A1B2C3D4E5F607182900B008 /* JuchifyModels.swift in Sources */,
+				A1B2C3D4E5F607182900B009 /* JuchifyAPIClient.swift in Sources */,
+				A1B2C3D4E5F607182900B00A /* CatalogStore.swift in Sources */,
+				A1B2C3D4E5F607182900B00B /* AuthStore.swift in Sources */,
+				A1B2C3D4E5F607182900B00E /* HomeView.swift in Sources */,
+				A1B2C3D4E5F607182900B00F /* SearchView.swift in Sources */,
+				A1B2C3D4E5F607182900B010 /* AlbumView.swift in Sources */,
+				A1B2C3D4E5F607182900B011 /* ArtistView.swift in Sources */,
+				A1B2C3D4E5F607182900B012 /* LibraryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -471,9 +443,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B2C3D4E5F607182900B101 /* DiagnosticsLogTests.swift in Sources */,
-				A1B2C3D4E5F607182900B102 /* DomainPolicyTests.swift in Sources */,
-				A1B2C3D4E5F607182900B103 /* WebContentErrorTests.swift in Sources */,
 				A1B2C3D4E5F607182900B104 /* TranslationCompletenessTests.swift in Sources */,
 				A1B2C3D4E5F607182900B105 /* PureTypeTests.swift in Sources */,
 				A1B2C3D4E5F607182900B106 /* PlayerTests.swift in Sources */,
@@ -485,7 +454,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */,
-				A1B2C3D4E5F607182900B202 /* OnlinePlayerBridgeUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

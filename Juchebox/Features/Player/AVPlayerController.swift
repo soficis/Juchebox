@@ -98,6 +98,15 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         publishIsPlaying(true)
     }
 
+    /// Attaches track metadata (title/artist/artwork) to the current state so
+    /// lockscreen Now Playing and the mini player reflect the real song.
+    func setTrack(_ track: TrackInfo) {
+        var state = stateSubject.value
+        state.currentTrack = track
+        state.duration = track.duration ?? state.duration
+        stateSubject.send(state)
+    }
+
     func stop() {
         if let timeObserver {
             player.removeTimeObserver(timeObserver)

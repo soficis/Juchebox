@@ -1,153 +1,120 @@
 import Foundation
-import WebKit
 import Combine
 
+/// Central app state for the native catalog player.
+/// Holds player state, navigation, and wires the API client + auth.
 @MainActor
 final class AppState: ObservableObject {
-    let homeURL: URL
-
-    @Published var canGoBack = false
-    @Published var canGoForward = false
-    @Published var isLoading = false
-    @Published var estimatedProgress = 0.0
-    @Published var currentURL: URL?
-    @Published var webContentError: WebContentError?
-    @Published var externalLinkRequest: ExternalLinkRequest?
-    @Published var toastMessage: String?
+    // MARK: - Player
 
     @Published var playerState: PlayerState = .empty
     @Published var isPlayerBarVisible: Bool = false
+    @Published var nowPlayingQueue: [Song] = []
+    @Published var queueIndex: Int = 0
+
+    // MARK: - Catalog navigation
+
+    @Published var selectedTab: Int = 0
+    @Published var navigationPath: [CatalogRoute] = []
+
+    // MARK: - Dependencies
+
+    let apiClient: JuchifyAPIClient
+    let authStore: AuthStore
 
     private var playerController: (any PlayerControllerProtocol)?
-    private var jsBridge: (any JSExtractorProtocol)?
     private var playerStateCancellable: AnyCancellable?
 
-    private weak var webView: WKWebView?
-
-    init(homeURL: URL = AppState.defaultHomeURL()) {
-        self.homeURL = homeURL
-        currentURL = homeURL
+    init(
+        apiClient: JuchifyAPIClient = JuchifyAPIClient(),
+        authStore: AuthStore = AuthStore()
+    ) {
+        self.apiClient = apiClient
+        self.authStore = authStore
     }
 
-    private static func defaultHomeURL() -> URL {
-        guard let url = URL(string: "https://juchify.com") else {
-            fatalError("The Juchify home URL constant is invalid.")
-        }
+    // MARK: - Player wiring
 
-        return url
-    }
-
-    func attach(_ webView: WKWebView) {
-        guard self.webView !== webView else { return }
-        self.webView = webView
-        updateNavigationState(from: webView)
-    }
-
-    func updateNavigationState(from webView: WKWebView) {
-        let newCanGoBack = webView.canGoBack
-        let newCanGoForward = webView.canGoForward
-        let newIsLoading = webView.isLoading
-        let newProgress = webView.estimatedProgress
-
-        if newCanGoBack != canGoBack { canGoBack = newCanGoBack }
-        if newCanGoForward != canGoForward { canGoForward = newCanGoForward }
-        if newIsLoading != isLoading { isLoading = newIsLoading }
-        if newProgress != estimatedProgress { estimatedProgress = newProgress }
-        if let newURL = webView.url, newURL != currentURL { currentURL = newURL }
-    }
-
-    func clearError() {
-        webContentError = nil
-    }
-
-    func showError(_ error: WebContentError) {
-        webContentError = error
-    }
-
-    func presentExternalLink(url: URL, reason: ExternalNavigationReason) {
-        externalLinkRequest = ExternalLinkRequest(url: url, reason: reason)
-    }
-
-    func goBack() {
-        guard webView?.canGoBack == true else { return }
-        clearError()
-        webView?.goBack()
-    }
-
-    func goForward() {
-        guard webView?.canGoForward == true else { return }
-        clearError()
-        webView?.goForward()
-    }
-
-    func reload() {
-        clearError()
-
-        if let webView {
-            webView.reload()
-        } else {
-            loadHome()
-        }
-    }
-
-    func loadHome() {
-        load(homeURL)
-    }
-
-    func load(_ url: URL) {
-        clearError()
-        currentURL = url
-        webView?.load(URLRequest(url: url))
-    }
-
-    func showToast(_ message: String) {
-        toastMessage = message
-
-        Task {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            guard self.toastMessage == message else { return }
-            self.toastMessage = nil
-        }
-    }
-
-    func configurePlayer(controller: any PlayerControllerProtocol, bridge: any JSExtractorProtocol) {
+    func configurePlayer(controller: any PlayerControllerProtocol) {
         guard playerController == nil else { return }
         playerController = controller
-        jsBridge = bridge
-
         playerStateCancellable = controller.statePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.playerState = state
             }
-
         isPlayerBarVisible = true
     }
 
-    func playerCommand(_ command: PlayerCommand) {
-        clearError()
+    /// Plays a song through the native player (direct MP3 stream).
+    func play(song: Song, from queue: [Song]? = nil) {
+        let fullQueue = queue ?? nowPlayingQueue
+        if fullQueue.isEmpty {
+            nowPlayingQueue = [song]
+            queueIndex = 0
+        } else {
+            nowPlayingQueue = fullQueue
+            queueIndex = fullQueue.firstIndex(where: { $0.id == song.id }) ?? 0
+        }
+        playCurrent()
+    }
 
+    /// Plays a whole album/playlist as a queue.
+    func play(queue: [Song], startAt index: Int = 0) {
+        guard !queue.isEmpty else { return }
+        nowPlayingQueue = queue
+        queueIndex = min(index, queue.count - 1)
+        playCurrent()
+    }
+
+    func playNext() {
+        guard !nowPlayingQueue.isEmpty else { return }
+        queueIndex = (queueIndex + 1) % nowPlayingQueue.count
+        playCurrent()
+    }
+
+    func playPrevious() {
+        guard !nowPlayingQueue.isEmpty else { return }
+        queueIndex = (queueIndex - 1 + nowPlayingQueue.count) % nowPlayingQueue.count
+        playCurrent()
+    }
+
+    private func playCurrent() {
+        guard nowPlayingQueue.indices.contains(queueIndex) else { return }
+        let song = nowPlayingQueue[queueIndex]
+        guard let url = song.streamURL else { return }
+        playerController?.setStream(url: url, startTime: 0)
+        playerController?.setTrack(song.trackInfo)
+    }
+
+    func playerCommand(_ command: PlayerCommand) {
         switch command {
-        case .play:
-            playerController?.play()
-        case .pause:
-            playerController?.pause()
-        case .togglePlayPause:
-            playerController?.togglePlayPause()
-        case .seek(let time):
-            playerController?.seek(to: time)
+        case .play, .pause, .togglePlayPause, .seek:
+            playerController?.apply(command)
         case .nextTrack:
-            playerController?.nextTrack()
-            Task { @MainActor in
-                await jsBridge?.sendCommand(command)
-            }
+            playNext()
         case .previousTrack:
-            playerController?.previousTrack()
-            Task { @MainActor in
-                await jsBridge?.sendCommand(command)
-            }
+            playPrevious()
         }
     }
 }
 
+/// Navigation routes within the catalog (used by the native UI).
+enum CatalogRoute: Hashable, Sendable {
+    case album(Int)
+    case artist(Int)
+}
 
+extension PlayerControllerProtocol {
+    /// Routes a `PlayerCommand` to the matching protocol method.
+    func apply(_ command: PlayerCommand) {
+        switch command {
+        case .play: play()
+        case .pause: pause()
+        case .togglePlayPause: togglePlayPause()
+        case .seek(let time): seek(to: time)
+        case .nextTrack: nextTrack()
+        case .previousTrack: previousTrack()
+        }
+    }
+}
