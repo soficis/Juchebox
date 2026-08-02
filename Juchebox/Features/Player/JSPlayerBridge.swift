@@ -46,11 +46,7 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
         guard let webView else { return }
         guard let js = clickScript(for: command) else { return }
 
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            webView.evaluateJavaScript(js, in: nil, contentWorld: contentWorld) { _, _ in
-                continuation.resume()
-            }
-        }
+        _ = try? await webView.evaluateJavaScript(js, in: nil, contentWorld: contentWorld)
     }
 
     // MARK: - WKScriptMessageHandler
@@ -61,7 +57,8 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
     ) {
         guard let body = message.body as? [String: Any] else { return }
         Task { @MainActor [weak self] in
-            self?.latestState = self?.parseState(from: body)
+            guard let self else { return }
+            self.latestState = self.parseState(from: body)
         }
     }
 
