@@ -200,6 +200,10 @@ private final class MockPlayerController: PlayerControllerProtocol {
 
     func setStream(url: URL, startTime: TimeInterval) {}
 
+    func setTrack(_ track: TrackInfo) {
+        storedState.currentTrack = track
+    }
+
     func stop() {}
 
     func emitState(_ state: PlayerState) {

@@ -13,6 +13,7 @@ protocol PlayerControllerProtocol: AnyObject {
     func nextTrack()
     func previousTrack()
     func setStream(url: URL, startTime: TimeInterval)
+    func setTrack(_ track: TrackInfo)
     func stop()
 }
 
