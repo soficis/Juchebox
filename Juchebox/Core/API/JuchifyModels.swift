@@ -125,7 +125,7 @@ struct Album: Codable, Equatable, Sendable {
 // MARK: - Song
 
 /// A track in every context: song detail, album track list, search, home sections.
-struct Song: Codable, Equatable, Sendable {
+struct Song: Codable, Equatable, Identifiable, Sendable {
     let id: Int
     let title: String?
     let trackNumber: Int?

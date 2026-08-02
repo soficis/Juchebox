@@ -37,7 +37,7 @@ final class AuthStore: ObservableObject {
 
     // MARK: - Keychain
 
-    private static func loadToken(service: String) -> String? {
+    nonisolated private static func loadToken(service: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -50,7 +50,7 @@ final class AuthStore: ObservableObject {
         return String(data: data, encoding: .utf8)
     }
 
-    private static func saveToken(_ token: String, service: String) {
+    nonisolated private static func saveToken(_ token: String, service: String) {
         let data = Data(token.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -69,7 +69,7 @@ final class AuthStore: ObservableObject {
         }
     }
 
-    private static func deleteToken(service: String) {
+    nonisolated private static func deleteToken(service: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
