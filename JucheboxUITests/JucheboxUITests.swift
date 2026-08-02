@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class JucheboxUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -55,8 +56,9 @@ final class JucheboxUITests: XCTestCase {
         let app = launchAcceptedApp()
 
         app.buttons["settingsTab"].tap()
+        XCTAssertTrue(app.staticTexts["Language Selection"].waitForExistence(timeout: 5))
+        app.swipeUp()
         XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Language Selection"].exists)
     }
 
     private func launchAcceptedApp() -> XCUIApplication {
