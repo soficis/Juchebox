@@ -1,5 +1,6 @@
 import Foundation
 import WebKit
+import Combine
 
 @MainActor
 final class AppState: ObservableObject {
@@ -13,6 +14,13 @@ final class AppState: ObservableObject {
     @Published var webContentError: WebContentError?
     @Published var externalLinkRequest: ExternalLinkRequest?
     @Published var toastMessage: String?
+
+    @Published var playerState: PlayerState = .empty
+    @Published var isPlayerBarVisible: Bool = false
+
+    private var playerController: (any PlayerControllerProtocol)?
+    private var jsBridge: (any JSExtractorProtocol)?
+    private var playerStateCancellable: AnyCancellable?
 
     private weak var webView: WKWebView?
 
@@ -99,6 +107,45 @@ final class AppState: ObservableObject {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             guard self.toastMessage == message else { return }
             self.toastMessage = nil
+        }
+    }
+
+    func configurePlayer(controller: any PlayerControllerProtocol, bridge: any JSExtractorProtocol) {
+        guard playerController == nil else { return }
+        playerController = controller
+        jsBridge = bridge
+
+        playerStateCancellable = controller.statePublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] state in
+                self?.playerState = state
+            }
+
+        isPlayerBarVisible = true
+    }
+
+    func playerCommand(_ command: PlayerCommand) {
+        clearError()
+
+        switch command {
+        case .play:
+            playerController?.play()
+        case .pause:
+            playerController?.pause()
+        case .togglePlayPause:
+            playerController?.togglePlayPause()
+        case .seek(let time):
+            playerController?.seek(to: time)
+        case .nextTrack:
+            playerController?.nextTrack()
+            Task { @MainActor in
+                await jsBridge?.sendCommand(command)
+            }
+        case .previousTrack:
+            playerController?.previousTrack()
+            Task { @MainActor in
+                await jsBridge?.sendCommand(command)
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ struct WebScreen: View {
     @ObservedObject var diagnosticsLog: DiagnosticsLog
     let domainPolicy: DomainPolicy
     @ObservedObject var privacySettings: PrivacySettings
+    let jsBridge: JSPlayerBridge
+    var playerController: AVPlayerController?
 
     @AppStorage(AppStorageKey.appLanguage) private var appLanguageRaw = AppLanguage.english.rawValue
     private var appLanguage: AppLanguage {
@@ -37,7 +39,8 @@ struct WebScreen: View {
                     appState: appState,
                     diagnosticsLog: diagnosticsLog,
                     domainPolicy: domainPolicy,
-                    privacySettings: privacySettings
+                    privacySettings: privacySettings,
+                    jsBridge: jsBridge
                 )
                 .id(privacySettings.isEphemeralSession)
                 .background(Color.black)
@@ -153,6 +156,31 @@ struct WebScreen: View {
         if arguments.contains("--show-external-link-confirmation"),
            let url = URL(string: "https://example.com") {
             appState.presentExternalLink(url: url, reason: .externalHTTPSHost("example.com"))
+        }
+
+        if arguments.contains("--show-player-bar") {
+            appState.isPlayerBarVisible = true
+        }
+
+        if arguments.contains("--player-state-playing") {
+            let track = TrackInfo(
+                id: "test-id",
+                title: "Test Song",
+                artist: "Test Artist",
+                album: nil,
+                albumId: nil,
+                artistId: nil,
+                duration: 180,
+                artworkURL: nil
+            )
+            appState.playerState = PlayerState(
+                currentTrack: track,
+                isPlaying: true,
+                currentTime: 30,
+                duration: 180,
+                isStalled: false,
+                streamURL: nil
+            )
         }
     }
 

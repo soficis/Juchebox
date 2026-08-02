@@ -80,6 +80,36 @@ final class JucheboxUITests: XCTestCase {
         XCTAssertTrue(app.buttons["webErrorReloadButton"].exists)
     }
 
+    func testNowPlayingTabAccessible() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--accept-onboarding", "--ui-testing-offline", "--show-player-bar"]
+        app.launch()
+
+        XCTAssertTrue(app.buttons["nowPlayingTab"].waitForExistence(timeout: 10))
+        app.buttons["nowPlayingTab"].tap()
+
+        XCTAssertTrue(app.staticTexts["No track playing"].waitForExistence(timeout: 5))
+    }
+
+    func testMiniPlayerBarAppears() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--accept-onboarding", "--ui-testing-offline", "--show-player-bar"]
+        app.launch()
+
+        XCTAssertTrue(app.buttons["No track playing"].waitForExistence(timeout: 10))
+    }
+
+    func testTabSwitchPreservesWebView() throws {
+        let app = launchAcceptedApp()
+
+        XCTAssertTrue(app.webViews["mainWebView"].waitForExistence(timeout: 10))
+
+        app.buttons["Now Playing"].tap()
+        app.buttons["Home"].tap()
+
+        XCTAssertTrue(app.webViews["mainWebView"].exists)
+    }
+
     private func launchAcceptedApp(extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--accept-onboarding", "--ui-testing-offline"] + extraArguments

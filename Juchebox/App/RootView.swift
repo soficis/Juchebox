@@ -6,6 +6,8 @@ struct RootView: View {
     @ObservedObject var diagnosticsLog: DiagnosticsLog
     let domainPolicy: DomainPolicy
     @ObservedObject var privacySettings: PrivacySettings
+    let jsBridge: JSPlayerBridge
+    let playerController: AVPlayerController
 
     @AppStorage(AppStorageKey.hasAcceptedUnofficialDisclaimer) private var hasAcceptedUnofficialDisclaimer = false
     @AppStorage(AppStorageKey.appLanguage) private var appLanguageRaw = AppLanguage.english.rawValue
@@ -20,21 +22,34 @@ struct RootView: View {
         Group {
             if hasAcceptedUnofficialDisclaimer {
                 VStack(spacing: 0) {
-                    switch selectedTab {
-                    case 0:
+                    ZStack {
                         WebScreen(
                             appState: appState,
                             audioSessionController: audioSessionController,
                             diagnosticsLog: diagnosticsLog,
                             domainPolicy: domainPolicy,
-                            privacySettings: privacySettings
+                            privacySettings: privacySettings,
+                            jsBridge: jsBridge,
+                            playerController: playerController
                         )
-                    default:
+                        .opacity(selectedTab == 0 ? 1 : 0)
+                        .allowsHitTesting(selectedTab == 0)
+
+                        NowPlayingView(appState: appState)
+                            .opacity(selectedTab == 1 ? 1 : 0)
+                            .allowsHitTesting(selectedTab == 1)
+
                         SettingsView(
                             appState: appState,
                             diagnosticsLog: diagnosticsLog,
                             privacySettings: privacySettings
                         )
+                        .opacity(selectedTab == 2 ? 1 : 0)
+                        .allowsHitTesting(selectedTab == 2)
+                    }
+
+                    MiniPlayerBar(appState: appState) {
+                        selectedTab = 1
                     }
 
                     ChollimaTabBar(selectedTab: $selectedTab, language: appLanguage)
@@ -65,11 +80,20 @@ private struct ChollimaTabBar: View {
             }
 
             tabButton(
-                title: t(.toolbarSettings, language: language),
-                systemImage: selectedTab == 1 ? "gearshape.fill" : "gearshape",
-                isSelected: selectedTab == 1
+                title: t(.tabNowPlaying, language: language),
+                systemImage: selectedTab == 1 ? "music.note.list.fill" : "music.note.list",
+                isSelected: selectedTab == 1,
+                accessibilityIdentifier: AccessibilityID.nowPlayingTab
             ) {
                 selectedTab = 1
+            }
+
+            tabButton(
+                title: t(.toolbarSettings, language: language),
+                systemImage: selectedTab == 2 ? "gearshape.fill" : "gearshape",
+                isSelected: selectedTab == 2
+            ) {
+                selectedTab = 2
             }
         }
         .frame(height: 56)
@@ -85,6 +109,7 @@ private struct ChollimaTabBar: View {
         title: String,
         systemImage: String,
         isSelected: Bool,
+        accessibilityIdentifier: String? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -101,5 +126,6 @@ private struct ChollimaTabBar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        .accessibilityIdentifier(accessibilityIdentifier ?? "")
     }
 }

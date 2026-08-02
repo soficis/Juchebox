@@ -116,6 +116,23 @@ Storage: `UserDefaults` array of URL strings (user-created data only — doctrin
 | Active | `AppTheme.surface` card, gold border, StarShape in crimson, title gold serif, "다시읽기"/"Reload" crimson button |
 | Retry in progress | Button shows spinner |
 
+### Mini-Player Bar (48pt, above tab bar)
+| State | Visual |
+|---|---|
+| No track | Hidden (0 height) |
+| Paused | `AppTheme.elevatedSurface` background, gold track title, crimson play button, grey artwork placeholder |
+| Playing | `AppTheme.elevatedSurface` background, gold track title, crimson pause button, track artwork thumbnail (40×40, `AppRadius.sm`) |
+| Loading | Activity indicator replaces artwork; title shows "Loading…"/"로딩중…" |
+| Tap | Opens Now Playing view (sheet/full-screen transition) |
+
+### Now Playing View (full-screen)
+| State | Visual |
+|---|---|
+| No track | Empty state: StarShape in `accent`, "No track selected"/"트랙 미선택" in `secondaryText` |
+| Playing | Album artwork (centered, 280×280, `AppRadius.lg`), track title (serif `.title2`, `secondaryText`), artist (body, `primaryText`), progress scrubber (`accent` fill, `mutedText` elapsed/remaining), transport controls (previous, play/pause, next — `accent` filled SF Symbols), shuffle/repeat toggles (`mutedText` inactive, `accent` active) |
+| Paused | Same as Playing but pause icon swaps to play; progress scrubber thumb visible |
+| Loading | Artwork placeholder with activity indicator; transport controls disabled (`mutedText`) |
+
 ## 9. Accessibility Constraints
 
 - Touch targets ≥ 44×44pt.
@@ -128,6 +145,5 @@ Storage: `UserDefaults` array of URL strings (user-created data only — doctrin
 
 - No Card Grid / Discover surface (V2 rejected by owner — not needed).
 - No My Library tab (Save Page button only; list UI if demand appears).
-- No Mini-Player bar (no legitimate audio-state signal exists — validator attack; never fabricate).
 - No skeleton shimmer (over-engineering — skeptic verdict).
 - WebToolbar remains a bottom bar above the tab bar in Browse tab (not replaced by a 4-tab Navigator Shell).

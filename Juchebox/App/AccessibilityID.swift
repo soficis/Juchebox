@@ -18,5 +18,6 @@ enum AccessibilityID {
     static let exportDiagnosticsButton = "exportDiagnosticsButton"
     static let searchButton = "searchButton"
     static let savePageButton = "savePageButton"
+    static let nowPlayingTab = "nowPlayingTab"
 }
 

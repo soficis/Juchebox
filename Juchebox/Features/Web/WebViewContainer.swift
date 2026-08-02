@@ -6,6 +6,7 @@ struct WebViewContainer: UIViewRepresentable {
     @ObservedObject var diagnosticsLog: DiagnosticsLog
     let domainPolicy: DomainPolicy
     @ObservedObject var privacySettings: PrivacySettings
+    let jsBridge: JSPlayerBridge
 
     func makeCoordinator() -> WebNavigationCoordinator {
         WebNavigationCoordinator(
@@ -43,7 +44,9 @@ struct WebViewContainer: UIViewRepresentable {
 
         // UI tests pass --ui-testing-offline so the app stays idle and
         // native chrome is queryable without depending on the live site.
+        // The bridge injects WKUserScript whose JS errors would break UI tests.
         if !CommandLine.arguments.contains("--ui-testing-offline") {
+            jsBridge.attach(to: webView)
             webView.load(URLRequest(url: appState.homeURL))
         }
 

@@ -73,5 +73,14 @@ extension Translation.Key {
         .blockedMessageDownloadUnsupported,
         .searchButton, .searchPlaceholder, .searchGo,
         .saveButton, .toastPageSaved, .toastNoPageToSave,
+        .playerAirplayLabel, .playerArtworkAccessibility,
+        .playerDurationLabel, .playerHistoryEmpty, .playerLockscreenPaused,
+        .playerMiniNowPlaying, .playerNextTrackButton, .playerNoTrackPlaying,
+        .playerNowPlayingTab, .playerPauseButton, .playerPlayButton,
+        .playerPlayHistory, .playerPreviousTrackButton, .playerQueueEmpty,
+        .playerQueueTab, .playerRepeat, .playerRepeatOne,
+        .playerSeekBackward, .playerSeekForward, .playerSeekLabel,
+        .playerShuffle, .playerUnknownArtist, .playerUnknownTitle, .playerUpNext,
+        .tabNowPlaying,
     ]
 }

@@ -16,6 +16,8 @@ struct JucheboxApp: App {
     @StateObject private var audioSessionController = AudioSessionController()
     @StateObject private var diagnosticsLog = DiagnosticsLog()
     @StateObject private var privacySettings = PrivacySettings()
+    private let jsBridge = JSPlayerBridge()
+    private let playerController = AVPlayerController()
 
     private let domainPolicy = DomainPolicy.bundled()
 
@@ -26,14 +28,16 @@ struct JucheboxApp: App {
                 audioSessionController: audioSessionController,
                 diagnosticsLog: diagnosticsLog,
                 domainPolicy: domainPolicy,
-                privacySettings: privacySettings
+                privacySettings: privacySettings,
+                jsBridge: jsBridge,
+                playerController: playerController
             )
             .preferredColorScheme(.dark)
             .onAppear {
                 audioSessionController.start()
+                audioSessionController.configure(player: playerController)
+                appState.configurePlayer(controller: playerController, bridge: jsBridge)
             }
         }
     }
 }
-
-

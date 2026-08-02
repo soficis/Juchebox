@@ -36,6 +36,13 @@
 		A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */; };
 		A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F014 /* domain-allowlist.json */; };
 		A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F098 /* Assets.xcassets */; };
+		A1B2C3D4E5F607182900B017 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F017 /* PlayerState.swift */; };
+		A1B2C3D4E5F607182900B018 /* PlayerProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F018 /* PlayerProtocols.swift */; };
+		A1B2C3D4E5F607182900B019 /* JSPlayerBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */; };
+		A1B2C3D4E5F607182900B01A /* AVPlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F01A /* AVPlayerController.swift */; };
+		A1B2C3D4E5F607182900B01B /* MiniPlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F01B /* MiniPlayerBar.swift */; };
+		A1B2C3D4E5F607182900B01C /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F01C /* NowPlayingView.swift */; };
+		A1B2C3D4E5F607182900B106 /* PlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F106 /* PlayerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,6 +93,13 @@
 		A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationCompletenessTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PureTypeTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JucheboxUITests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F017 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F018 /* PlayerProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProtocols.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPlayerBridge.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F01A /* AVPlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F01B /* MiniPlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerBar.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F01C /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F106 /* PlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900P001 /* Juchebox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Juchebox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F607182900P002 /* JucheboxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F607182900P003 /* JucheboxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -167,8 +181,18 @@
 			children = (
 				A1B2C3D4E5F607182900G004 /* DomainPolicy */,
 				A1B2C3D4E5F607182900G005 /* Privacy */,
+				A1B2C3D4E5F607182900G00C /* Player */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G00C /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F018 /* PlayerProtocols.swift */,
+				A1B2C3D4E5F607182900F017 /* PlayerState.swift */,
+			);
+			path = Player;
 			sourceTree = "<group>";
 		};
 		A1B2C3D4E5F607182900G004 /* DomainPolicy */ = {
@@ -195,8 +219,20 @@
 				A1B2C3D4E5F607182900G008 /* Onboarding */,
 				A1B2C3D4E5F607182900G009 /* Settings */,
 				A1B2C3D4E5F607182900G00A /* Web */,
+				A1B2C3D4E5F607182900G00D /* Player */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G00D /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F01A /* AVPlayerController.swift */,
+				A1B2C3D4E5F607182900F019 /* JSPlayerBridge.swift */,
+				A1B2C3D4E5F607182900F01B /* MiniPlayerBar.swift */,
+				A1B2C3D4E5F607182900F01C /* NowPlayingView.swift */,
+			);
+			path = Player;
 			sourceTree = "<group>";
 		};
 		A1B2C3D4E5F607182900G007 /* Diagnostics */ = {
@@ -255,6 +291,7 @@
 				A1B2C3D4E5F607182900F103 /* WebContentErrorTests.swift */,
 				A1B2C3D4E5F607182900F104 /* TranslationCompletenessTests.swift */,
 				A1B2C3D4E5F607182900F105 /* PureTypeTests.swift */,
+				A1B2C3D4E5F607182900F106 /* PlayerTests.swift */,
 			);
 			path = JucheboxTests;
 			sourceTree = "<group>";
@@ -418,6 +455,12 @@
 				A1B2C3D4E5F607182900B011 /* WebNavigationCoordinator.swift in Sources */,
 				A1B2C3D4E5F607182900B012 /* WebScreen.swift in Sources */,
 				A1B2C3D4E5F607182900B013 /* WebViewContainer.swift in Sources */,
+				A1B2C3D4E5F607182900B017 /* PlayerState.swift in Sources */,
+				A1B2C3D4E5F607182900B018 /* PlayerProtocols.swift in Sources */,
+				A1B2C3D4E5F607182900B019 /* JSPlayerBridge.swift in Sources */,
+				A1B2C3D4E5F607182900B01A /* AVPlayerController.swift in Sources */,
+				A1B2C3D4E5F607182900B01B /* MiniPlayerBar.swift in Sources */,
+				A1B2C3D4E5F607182900B01C /* NowPlayingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,6 +473,7 @@
 				A1B2C3D4E5F607182900B103 /* WebContentErrorTests.swift in Sources */,
 				A1B2C3D4E5F607182900B104 /* TranslationCompletenessTests.swift in Sources */,
 				A1B2C3D4E5F607182900B105 /* PureTypeTests.swift in Sources */,
+				A1B2C3D4E5F607182900B106 /* PlayerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -496,7 +540,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.Juchebox;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -520,7 +564,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.Juchebox;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				PRODUCT_NAME = "$(TARGET_NAME)";

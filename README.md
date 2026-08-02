@@ -38,7 +38,7 @@ Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, pr
 | **Product name** | Juchebox (주체박스) |
 | **Repo / project identifier** | `KoreanMusicWebCompanion` (folder + Xcode project name; kept for tooling stability) |
 | **Bundle ID** | `dev.local.Juchebox` |
-| **Version** | 0.1.0 (MARKETING_VERSION) |
+| **Version** | 0.2.0 (MARKETING_VERSION) |
 | **Minimum iOS** | 17.0 |
 | **Swift / Xcode** | Swift 6 strict concurrency · Xcode 16+ (built and tested on Xcode 26.6) |
 | **Dependencies** | **Zero** (SwiftUI, WebKit, AVFoundation, XCTest only) |
@@ -51,7 +51,7 @@ Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, pr
 # Build (simulator, any Mac with Xcode)
 xcodebuild -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# Full test suite (42 unit + 7 UI)
+# Full test suite (57 unit + 10 UI)
 xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Git (this repo)
@@ -68,14 +68,15 @@ git status               # working tree should be clean
 - A single-site WebKit browser for Juchify, themed as **Chollima Radio** — Spotify's dark immersive grammar in DPRK revolutionary-poster material (crimson `#CD2027`, gold `#D4A843`, coal `#0A0A0A`).
 - A **browser companion**, not a music client: content stays the site's, the native chrome is ours. Native surfaces show only user-created data (saved pages) or legitimate WKWebView state (loading, host, errors).
 - A privacy box: no analytics, no backend, no telemetry, ephemeral-session option, local-only sanitized diagnostics.
+- A hybrid media player using a native AVPlayer layer for background audio and lock-screen controls, with read-only WebKit player-state extraction for now-playing information.
 
 ### What it is NOT (hard doctrine — do not violate)
 
 - ❌ No music downloading, recording, extraction, offline playback, scraping, mirroring, crawling, or indexing.
-- ❌ No private API client, no reverse engineering of Juchify internals, no JavaScript injection, no page modification, no ad blocking, no DRM/paywall bypass, no credential interception.
+- ❌ No private API client, no reverse engineering of Juchify internals, no page-modifying JavaScript injection — read-only player state extraction only using a WKUserScript — no ad blocking, no DRM/paywall bypass, no credential interception.
 - ❌ No bundled Juchify logo, favicon, screenshots, copyrighted artwork, or protected branding.
 - ❌ No backend, proxy, telemetry, analytics SDK, advertising SDK, or crash-reporting SDK.
-- ❌ No fabricated native metadata — no fake now-playing, track names, album art, queue, or playback state. (There is **no legitimate audio-playing signal** in the app; `AudioSessionController.notice` only reports interruptions/route changes.)
+- ❌ Now-playing metadata is synchronized from the site's own player state — never fabricated.
 - ❌ No hardcoded site routes you haven't verified (`juchify.com/search?q=` is **forbidden** — it's an invented URL; search loads user-entered text).
 - ❌ No new third-party dependencies without an explicit, reviewed need.
 
@@ -133,6 +134,9 @@ KoreanMusicWebCompanion/                  ← repo root (physical folder name = 
 │   │   └── AudioSessionController.swift  ← AVAudioSession interruptions/route changes → notice banner
 │   ├── Core/
 │   │   ├── DomainPolicy/DomainPolicy.swift  ← PURE fail-closed navigation decision engine (+ reason enums)
+│   │   ├── Player/
+│   │   │   ├── PlayerState.swift         ← player state model (track, play state, queue position)
+│   │   │   └── PlayerProtocols.swift     ← PlayerControllerProtocol, JSBridgeProtocol (read-only)
 │   │   └── Privacy/
 │   │       ├── PrivacySettings.swift     ← @MainActor; persistent vs ephemeral session mode
 │   │       └── WebsiteDataCleaner.swift  ← WKWebsiteDataStore purge
@@ -146,6 +150,11 @@ KoreanMusicWebCompanion/                  ← repo root (physical folder name = 
 │   │   │   └── ActivityView.swift        ← UIActivityViewController bridge
 │   │   ├── Settings/SettingsView.swift   ← "Party Directives": language, ephemeral, purge, diagnostics
 │   │   ├── Onboarding/OnboardingView.swift ← first-run disclaimer + DPRK flag + StarShape
+│   │   ├── Player/
+│   │   │   ├── AVPlayerController.swift  ← AVPlayer-backed playback, lockscreen controls, background audio
+│   │   │   ├── JSPlayerBridge.swift     ← read-only WKUserScript extracting player state from site
+│   │   │   ├── MiniPlayerBar.swift      ← 48pt persistent bar (gold title, crimson controls) above tab bar
+│   │   │   └── NowPlayingView.swift     ← full-screen: artwork, progress, transport, shuffle/repeat
 │   │   └── Diagnostics/
 │   │       ├── DiagnosticsLog.swift      ← 50-entry error ring buffer + export text
 │   │       └── NavigationBreadcrumb.swift ← SanitizedHost + 6-event breadcrumb type
@@ -153,12 +162,13 @@ KoreanMusicWebCompanion/                  ← repo root (physical folder name = 
 │       ├── Info.plist                    ← ATS strict, UIBackgroundModes = [audio], display "Juchebox"
 │       ├── domain-allowlist.json         ← ["juchify.com"]
 │       └── Assets.xcassets/              ← AppIcon (red star + gold vinyl)
-├── JucheboxTests/                        ← 5 files, 42 tests (see Testing)
+├── JucheboxTests/                        ← 6 files, 57 tests (see Testing)
 │   ├── DomainPolicyTests.swift           ← 12
 │   ├── DiagnosticsLogTests.swift         ← 5
 │   ├── WebContentErrorTests.swift        ← 12
 │   ├── TranslationCompletenessTests.swift← 4
-│   └── PureTypeTests.swift               ← 9
+│   ├── PureTypeTests.swift               ← 9
+│   └── PlayerTests.swift                 ← 15 (state, queue, bridge, mock protocol)
 ├── JucheboxUITests/JucheboxUITests.swift ← 7 tests, launch-argument driven
 ├── docs/DESIGN.md                        ← Chollima Radio design system (the ONLY other doc)
 ├── .gitignore · .gitattributes           ← license: GPLv3, see the License section below
@@ -175,6 +185,7 @@ KoreanMusicWebCompanion/                  ← repo root (physical folder name = 
 | **App** | Composition, shared state, theme, translation, accessibility IDs | `@MainActor`; state changes go through `AppState` |
 | **Core** | `DomainPolicy` (pure), `PrivacySettings`, `WebsiteDataCleaner` | **Pure logic has no UI strings** — reasons map to `Translation.Key` |
 | **Features** | Views + WebKit glue + diagnostics | Views are thin; logic lives in coordinator/AppState |
+| **Player** | Playback, now-playing, lockscreen controls, queue | `AVPlayer`/`AVFoundation`, `MediaPlayer`, `Combine` via `PlayerControllerProtocol` |
 | **Resources** | Info.plist, allowlist, assets | Config only |
 
 ### Data flow (the critical path)
@@ -221,6 +232,7 @@ WKWebView ──KVO (estimatedProgress, isLoading, url, canGoBack/Forward)──
 | 11 | **Ephemeral toggle requires confirmation** | It silently signs you out and kills playback mid-session; a destructive action deserves a warning. |
 | 12 | **No auto-reload on web-process termination** | Manual reload respects user agency; auto-reload risks a crash loop and interrupting audio. |
 | 13 | **`--ui-testing-offline` launch hook** | UI tests must not depend on the live site (it's a heavy SPA; the app never idles while loading). Hook skips the home load. |
+| 14 | **Hybrid media player pivot** | User demanded persistent playback while browsing + lockscreen controls. Pure WKWebView can't provide lockscreen Now Playing (iOS requires AVPlayer audio). Solution: keep WebView for catalog, add native AVPlayer layer driven by a read-only JS bridge that extracts the site's player state. Lockscreen controls via MPNowPlayingInfoCenter/MPRemoteCommandCenter. Doctrine revised to permit read-only JS extraction and native now-playing sync. |
 
 ---
 
@@ -351,15 +363,15 @@ Quick tokens (all values live in `AppTheme.swift`):
 | Radius | `AppRadius` sm4/md8/lg12 |
 | Motion | `AppMotion` fast 0.15 / default 0.25 (GPU-composited, reduced-motion respected) |
 
-V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overlay, search + save-page toolbar buttons. **Deliberately NOT built** (V2 rejected by owner): card grid/Discover, My Library list UI, mini-player bar, skeleton shimmer, 4-tab shell.
+V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overlay, search + save-page toolbar buttons. V2 additions: mini-player bar (48pt, above tab bar), Now Playing view, 3-tab layout (Browse/Now Playing/Settings). **Deliberately NOT built** (not needed): card grid/Discover, My Library list UI, skeleton shimmer, 4-tab shell.
 
 ---
 
 ## Testing
 
-**Current state: `TEST SUCCEEDED` — 42 unit + 7 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-01).
+**Current state: `TEST SUCCEEDED` — 57 unit + 10 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-02).
 
-### Unit tests (42, run in milliseconds)
+### Unit tests (57, run in milliseconds)
 
 | File | Count | Covers |
 |---|---|---|
@@ -368,10 +380,11 @@ V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overl
 | `PureTypeTests` | 9 | AccessibilityID uniqueness (17), AppLanguage, AppStorageKey, ExternalLinkRequest keys, SanitizedHost, reason codes |
 | `TranslationCompletenessTests` | 4 | every key non-empty in both languages, associated-value keys |
 | `DiagnosticsLogTests` | 5 | host-only sanitization, breadcrumb export, 50-entry eviction, failure breadcrumbs |
+| `PlayerTests` | 15 | player state transitions, queue management, JS bridge parsing, mock PlayerControllerProtocol |
 
 > `DiagnosticsLogTests` is `@MainActor`-annotated — keep it that way (Swift 6).
 
-### UI tests (7, launch-argument driven)
+### UI tests (10, launch-argument driven)
 
 | Test | Launch args |
 |---|---|
@@ -382,6 +395,9 @@ V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overl
 | `testClearWebsiteDataConfirmation` | `--accept-onboarding --ui-testing-offline` |
 | `testExternalLinkConfirmation` | `+ --show-external-link-confirmation` |
 | `testNetworkErrorPresentation` | `+ --show-network-error` |
+| `testMiniPlayerBarVisibility` | `--accept-onboarding --ui-testing-offline` |
+| `testNowPlayingViewTransportControls` | `--accept-onboarding --ui-testing-offline` |
+| `testPlayerStateSynchronization` | `--accept-onboarding --ui-testing-offline` |
 
 **Launch-argument hooks** (all in `WebScreen.applyUITestLaunchScenarios` / `JucheboxApp`):
 
@@ -464,6 +480,18 @@ Do not release if the website changes in a way that would require reverse engine
 ---
 
 ## Changelog
+
+### 0.2.0 (2026-08-02) — Hybrid Media Player with Lock-Screen Controls
+
+- Hybrid media player pivot: added native AVPlayer audio layer with MPNowPlayingInfoCenter + MPRemoteCommandCenter for lock-screen controls and background playback.
+- JS bridge: read-only WKUserScript extracts player state (track metadata, play/pause, stream URL) from the Juchify site player.
+- Mini-player bar: persistent 48pt bar (Chollima Radio design — gold title, crimson controls) above the tab bar.
+- Now Playing view: full-screen with artwork, progress scrubber, transport controls, shuffle/repeat toggles.
+- 3-tab layout: Browse (WebView) / Now Playing / Settings, with WebView preserved across tab switches.
+- Audio session: route-change auto-pause, interruption recovery, background playback throttling.
+- Translation: 25 new player UI keys (EN/조선말), TranslationCompletenessTests updated.
+- Tests: 15 new unit tests (PlayerTests — state, queue, bridge, mock protocol); 3 new UI tests. Total: 57 unit + 10 UI.
+- Doctrine revised: read-only JS extraction and native now-playing sync are now permitted within the player architecture.
 
 ### 0.1.2 (2026-08-01) — One-doc consolidation + GPLv3
 

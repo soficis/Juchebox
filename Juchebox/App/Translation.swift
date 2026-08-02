@@ -113,6 +113,32 @@ enum Translation {
         case toastPageSaved
         case toastNoPageToSave
 
+        case playerPlayButton
+        case playerPauseButton
+        case playerNextTrackButton
+        case playerPreviousTrackButton
+        case playerSeekForward
+        case playerSeekBackward
+        case playerMiniNowPlaying
+        case playerNoTrackPlaying
+        case playerUnknownArtist
+        case playerUnknownTitle
+        case tabNowPlaying
+        case playerNowPlayingTab
+        case playerQueueTab
+        case playerShuffle
+        case playerRepeat
+        case playerRepeatOne
+        case playerUpNext
+        case playerPlayHistory
+        case playerQueueEmpty
+        case playerHistoryEmpty
+        case playerSeekLabel
+        case playerDurationLabel
+        case playerAirplayLabel
+        case playerLockscreenPaused
+        case playerArtworkAccessibility
+
         var englishValue: String {
             switch self {
             case .appName: return "Juchebox"
@@ -199,6 +225,31 @@ enum Translation {
             case .saveButton: return "Save Page"
             case .toastPageSaved: return "Page saved."
             case .toastNoPageToSave: return "No page to save."
+            case .playerPlayButton: return "Play"
+            case .playerPauseButton: return "Pause"
+            case .playerNextTrackButton: return "Next Track"
+            case .playerPreviousTrackButton: return "Previous Track"
+            case .playerSeekForward: return "Seek Forward"
+            case .playerSeekBackward: return "Seek Backward"
+            case .playerMiniNowPlaying: return "Now Playing"
+            case .playerNoTrackPlaying: return "No track playing"
+            case .playerUnknownArtist: return "Unknown Artist"
+            case .playerUnknownTitle: return "Unknown Title"
+            case .tabNowPlaying: return "Now Playing"
+            case .playerNowPlayingTab: return "Now Playing"
+            case .playerQueueTab: return "Queue"
+            case .playerShuffle: return "Shuffle"
+            case .playerRepeat: return "Repeat"
+            case .playerRepeatOne: return "Repeat One"
+            case .playerUpNext: return "Up Next"
+            case .playerPlayHistory: return "History"
+            case .playerQueueEmpty: return "Queue is empty"
+            case .playerHistoryEmpty: return "No play history"
+            case .playerSeekLabel: return "Seek"
+            case .playerDurationLabel: return "Duration"
+            case .playerAirplayLabel: return "AirPlay"
+            case .playerLockscreenPaused: return "Paused"
+            case .playerArtworkAccessibility: return "Album artwork"
             }
         }
 
@@ -288,6 +339,31 @@ enum Translation {
             case .saveButton: return "페지 보관"
             case .toastPageSaved: return "페지가 보관되었습니다."
             case .toastNoPageToSave: return "보관할 페지가 없습네다."
+            case .playerPlayButton: return "재생"
+            case .playerPauseButton: return "중지"
+            case .playerNextTrackButton: return "다음곡"
+            case .playerPreviousTrackButton: return "이전곡"
+            case .playerSeekForward: return "앞으로 넘기기"
+            case .playerSeekBackward: return "뒤로 되돌리기"
+            case .playerMiniNowPlaying: return "지금련주"
+            case .playerNoTrackPlaying: return "련주하고있는 곡이 없습니다"
+            case .playerUnknownArtist: return "알려지지 않은 연주자"
+            case .playerUnknownTitle: return "알려지지 않은 제목"
+            case .tabNowPlaying: return "지금련주"
+            case .playerNowPlayingTab: return "지금련주"
+            case .playerQueueTab: return "대기렬"
+            case .playerShuffle: return "섞어서"
+            case .playerRepeat: return "거듭재생"
+            case .playerRepeatOne: return "한곡거듭"
+            case .playerUpNext: return "다음대기"
+            case .playerPlayHistory: return "련주력사"
+            case .playerQueueEmpty: return "대기렬이 비여있습니다"
+            case .playerHistoryEmpty: return "련주력사가 없습니다"
+            case .playerSeekLabel: return "이동"
+            case .playerDurationLabel: return "시간"
+            case .playerAirplayLabel: return "에어플레이"
+            case .playerLockscreenPaused: return "중지됨"
+            case .playerArtworkAccessibility: return "음반화상"
             }
         }
     }
