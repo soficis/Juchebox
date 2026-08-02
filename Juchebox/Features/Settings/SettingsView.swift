@@ -10,6 +10,7 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @State private var isClearConfirmationPresented = false
     @State private var isClearingWebsiteData = false
+    @State private var isEphemeralConfirmationPresented = false
     @State private var diagnosticsExport: DiagnosticsExport?
 
     @AppStorage(AppStorageKey.appLanguage) private var appLanguageRaw = AppLanguage.english.rawValue
@@ -63,6 +64,11 @@ struct SettingsView: View {
                     Toggle(t(.ephemeralToggle, language: appLanguage), isOn: $privacySettings.isEphemeralSession)
                         .accessibilityIdentifier(AccessibilityID.ephemeralSessionToggle)
                         .tint(AppTheme.accent)
+                        .onChange(of: privacySettings.isEphemeralSession) { _, newValue in
+                            if newValue {
+                                isEphemeralConfirmationPresented = true
+                            }
+                        }
 
                     Button(role: .destructive) {
                         isClearConfirmationPresented = true
@@ -131,11 +137,25 @@ struct SettingsView: View {
             .navigationTitle(t(.settingsTitle, language: appLanguage))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(appLanguage == .korean ? "완료" : "Done") {
+                    Button(t(.doneButton, language: appLanguage)) {
                         dismiss()
                     }
                     .foregroundStyle(AppTheme.secondaryText)
                 }
+            }
+            .confirmationDialog(
+                t(.ephemeralConfirmationTitle, language: appLanguage),
+                isPresented: $isEphemeralConfirmationPresented,
+                titleVisibility: .visible
+            ) {
+                Button(t(.ephemeralConfirmAction, language: appLanguage), role: .destructive) {
+                    privacySettings.isEphemeralSession = true
+                }
+                Button(t(.cancel, language: appLanguage), role: .cancel) {
+                    privacySettings.isEphemeralSession = false
+                }
+            } message: {
+                Text(t(.ephemeralConfirmationMessage, language: appLanguage))
             }
             .confirmationDialog(
                 t(.clearDataButton, language: appLanguage),
@@ -156,7 +176,7 @@ struct SettingsView: View {
     }
 
     private var versionText: String {
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
         return "\(version) (\(build))"
     }

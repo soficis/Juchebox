@@ -9,6 +9,7 @@ final class WebNavigationCoordinator: NSObject, WKNavigationDelegate, WKUIDelega
     private let privacySettings: PrivacySettings
     private weak var webView: WKWebView?
     private var observations: [NSKeyValueObservation] = []
+    private var navigationTimeoutTask: Task<Void, Never>?
 
     init(
         appState: AppState,
@@ -35,7 +36,10 @@ final class WebNavigationCoordinator: NSObject, WKNavigationDelegate, WKUIDelega
             webView.observe(\.canGoForward, options: [.initial, .new]) { [weak self] webView, _ in
                 self?.updateState(from: webView)
             },
-            webView.observe(\.isLoading, options: [.initial, .new]) { [weak self] webView, _ in
+            webView.observe(\.isLoading, options: [.initial, .new]) { [weak self] webView, change in
+                if change.newValue == true {
+                    self?.recordBreadcrumb(.navigateStarted, url: webView.url)
+                }
                 self?.updateState(from: webView)
             },
             webView.observe(\.url, options: [.initial, .new]) { [weak self] webView, _ in
@@ -87,31 +91,42 @@ final class WebNavigationCoordinator: NSObject, WKNavigationDelegate, WKUIDelega
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        diagnosticsLog.recordBreadcrumb(.provisionalNavigationStarted, url: webView.url, sessionMode: privacySettings.sessionMode)
+        startNavigationTimeout()
         updateState(from: webView)
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        diagnosticsLog.recordBreadcrumb(.didCommit, url: webView.url, sessionMode: privacySettings.sessionMode)
+        cancelNavigationTimeout()
         appState.clearError()
         updateState(from: webView)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         webView.scrollView.refreshControl?.endRefreshing()
+        diagnosticsLog.recordBreadcrumb(.didFinish, url: webView.url, sessionMode: privacySettings.sessionMode)
+        cancelNavigationTimeout()
         appState.clearError()
         updateState(from: webView)
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         webView.scrollView.refreshControl?.endRefreshing()
+        cancelNavigationTimeout()
+        recordFailureBreadcrumb(error, url: webView.url)
         showFailureIfNeeded(error, webView: webView)
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         webView.scrollView.refreshControl?.endRefreshing()
+        cancelNavigationTimeout()
+        recordFailureBreadcrumb(error, url: webView.url)
         showFailureIfNeeded(error, webView: webView)
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        diagnosticsLog.recordBreadcrumb(.webProcessTerminated, url: webView.url, sessionMode: privacySettings.sessionMode)
         showAndRecord(.webProcessTerminated, url: webView.url)
     }
 
@@ -206,15 +221,48 @@ final class WebNavigationCoordinator: NSObject, WKNavigationDelegate, WKUIDelega
         let nsError = error as NSError
 
         if nsError.domain == NSURLErrorDomain,
-           nsError.code == NSURLErrorCancelled,
-           webView.url != nil {
-            updateState(from: webView)
-            return
+           nsError.code == NSURLErrorCancelled {
+            if case .blocked = appState.webContentError {
+                updateState(from: webView)
+                return
+            }
+            if webView.url != nil {
+                updateState(from: webView)
+                return
+            }
         }
 
         let failingURL = nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL ?? webView.url
         showAndRecord(WebContentError.from(error: error, failingURL: failingURL), url: failingURL)
     }
+
+    private func recordFailureBreadcrumb(_ error: Error, url: URL?) {
+        let nsError = error as NSError
+        diagnosticsLog.recordBreadcrumb(
+            .didFail(domain: nsError.domain, code: nsError.code),
+            url: url,
+            sessionMode: privacySettings.sessionMode
+        )
+    }
+
+    private func startNavigationTimeout() {
+        cancelNavigationTimeout()
+
+        navigationTimeoutTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: Self.navigationTimeoutNanoseconds)
+            guard !Task.isCancelled else { return }
+            guard let webView = self.webView, webView.isLoading else { return }
+            self.diagnosticsLog.recordBreadcrumb(.didFail(domain: "NavigationTimeout", code: 201), url: webView.url, sessionMode: self.privacySettings.sessionMode)
+            self.showAndRecord(.loadTimeout, url: webView.url)
+        }
+    }
+
+    private func cancelNavigationTimeout() {
+        navigationTimeoutTask?.cancel()
+        navigationTimeoutTask = nil
+    }
+
+    private static let navigationTimeoutNanoseconds: UInt64 = 30_000_000_000
 
     private func showAndRecord(_ error: WebContentError, url: URL?) {
         appState.showError(error)
@@ -226,6 +274,15 @@ final class WebNavigationCoordinator: NSObject, WKNavigationDelegate, WKUIDelega
             guard let self, let webView else { return }
             Task { @MainActor in
                 self.appState.updateNavigationState(from: webView)
+            }
+        }
+    }
+
+    nonisolated private func recordBreadcrumb(_ event: NavigationBreadcrumb.Event, url: URL?) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in
+                self.diagnosticsLog.recordBreadcrumb(event, url: url, sessionMode: self.privacySettings.sessionMode)
             }
         }
     }

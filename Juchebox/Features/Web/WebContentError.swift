@@ -9,6 +9,7 @@ enum WebContentError: Equatable, Identifiable {
     case blocked(BlockedNavigationReason)
     case downloadUnsupported
     case webProcessTerminated
+    case loadTimeout
     case other(String)
 
     var id: String {
@@ -28,11 +29,13 @@ enum WebContentError: Equatable, Identifiable {
         case .loginPageFailure:
             return Translation.string(for: .errorTitleOther, language: language)
         case .blocked(let reason):
-            return reason.title(language: language)
+            return Translation.string(for: reason.titleKey, language: language)
         case .downloadUnsupported:
             return Translation.string(for: .errorTitleDownloadUnsupported, language: language)
         case .webProcessTerminated:
             return Translation.string(for: .errorTitleWebProcessTerminated, language: language)
+        case .loadTimeout:
+            return Translation.string(for: .errorTitleLoadTimeout, language: language)
         case .other:
             return Translation.string(for: .errorTitleOther, language: language)
         }
@@ -51,11 +54,13 @@ enum WebContentError: Equatable, Identifiable {
         case .loginPageFailure:
             return Translation.string(for: .errorMessageServerUnavailable, language: language)
         case .blocked(let reason):
-            return reason.message(language: language)
+            return Translation.string(for: reason.messageKey, language: language)
         case .downloadUnsupported:
             return Translation.string(for: .errorMessageDownloadUnsupported, language: language)
         case .webProcessTerminated:
             return Translation.string(for: .errorMessageWebProcessTerminated, language: language)
+        case .loadTimeout:
+            return Translation.string(for: .errorMessageLoadTimeout, language: language)
         case .other(let detail):
             return detail
         }
@@ -65,6 +70,8 @@ enum WebContentError: Equatable, Identifiable {
         switch self {
         case .blocked:
             return "DomainPolicy"
+        case .loadTimeout:
+            return "Navigation"
         default:
             return NSURLErrorDomain
         }
@@ -88,6 +95,8 @@ enum WebContentError: Equatable, Identifiable {
             return BlockedNavigationReason.downloadUnsupported.diagnosticCode
         case .webProcessTerminated:
             return 200
+        case .loadTimeout:
+            return 201
         case .other:
             return NSURLErrorUnknown
         }

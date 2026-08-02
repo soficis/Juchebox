@@ -42,6 +42,13 @@ struct DomainPolicy: Equatable, Sendable {
             return .allowInApp
         }
 
+        // Subdomains of allowed hosts (e.g. www.juchify.com) load in-app.
+        // This must run BEFORE the deception filter, which would otherwise
+        // classify any non-allowlisted host containing "juchify" as a lookalike.
+        if allowedHosts.contains(where: { host.hasSuffix(".\($0)") }) {
+            return .allowInApp
+        }
+
         if Self.isDeceptiveJuchifyHost(host) {
             return .block(.lookalikeHost(host))
         }
@@ -116,21 +123,21 @@ enum ExternalNavigationReason: Equatable, Sendable {
     case externalHTTPSHost(String)
     case systemScheme(String)
 
-    func primaryActionTitle(language: AppLanguage) -> String {
+    var primaryActionKey: Translation.Key {
         switch self {
         case .externalHTTPSHost:
-            return language == .korean ? "외부 그물열람기에서 열기" : "Open in External Web Browser"
+            return .openInBrowserButton
         case .systemScheme:
-            return language == .korean ? "조작체계에서 열기" : "Open with System"
+            return .systemSchemeAction
         }
     }
 
-    func message(language: AppLanguage) -> String {
+    var messageKey: Translation.Key {
         switch self {
         case .externalHTTPSHost(let host):
-            return language == .korean ? "\(host) 주소는 내부 허용명단에 등록되어있지 않습네다." : "\(host) is outside the in-app allowlist."
+            return .externalLinkMessage(host)
         case .systemScheme(let scheme):
-            return language == .korean ? "\(scheme): 주소는 응용 외부에서 열기 전용올시다." : "\(scheme): links open outside the companion."
+            return .systemSchemeMessage(scheme)
         }
     }
 }
@@ -160,35 +167,35 @@ enum BlockedNavigationReason: Equatable, Sendable {
         }
     }
 
-    func title(language: AppLanguage) -> String {
+    var titleKey: Translation.Key {
         switch self {
         case .missingURL, .malformedURL:
-            return language == .korean ? "그물주소 개방 실패" : "This Link Cannot Open"
+            return .blockedLinkCannotOpen
         case .insecureHTTP:
-            return language == .korean ? "불안전한 련결 차단됨" : "Insecure Link Blocked"
+            return .blockedTitleInsecureHTTP
         case .unsupportedScheme:
-            return language == .korean ? "미지원 련결 차단됨" : "Unsupported Link Blocked"
+            return .blockedTitleUnsupportedScheme
         case .lookalikeHost:
-            return language == .korean ? "위장 그물페지 차단됨" : "Lookalike Site Blocked"
+            return .blockedTitleLookalike
         case .downloadUnsupported:
-            return language == .korean ? "내리적재 미지원" : "Downloads Are Not Supported"
+            return .blockedTitleDownloadUnsupported
         }
     }
 
-    func message(language: AppLanguage) -> String {
+    var messageKey: Translation.Key {
         switch self {
         case .missingURL:
-            return language == .korean ? "그물주소가 존재하지 않거나 유효하지 않습네다." : "The website tried to open a link without a valid address."
+            return .blockedMessageMissingURL
         case .malformedURL:
-            return language == .korean ? "그물주소 구성 형식이 올바르지 않습네다." : "The website tried to open a malformed address."
+            return .blockedMessageMalformedURL
         case .insecureHTTP:
-            return language == .korean ? "본 그물열람기는 오직 안전한 HTTPS 암호화련결만을 허용합네다." : "This companion only allows secure HTTPS browsing."
+            return .blockedMessageInsecureHTTP
         case .unsupportedScheme(let scheme):
-            return language == .korean ? "\(scheme): 련결방식은 지원되지 않습네다." : "\(scheme): links are not supported by this companion."
+            return .blockedMessageUnsupportedScheme(scheme)
         case .lookalikeHost(let host):
-            return language == .korean ? "\(host) 주소는 위장된 위조페지일 위험이 존재합네다." : "\(host) resembles the allowed site but is not approved."
+            return .blockedMessageLookalike(host)
         case .downloadUnsupported:
-            return language == .korean ? "본 열람기에서는 곡이나 화상자료를 보관하거나 배포하지 않습네다." : "This companion does not download, save, or expose website files."
+            return .blockedMessageDownloadUnsupported
         }
     }
 }

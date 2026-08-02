@@ -40,14 +40,14 @@ struct WebScreen: View {
                 Spacer()
 
                 if let notice = audioSessionController.notice {
-                    NoticeBanner(message: notice, actionTitle: appLanguage == .korean ? "소거" : "Dismiss") {
+                    NoticeBanner(message: notice, actionTitle: t(.dismissButton, language: appLanguage)) {
                         audioSessionController.notice = nil
                     }
                     .padding(.horizontal, 12)
                 }
 
                 if let toast = appState.toastMessage {
-                    NoticeBanner(message: toast, actionTitle: appLanguage == .korean ? "확인" : "OK") {
+                    NoticeBanner(message: toast, actionTitle: t(.okButton, language: appLanguage)) {
                         appState.toastMessage = nil
                     }
                     .padding(.horizontal, 12)
@@ -79,7 +79,7 @@ struct WebScreen: View {
                     Spacer()
                     ToolbarIconButton(
                         systemName: "rectangle.bottomthird.inset.filled",
-                        accessibilityLabel: appLanguage == .korean ? "조절기 표시" : "Show Controls",
+                        accessibilityLabel: t(.showControlsLabel, language: appLanguage),
                         accessibilityIdentifier: AccessibilityID.showControlsButton,
                         action: { isChromeVisible = true }
                     )
@@ -89,12 +89,12 @@ struct WebScreen: View {
             }
         }
         .confirmationDialog(
-            appState.externalLinkRequest?.title(language: appLanguage) ?? t(.externalLinkTitle, language: appLanguage),
+            t(.externalLinkTitle, language: appLanguage),
             isPresented: externalLinkBinding,
             titleVisibility: .visible
         ) {
             if let request = appState.externalLinkRequest {
-                Button(request.primaryActionTitle(language: appLanguage)) {
+                Button(Translation.string(for: request.primaryActionKey, language: appLanguage)) {
                     openURL(request.url)
                     appState.externalLinkRequest = nil
                 }
@@ -111,7 +111,7 @@ struct WebScreen: View {
             }
         } message: {
             if let request = appState.externalLinkRequest {
-                Text(request.message(language: appLanguage))
+                Text(Translation.string(for: request.messageKey, language: appLanguage))
             }
         }
         .sheet(isPresented: $isSettingsPresented) {
@@ -199,7 +199,7 @@ private struct WebToolbar: View {
         HStack(spacing: 4) {
             ToolbarIconButton(
                 systemName: "chevron.left",
-                accessibilityLabel: appLanguage == .korean ? "뒤로가기" : "Back",
+                accessibilityLabel: t(.toolbarBack, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.backButton,
                 isEnabled: canGoBack,
                 action: goBack
@@ -207,7 +207,7 @@ private struct WebToolbar: View {
 
             ToolbarIconButton(
                 systemName: "chevron.right",
-                accessibilityLabel: appLanguage == .korean ? "앞으로가기" : "Forward",
+                accessibilityLabel: t(.toolbarForward, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.forwardButton,
                 isEnabled: canGoForward,
                 action: goForward
@@ -215,14 +215,14 @@ private struct WebToolbar: View {
 
             ToolbarIconButton(
                 systemName: "arrow.clockwise",
-                accessibilityLabel: appLanguage == .korean ? "다시읽기" : "Reload",
+                accessibilityLabel: t(.toolbarReload, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.reloadButton,
                 action: reload
             )
 
             ToolbarIconButton(
                 systemName: "house",
-                accessibilityLabel: appLanguage == .korean ? "홈페지" : "Home",
+                accessibilityLabel: t(.toolbarHome, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.homeButton,
                 action: home
             )
@@ -231,21 +231,21 @@ private struct WebToolbar: View {
 
             ToolbarIconButton(
                 systemName: "square.and.arrow.up",
-                accessibilityLabel: appLanguage == .korean ? "페지 공동리용" : "Share Current Page",
+                accessibilityLabel: t(.toolbarShare, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.shareButton,
                 action: share
             )
 
             ToolbarIconButton(
                 systemName: "gearshape",
-                accessibilityLabel: appLanguage == .korean ? "조절부" : "Settings",
+                accessibilityLabel: t(.toolbarSettings, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.settingsButton,
                 action: openSettings
             )
 
             ToolbarIconButton(
                 systemName: "rectangle.compress.vertical",
-                accessibilityLabel: appLanguage == .korean ? "조절기 숨기기" : "Hide Controls",
+                accessibilityLabel: t(.toolbarHideControls, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.hideControlsButton,
                 action: hideControls
             )

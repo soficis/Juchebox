@@ -4,6 +4,7 @@ import UIKit
 @MainActor
 final class DiagnosticsLog: ObservableObject {
     @Published private(set) var entries: [DiagnosticsEntry] = []
+    @Published private(set) var breadcrumbs: [NavigationBreadcrumb] = []
 
     private let maximumEntryCount = 50
 
@@ -23,6 +24,21 @@ final class DiagnosticsLog: ObservableObject {
         }
     }
 
+    func recordBreadcrumb(_ event: NavigationBreadcrumb.Event, url: URL?, sessionMode: PrivacySettings.SessionMode) {
+        breadcrumbs.append(
+            NavigationBreadcrumb(
+                timestamp: Date(),
+                event: event,
+                sanitizedHost: SanitizedHost(from: url),
+                sessionMode: sessionMode
+            )
+        )
+
+        if breadcrumbs.count > maximumEntryCount {
+            breadcrumbs.removeFirst(breadcrumbs.count - maximumEntryCount)
+        }
+    }
+
     func exportText(sessionMode: PrivacySettings.SessionMode) -> String {
         var lines: [String] = [
             "주체박스 (주체음악) 검열보고서 / Juchebox Inspection Report",
@@ -32,8 +48,17 @@ final class DiagnosticsLog: ObservableObject {
             "Device Class: \(Self.deviceClass)",
             "Current Session: \(sessionMode.rawValue)",
             "",
-            "Navigation Events / 검열 기록:"
+            "Navigation Timeline / 페지 련결 기록:"
         ]
+
+        if breadcrumbs.isEmpty {
+            lines.append("- None recorded")
+        } else {
+            lines.append(contentsOf: breadcrumbs.map { $0.redactedDescription })
+        }
+
+        lines.append("")
+        lines.append("Error Events / 오유 기록:")
 
         if entries.isEmpty {
             lines.append("- None recorded")
