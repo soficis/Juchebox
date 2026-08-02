@@ -30,8 +30,9 @@ Diagnostics are local-only and exportable only by explicit user action. Diagnost
 - Navigation error domain and numeric code
 - Sanitized host name only
 - Whether the session is persistent or ephemeral
+- A navigation timeline of load lifecycle events (load started, provisional navigation, commit, finish, failure, web process termination) with timestamps and sanitized host names only
 
-Diagnostics never include full URLs with path, query, or fragment; cookies; tokens; login identifiers; page HTML; song names; media URLs; headers; or user-entered content.
+Diagnostics never include full URLs with path, query, or fragment; cookies; tokens; login identifiers; page HTML; song names; media URLs; headers; or user-entered content. The navigation timeline uses the same host-only sanitization as error entries.
 
 ## Non-Affiliation
 

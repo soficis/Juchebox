@@ -12,12 +12,14 @@
 
 | Risk | Mitigation |
 | --- | --- |
-| Arbitrary sites silently loading in-app | `DomainPolicy` allowlist and external confirmation |
+| Arbitrary sites silently loading in-app | `DomainPolicy` allowlist, subdomain allow, and external confirmation |
 | Insecure navigation | ATS plus explicit HTTP blocking |
-| Sensitive data in diagnostics | Sanitized host-only diagnostics |
+| Sensitive data in diagnostics | Sanitized host-only diagnostics and breadcrumbs (navigation timeline never contains full URLs) |
 | Page/app boundary confusion | Native chrome is visually distinct and uses system controls |
 | Media extraction pressure | No JavaScript injection, no bridge, no scraping, no downloader |
 | Branding confusion | Neutral app name and repeated unofficial disclaimer |
+| Indefinite loading state (stuck page) | 30-second navigation timeout surfaces an error with a reload action |
+| Silent logout on session-mode change | Ephemeral session toggle requires explicit user confirmation |
 
 ## Explicit Non-Goals
 

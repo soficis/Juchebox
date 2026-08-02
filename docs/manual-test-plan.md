@@ -8,6 +8,16 @@
 - Unknown HTTPS links show external confirmation.
 - HTTP links are blocked with a clear explanation.
 - `mailto:` and `tel:` links require confirmation before system handoff.
+- Search button opens a text field; entering a URL loads it; entering text loads it as an address (no invented search route).
+- Save Page button stores the current URL locally and shows a confirmation toast.
+- A page that never finishes loading shows the load-timeout error with Reload after 30 seconds.
+
+## Loading & Recovery
+
+- Slow or interrupted loads surface the timeout error after 30 seconds with a Reload button.
+- Reload during a hung load restarts the timeout instead of stacking stale timers.
+- Rapidly triggering reload/stop does not leave stale loading state.
+- Web content process termination shows the error view; recovery is manual via Reload.
 
 ## Playback
 
@@ -19,9 +29,10 @@
 
 ## Privacy
 
-- Toggle **Use Ephemeral Session** and confirm a new WebKit session is created.
-- Use **Clear Website Data and Sign Out** and confirm the app reloads the home page.
+- Toggle **Use Ephemeral Session** and confirm a confirmation dialog warns about sign-out and audio interruption before the new WebKit session is created.
+- Use **Purge Web Data & Sign Out** and confirm the app reloads the home page.
 - Export diagnostics and confirm there are no full URLs, cookies, headers, tokens, account identifiers, song names, media URLs, or user-entered content.
+- Confirm the exported navigation timeline contains only sanitized host names and lifecycle events (load started, commit, finish, failure, process termination).
 
 ## Accessibility
 
