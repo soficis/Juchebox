@@ -57,7 +57,9 @@ final class JucheboxUITests: XCTestCase {
 
         app.buttons["settingsTab"].tap()
         XCTAssertTrue(app.staticTexts["Language Selection"].waitForExistence(timeout: 5))
-        app.swipeUp()
+        let settingsList = app.collectionViews.firstMatch
+        settingsList.swipeUp()
+        settingsList.swipeUp()
         XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
     }
 
