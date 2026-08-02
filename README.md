@@ -1,58 +1,1195 @@
-# Juchebox
+# Juchebox (주체박스)
 
-Juchebox is an independent, sideload-only iOS browser companion for people who already choose to use the public Juchify website.
+**An independent, sideload-only iOS browser companion for the public Juchify website.**
 
-It is not an official client, not endorsed by Juchify, Chollima Front, DPRK institutions, or any music rightsholder, and not a replacement service. The app is a native SwiftUI shell around `https://juchify.com` with a strict navigation policy, local-only privacy controls, and no analytics.
+Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, privacy-conscious single-site browser with a strict navigation policy, local-only diagnostics, and zero third-party dependencies. It is **not** an official client, not endorsed by Juchify, Chollima Front, DPRK institutions, or any music rightsholder, and not a replacement service.
 
-## What This Is Not
+> **One-doc policy:** this README is the single source of truth for the project. All handoff, architecture, privacy, security, testing, release, license, and operations information lives here. The only other document is [`docs/DESIGN.md`](docs/DESIGN.md), the Chollima Radio design-system contract.
 
-- No music downloading, recording, extraction, offline playback, scraping, mirroring, crawling, or indexing.
-- No private API client and no reverse engineering of Juchify internals.
-- No JavaScript injection, page modification, ad blocking, DRM bypass, paywall bypass, or credential interception.
-- No bundled Juchify logo, favicon, screenshots, copyrighted artwork, or protected branding.
-- No backend, proxy, telemetry, analytics SDK, advertising SDK, or crash-reporting SDK.
+---
+
+## Table of Contents
+
+1. [Quick Reference](#quick-reference)
+2. [What This App Is / Is Not](#what-this-app-is--is-not)
+3. [Requirements](#requirements)
+4. [Build, Run, Test](#build-run-test)
+5. [Project Map](#project-map)
+6. [Architecture](#architecture)
+7. [Key Design Decisions (Decision Log)](#key-design-decisions-decision-log)
+8. [The Stuck-Loading-Screen Saga (Root-Cause History)](#the-stuck-loading-screen-saga-root-cause-history)
+9. [Navigation & Security Model](#navigation--security-model)
+10. [Diagnostics & Privacy](#diagnostics--privacy)
+11. [Localization](#localization)
+12. [Design System: Chollima Radio](#design-system-chollima-radio)
+13. [Testing](#testing)
+14. [Sideloading & Release](#sideloading--release)
+15. [Manual QA Checklist](#manual-qa-checklist)
+17. [Changelog](#changelog)
+18. [Contribution Ground Rules](#contribution-ground-rules)
+19. [License](#license)
+
+---
+
+## Quick Reference
+
+| | |
+|---|---|
+| **Product name** | Juchebox (주체박스) |
+| **Repo / project identifier** | `KoreanMusicWebCompanion` (folder + Xcode project name; kept for tooling stability) |
+| **Bundle ID** | `dev.local.Juchebox` |
+| **Version** | 0.1.0 (MARKETING_VERSION) |
+| **Minimum iOS** | 17.0 |
+| **Swift / Xcode** | Swift 6 strict concurrency · Xcode 16+ (built and tested on Xcode 26.6) |
+| **Dependencies** | **Zero** (SwiftUI, WebKit, AVFoundation, XCTest only) |
+| **Homepage** | `https://juchify.com` (redirects to `/en` — 308, verified 2026-08-01) |
+| **Allowlist** | `Juchebox/Resources/domain-allowlist.json` → `juchify.com` (+ subdomains allowed by code) |
+
+**One-liners:**
+
+```bash
+# Build (simulator, any Mac with Xcode)
+xcodebuild -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17' build
+
+# Full test suite (42 unit + 7 UI)
+xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17'
+
+# Git (this repo)
+git log --oneline        # 15 commits, all atomic
+git status               # working tree should be clean
+```
+
+---
+
+## What This App Is / Is Not
+
+### What it IS
+
+- A single-site WebKit browser for Juchify, themed as **Chollima Radio** — Spotify's dark immersive grammar in DPRK revolutionary-poster material (crimson `#CD2027`, gold `#D4A843`, coal `#0A0A0A`).
+- A **browser companion**, not a music client: content stays the site's, the native chrome is ours. Native surfaces show only user-created data (saved pages) or legitimate WKWebView state (loading, host, errors).
+- A privacy box: no analytics, no backend, no telemetry, ephemeral-session option, local-only sanitized diagnostics.
+
+### What it is NOT (hard doctrine — do not violate)
+
+- ❌ No music downloading, recording, extraction, offline playback, scraping, mirroring, crawling, or indexing.
+- ❌ No private API client, no reverse engineering of Juchify internals, no JavaScript injection, no page modification, no ad blocking, no DRM/paywall bypass, no credential interception.
+- ❌ No bundled Juchify logo, favicon, screenshots, copyrighted artwork, or protected branding.
+- ❌ No backend, proxy, telemetry, analytics SDK, advertising SDK, or crash-reporting SDK.
+- ❌ No fabricated native metadata — no fake now-playing, track names, album art, queue, or playback state. (There is **no legitimate audio-playing signal** in the app; `AudioSessionController.notice` only reports interruptions/route changes.)
+- ❌ No hardcoded site routes you haven't verified (`juchify.com/search?q=` is **forbidden** — it's an invented URL; search loads user-entered text).
+- ❌ No new third-party dependencies without an explicit, reviewed need.
+
+The app's identity: **"The People's Portal to Juchify"** — a beautiful single-site browser, not a faux music client.
+
+---
 
 ## Requirements
 
 - iOS 17 or newer
-- Xcode 16 or newer
-- Swift 6
-- A user-controlled Apple signing setup for installing on a device
+- Xcode 16 or newer (project uses `objectVersion = 60`, Xcode 16-era; tested on Xcode 26.6)
+- Swift 6 (strict concurrency is enforced; the codebase is `@MainActor`-heavy by design)
+- A user-controlled Apple signing setup for device installs (simulator needs none)
 
-## Build From Source
+---
 
-1. Open `Juchebox.xcodeproj` in Xcode.
-2. Select the `Juchebox` scheme.
-3. Set your Apple development team in Signing & Capabilities.
-4. Build and run on an iOS 17+ simulator or your own signed device.
+## Build, Run, Test
 
-The project has no third-party dependencies.
+```bash
+# 1. Build for simulator
+xcodebuild -project Juchebox.xcodeproj -scheme Juchebox \
+  -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-## Sideloading
+# 2. Run all tests (unit + UI)
+xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
 
-iOS requires signing. This project supports source distribution first:
+# 3. Or just open it
+open Juchebox.xcodeproj   # select scheme "Juchebox", Cmd+R
+```
 
-- Build and install from Xcode with your own Apple account.
-- Use AltStore-style self-signing only from source you inspect yourself.
-- Use Ad Hoc exports only for explicitly registered test devices.
+**Known-good destination:** `iPhone 17` simulator, iOS 26.5. Any iOS 17+ simulator works; `-only-testing:JucheboxTests` / `-only-testing:JucheboxUITests` to run suites separately.
 
-Do not provide your Apple ID or password to this app or repository.
+**Signing:** set your Apple Development Team in *Signing & Capabilities* when building for a device. The project hardcodes `DEVELOPMENT_TEAM = ""` in all 6 build configs — replace it with yours or remove it and let Xcode prompt.
 
-## Privacy Summary
+**CI:** not set up (deferred — personal project). The `.github/` directory does not exist. If you want CI later, the recipe is: `macos-15` runner, Xcode 16.2+, `CODE_SIGNING_ALLOWED=NO`, same `xcodebuild test` command. Note: **UI tests require `--ui-testing-offline`** (see [Testing](#testing)) — they must not depend on the live site.
 
-The app does not operate a server and does not collect analytics. Website browsing, login, and streaming activity happens inside WebKit when you choose to visit Juchify, and Juchify may process that activity under its own policies.
+---
 
-The app can clear locally stored WebKit website data and can use an ephemeral session so sign-in state is not intended to persist after the app closes.
+## Project Map
 
-Diagnostics are local-only and exportable only by explicit user action. They include sanitized host names and numeric error codes, never full URLs, cookies, tokens, page HTML, headers, media URLs, account identifiers, song names, or user-entered content.
+```
+KoreanMusicWebCompanion/                  ← repo root (physical folder name = repo identifier)
+├── Juchebox.xcodeproj/                   ← classic pbxproj (objectVersion 60)
+│   └── xcshareddata/xcschemes/Juchebox.xcscheme
+├── Juchebox/                             ← app target
+│   ├── App/
+│   │   ├── JucheboxApp.swift             ← @main entry; handles --reset/--accept-onboarding launch args
+│   │   ├── RootView.swift                ← onboarding gate + custom ChollimaTabBar (2 tabs: Browse/Settings)
+│   │   ├── AppState.swift                ← @MainActor ObservableObject; navigation state + commands
+│   │   ├── AppTheme.swift                ← color tokens + AppSpacing/AppRadius/AppMotion enums
+│   │   ├── Translation.swift             ← Translation.Key enum (compile-checked EN/KP catalog) + t() helper
+│   │   ├── AppStorageKey.swift           ← UserDefaults key constants
+│   │   ├── AccessibilityID.swift         ← UI-test identifiers (17, all unique)
+│   │   └── AudioSessionController.swift  ← AVAudioSession interruptions/route changes → notice banner
+│   ├── Core/
+│   │   ├── DomainPolicy/DomainPolicy.swift  ← PURE fail-closed navigation decision engine (+ reason enums)
+│   │   └── Privacy/
+│   │       ├── PrivacySettings.swift     ← @MainActor; persistent vs ephemeral session mode
+│   │       └── WebsiteDataCleaner.swift  ← WKWebsiteDataStore purge
+│   ├── Features/
+│   │   ├── Web/
+│   │   │   ├── WebScreen.swift           ← main screen: splash, webview, banners, toolbar, dialogs
+│   │   │   ├── WebViewContainer.swift    ← UIViewRepresentable; makeUIView + --ui-testing-offline hook
+│   │   │   ├── WebNavigationCoordinator.swift ← KVO, WKNavDelegate, 30s timeout, breadcrumbs, policy
+│   │   │   ├── WebContentError.swift     ← error enum with title/message/diagnostic codes
+│   │   │   ├── ExternalLinkRequest.swift ← confirmation-dialog model (routes through Translation keys)
+│   │   │   └── ActivityView.swift        ← UIActivityViewController bridge
+│   │   ├── Settings/SettingsView.swift   ← "Party Directives": language, ephemeral, purge, diagnostics
+│   │   ├── Onboarding/OnboardingView.swift ← first-run disclaimer + DPRK flag + StarShape
+│   │   └── Diagnostics/
+│   │       ├── DiagnosticsLog.swift      ← 50-entry error ring buffer + export text
+│   │       └── NavigationBreadcrumb.swift ← SanitizedHost + 6-event breadcrumb type
+│   └── Resources/
+│       ├── Info.plist                    ← ATS strict, UIBackgroundModes = [audio], display "Juchebox"
+│       ├── domain-allowlist.json         ← ["juchify.com"]
+│       └── Assets.xcassets/              ← AppIcon (red star + gold vinyl)
+├── JucheboxTests/                        ← 5 files, 42 tests (see Testing)
+│   ├── DomainPolicyTests.swift           ← 12
+│   ├── DiagnosticsLogTests.swift         ← 5
+│   ├── WebContentErrorTests.swift        ← 12
+│   ├── TranslationCompletenessTests.swift← 4
+│   └── PureTypeTests.swift               ← 9
+├── JucheboxUITests/JucheboxUITests.swift ← 7 tests, launch-argument driven
+├── docs/DESIGN.md                        ← Chollima Radio design system (the ONLY other doc)
+├── .gitignore · .gitattributes           ← license: GPLv3, see the License section below
+```
 
-## Security
+---
 
-Navigation is restricted by `DomainPolicy`. Allowed in-app hosts are configured in `Juchebox/Juchebox/Resources/domain-allowlist.json`; unknown third-party navigation is confirmed before system handoff, and insecure HTTP is blocked.
+## Architecture
 
-Report vulnerabilities through the repository security contact described in [SECURITY.md](SECURITY.md). Do not include passwords, cookies, account data, copyrighted media, or bypass instructions in reports.
+### Layers (feature-first, KISS)
 
-## Public Site
+| Layer | Contains | Rule |
+|---|---|---|
+| **App** | Composition, shared state, theme, translation, accessibility IDs | `@MainActor`; state changes go through `AppState` |
+| **Core** | `DomainPolicy` (pure), `PrivacySettings`, `WebsiteDataCleaner` | **Pure logic has no UI strings** — reasons map to `Translation.Key` |
+| **Features** | Views + WebKit glue + diagnostics | Views are thin; logic lives in coordinator/AppState |
+| **Resources** | Info.plist, allowlist, assets | Config only |
 
-This independent app opens the public Juchify website: [https://juchify.com](https://juchify.com)
+### Data flow (the critical path)
 
+```
+WKWebView ──KVO (estimatedProgress, isLoading, url, canGoBack/Forward)──▶
+    WebNavigationCoordinator ──updateState(from:)──▶ AppState.updateNavigationState
+                                                        │  (change-guarded @Published)
+                                                        ▼
+                                              SwiftUI views (WebScreen, toolbar, splash)
+```
+
+- `WebNavigationCoordinator` (`@MainActor`, `NSObject`) owns the KVO observations and every `WKNavigationDelegate` callback. It records breadcrumbs, enforces the 30s timeout, and applies `DomainPolicy` decisions.
+- The KVO bridge is deliberately the "triple-hop" pattern: `nonisolated private func updateState(from:)` → `DispatchQueue.main.async` → `Task { @MainActor }`. **Do not "simplify" this** — `NSKeyValueObservation` without an explicit queue runs on the thread that *makes the change*, and `MainActor.assumeIsolated` would be a runtime crash trap.
+- `AppState` is a **100-line @MainActor ObservableObject** — deliberately NOT decomposed (KISS verdict from adversarial review). It holds: `canGoBack/Forward`, `isLoading`, `estimatedProgress`, `currentURL`, `webContentError`, `externalLinkRequest`, `toastMessage`, plus commands (`goBack/goForward/reload/loadHome/load`).
+
+### The two invariants that keep the app alive
+
+1. **`AppState.attach(_:)` is idempotent**: `guard self.webView !== webView else { return }`. Calling `attach` from `updateUIView` on every render **must not** re-publish state. (This was the infinite-layout bug — see [the saga](#the-stuck-loading-screen-saga-root-cause-history).)
+2. **`updateNavigationState(from:)` only publishes changed values** (`if newValue != current`). Without this, KVO ticks re-trigger re-renders → re-attach → feedback loop.
+
+### Concurrency map
+
+- `@MainActor`: `AppState`, `WebNavigationCoordinator`, `DiagnosticsLog`, `PrivacySettings`, `AudioSessionController`.
+- Pure `Sendable`: `DomainPolicy`, `DomainPolicyDecision`, `ExternalNavigationReason`, `BlockedNavigationReason`, `NavigationBreadcrumb`, `SanitizedHost`, `Translation.Key`, `WebContentError`, `LoadState`-style enums.
+- Tests touching `DiagnosticsLog` must be `@MainActor` (see `DiagnosticsLogTests`).
+
+---
+
+## Key Design Decisions (Decision Log)
+
+| # | Decision | Why |
+|---|---|---|
+| 1 | **Single WKWebView, browser companion** | The doctrine makes any "native music client" impossible. One webview + native chrome is the correct, honest shape. |
+| 2 | **Fail-closed navigation** (`DomainPolicy`) | Only allowlisted hosts (and their subdomains) load in-app. Unknown HTTPS → user confirmation. HTTP → blocked. |
+| 3 | **Zero third-party dependencies** | Reproducible builds, audit-friendly privacy model, trivial for a solo dev to maintain. |
+| 4 | **Local-only diagnostics** | Breadcrumbs + errors, host-only sanitization, export by explicit user action. Never sent anywhere. |
+| 5 | **Translation enum with exhaustive switches** | `Translation.Key` has compile-checked `englishValue`/`koreanValue` — you *cannot* add a key without both languages. All UI strings (including toolbar labels and error text) route through it. |
+| 6 | **Custom tab bar, not SwiftUI `TabView`** | iOS 26's floating tab bar triggers an infinite `layoutSubviews` loop when combined with bottom safe-area content. The custom `ChollimaTabBar` avoids the system bug and matches the design exactly. |
+| 7 | **`.alert` instead of `.confirmationDialog`** | iOS 26 hides `role: .cancel` buttons of `confirmationDialog` from the accessibility tree, breaking UI tests and VoiceOver. Alerts expose all buttons. |
+| 8 | **30s hard load timeout** in the coordinator, not AppState | A navigation-lifetime concern belongs with the navigation lifecycle. Restarts on every `didStartProvisionalNavigation`, cancels on commit/finish/fail. No soft timeout (3G users would see spam). |
+| 9 | **Subdomains of allowed hosts load in-app** | `www.juchify.com` was being blocked as a "lookalike" by `host.contains("juchify")`. Now: exact match → subdomain suffix → deception filter → external. |
+| 10 | **Product = Juchebox, project = KoreanMusicWebCompanion** | Renamed every reference (docs, code, targets, scheme, module, `@testable` imports) but kept the physical folder/xcodeproj name for tooling stability. |
+| 11 | **Ephemeral toggle requires confirmation** | It silently signs you out and kills playback mid-session; a destructive action deserves a warning. |
+| 12 | **No auto-reload on web-process termination** | Manual reload respects user agency; auto-reload risks a crash loop and interrupting audio. |
+| 13 | **`--ui-testing-offline` launch hook** | UI tests must not depend on the live site (it's a heavy SPA; the app never idles while loading). Hook skips the home load. |
+
+---
+
+## The Stuck-Loading-Screen Saga (Root-Cause History)
+
+> Read this before debugging loading issues — the obvious causes were already found and fixed.
+
+**User report:** app stuck on a loading screen (3pt progress bar, never finished).
+
+**Investigation** (5-member adversarial review over the actual source, then verified by building on a real Mac):
+
+1. **THE REAL BUG — infinite SwiftUI render loop.** `WebViewContainer.updateUIView` calls `AppState.attach(webView)` on every render; `attach` unconditionally re-published all `@Published` properties → SwiftUI re-renders → `updateUIView` again → infinite `layoutSubviews` loop at ~99% CPU. The main thread was starved: the WebView could never finish loading and the progress bar stuck forever. **This predated the overhaul and was the original complaint.**
+   - *Fix:* idempotent `attach` (`guard self.webView !== webView`) + change-guarded publishes in `updateNavigationState`.
+   - *Detection:* `sample <pid>` on the Mac showed `_UIHostingView.layoutSubviews` consuming 100% of the main thread.
+2. **`www.juchify.com` was silently blocked** by `isDeceptiveJuchifyHost` (`host.contains("juchify")` matched legitimate subdomains), and `showFailureIfNeeded` overwrote the real error with generic "Navigation Cancelled" on initial load (when `webView.url == nil`).
+   - *Fix:* subdomain-suffix check runs BEFORE the deception filter; cancellation suppression is scoped to `.blocked` errors only.
+3. **No load timeout anywhere.** If the site never finished (heavy SPA, hanging connection), the bar spun forever with zero fallback.
+   - *Fix:* 30s hard timeout in `WebNavigationCoordinator` → `WebContentError.loadTimeout` (code 201) → error screen with Reload.
+4. **iOS 26 environment traps** (found while making the UI tests green on the Mac):
+   - System `TabView` + bottom `safeAreaInset` → infinite layout loop → replaced with custom `ChollimaTabBar`.
+   - `confirmationDialog` cancel buttons invisible to XCUITest/VoiceOver → switched to `.alert`.
+   - `--ui-testing-offline` added so UI tests don't depend on the live site.
+
+**What did NOT turn out to be the cause:** the site's own JS splash (H5 — removed from scope), process termination (H6 — manual reload kept), `.id(isEphemeralSession)` black flash (transient only).
+
+**Diagnosing a future hang:** the app now records a privacy-safe navigation breadcrumb timeline (`loadStarted → provisionalNavigationStarted → didCommit → didFinish/didFail/timeoutFired`) — export it via *Settings → Export Inspection Report* and read the timeline: if `didCommit` never fires, the load never committed; if it fires but `didFinish` doesn't, the site's content is likely stuck.
+
+---
+
+## Navigation & Security Model
+
+### DomainPolicy decision order (HTTPS)
+
+1. Exact allowlist match → `.allowInApp`
+2. Host ends with `.<allowed>` (subdomains) → `.allowInApp`
+3. Deception filter (punycode homograph, hosts containing the allowed brand outside a subdomain) → `.block(.lookalikeHost)`
+4. Everything else → `.openExternally` (user confirmation dialog, then system handoff)
+
+Non-HTTPS: HTTP blocked · `mailto:/tel:/sms:/maps:/facetime:` → system handoff · anything else → blocked.
+
+### Diagnostic codes
+
+| Code | Meaning | Domain |
+|---|---|---|
+| 100–105 | BlockedNavigationReason (missing/malformed URL, insecure HTTP, unsupported scheme, lookalike, download) | `DomainPolicy` |
+| 200 | Web process terminated | (NSURLErrorDomain default) |
+| 201 | Load timeout | `Navigation` |
+| `-1009` etc. | Standard NSURLError codes | `NSURLErrorDomain` |
+
+### Security defaults
+
+- ATS strict: HTTPS only, no exceptions (`NSAllowsArbitraryLoads = false`).
+- No JavaScript bridge, no injected user script, no custom backend, no certificate-bypass mode.
+- `UIBackgroundModes` = `[audio]` only (trimmed — `fetch/processing/external-accessory` were unused).
+- Hardcoded `DEVELOPMENT_TEAM` is personal info — document or remove if the repo goes public.
+
+### Vulnerability reporting (personal project)
+
+Report issues privately to the maintainer. **Do not** include passwords, cookies, account data, copyrighted media, private media URLs, tokens, or headers in a report. **In scope:** navigation-policy bypasses, insecure transport regressions, diagnostics leaking sensitive data, stored credentials outside WebKit, script-injection regressions. **Out of scope:** bypassing Juchify controls, extracting media, scraping, reverse-engineering private endpoints, weakening rightsholder protections.
+
+---
+
+## Diagnostics & Privacy
+
+### What diagnostics contain
+
+Export via *Settings → Party Directives → Export Inspection Report* (or *검열보고서 수출*). Format:
+
+```
+주체박스 (주체음악) 검열보고서 / Juchebox Inspection Report
+Generated/생성일: <ISO8601>
+App Version: 0.1.0 (1)
+iOS Version: ...
+Device Class: iPhone
+Current Session: persistent
+
+Navigation Timeline / 페지 련결 기록:
+- <ts> event=navigateStarted host=juchify.com session=persistent
+- <ts> event=didCommit host=juchify.com session=persistent
+- <ts> event=didFinish host=juchify.com session=persistent
+
+Error Events / 오유 기록:
+- <ts> domain=DomainPolicy code=104 host=juchify-fake.com session=persistent
+```
+
+**Never included:** full URLs (path/query/fragment), cookies, tokens, login identifiers, page HTML, song names, media URLs, headers, user-entered content. `SanitizedHost` enforces host-only at the **type level** — a full URL cannot even be constructed into a breadcrumb.
+
+### The privacy box
+
+- No server, no analytics, no advertising SDK, no crash reporting, no telemetry.
+- Browsing/login/streaming happens inside WebKit; Juchify processes it under its own policies.
+- **Persistent session** (default): sign-in survives via WebKit's data store.
+- **Ephemeral session**: non-persistent `WKWebsiteDataStore`; sign-in/website data does not survive app close. Toggling it on **requires confirmation** (it signs you out and stops playback).
+- **Purge Web Data & Sign Out**: clears WebKit website data and reloads home.
+
+---
+
+## Localization
+
+Bilingual: **English** (Juche-flavored: "The People's Revolutionary Music Explorer", "Party Directives") and **조선말** (North Korean Munhwaŏ — retains initial ㄹ/ㄴ, e.g. "련결", "리해"; English is deliberately rendered as "미제승냥이말").
+
+### How to add a string
+
+1. Add a case to `Translation.Key` in `App/Translation.swift`.
+2. Add the `englishValue` arm **and** the `koreanValue` arm — the compiler enforces both (exhaustive switch).
+3. Use it in views via the `t(.key, language: appLanguage)` helper (the `@AppStorage` + computed `appLanguage` pattern, see `WebScreen`).
+4. If the key has an associated value (e.g. `.externalLinkMessage(host)`), test it in `TranslationCompletenessTests.testAssociatedValueKeysHaveBothLanguages`.
+
+**Rules:** no inline bilingual ternaries (`appLanguage == .korean ? "x" : "y"`) in views — everything goes through the catalog (this was a historical source of UI-test breakage). `TranslationCompletenessTests` asserts every non-associated key is non-empty in both languages.
+
+---
+
+## Design System: Chollima Radio
+
+Spotify's dark immersive grammar (tabs, hierarchy, spacing rhythm) in DPRK revolutionary-poster material. Full token contract, component inventory, and accepted-debt list: **[`docs/DESIGN.md`](docs/DESIGN.md)** — read it before touching any UI.
+
+Quick tokens (all values live in `AppTheme.swift`):
+
+| Token | Value |
+|---|---|
+| `AppTheme.background` | `#0A0A0A` |
+| `AppTheme.surface` | `#1A0D0D` |
+| `AppTheme.elevatedSurface` | `#281214` |
+| `AppTheme.secondaryText` (gold) | `#D4A843` |
+| `AppTheme.accent` (crimson) | `#CD2027` |
+| `AppTheme.destructive` | `#B31919` |
+| Spacing | `AppSpacing` xs4/sm8/md16/lg24/xl32 |
+| Radius | `AppRadius` sm4/md8/lg12 |
+| Motion | `AppMotion` fast 0.15 / default 0.25 (GPU-composited, reduced-motion respected) |
+
+V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overlay, search + save-page toolbar buttons. **Deliberately NOT built** (V2 rejected by owner): card grid/Discover, My Library list UI, mini-player bar, skeleton shimmer, 4-tab shell.
+
+---
+
+## Testing
+
+**Current state: `TEST SUCCEEDED` — 42 unit + 7 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-01).
+
+### Unit tests (42, run in milliseconds)
+
+| File | Count | Covers |
+|---|---|---|
+| `DomainPolicyTests` | 12 | allow/block/external decisions, subdomains, trailing dot, lookalikes, redirects, new-window |
+| `WebContentErrorTests` | 12 | NSURLError mapping, loadTimeout metadata, blocked-reason codes + both languages |
+| `PureTypeTests` | 9 | AccessibilityID uniqueness (17), AppLanguage, AppStorageKey, ExternalLinkRequest keys, SanitizedHost, reason codes |
+| `TranslationCompletenessTests` | 4 | every key non-empty in both languages, associated-value keys |
+| `DiagnosticsLogTests` | 5 | host-only sanitization, breadcrumb export, 50-entry eviction, failure breadcrumbs |
+
+> `DiagnosticsLogTests` is `@MainActor`-annotated — keep it that way (Swift 6).
+
+### UI tests (7, launch-argument driven)
+
+| Test | Launch args |
+|---|---|
+| `testFirstRunDisclaimerAcceptance` | `--reset-onboarding --ui-testing-offline` |
+| `testNativeNavigationControlsExposeAccessibilityIdentifiers` | `--accept-onboarding --ui-testing-offline` |
+| `testReloadAndChromeVisibilityControls` | `--accept-onboarding --ui-testing-offline` |
+| `testSettingsPrivacyControls` | `--accept-onboarding --ui-testing-offline` |
+| `testClearWebsiteDataConfirmation` | `--accept-onboarding --ui-testing-offline` |
+| `testExternalLinkConfirmation` | `+ --show-external-link-confirmation` |
+| `testNetworkErrorPresentation` | `+ --show-network-error` |
+
+**Launch-argument hooks** (all in `WebScreen.applyUITestLaunchScenarios` / `JucheboxApp`):
+
+- `--reset-onboarding` — clear the onboarding-accepted flag
+- `--accept-onboarding` — skip onboarding
+- `--ui-testing-offline` — **do not load juchify.com** (keeps the app idle for XCUITest; REQUIRED for every UI test)
+- `--show-network-error` — force the network-error view
+- `--show-external-link-confirmation` — force the external-link alert
+
+**UI-test quirks (learned the hard way):** no system `TabView` (custom tab bar), dialogs are `.alert` not `confirmationDialog`, tabs are plain buttons (`app.buttons["Settings"]`), and every query is fast only when the app is idle — hence `--ui-testing-offline`.
+
+### Test-writing rules
+
+- Pure logic tests need no `@MainActor`; anything touching `DiagnosticsLog` does.
+- `@testable import Juchebox` for internal types.
+- UI tests must not depend on the network or on string literals that drift — strings live in `Translation`, assertions match current labels ("Open in External Web Browser", "Purge Web Data & Sign Out").
+
+---
+
+## Sideloading & Release
+
+### Sideloading (source-first)
+
+1. **Xcode:** open `Juchebox.xcodeproj`, scheme `Juchebox`, set your team, build to device.
+2. **AltStore-style self-signing:** build from source you inspect yourself; never enter Apple ID credentials into the app or repo; understand your signing tool's certificate-refresh limits.
+3. **Ad Hoc beta:** only for explicitly registered test devices; don't advertise an IPA as universally installable.
+
+### Release checklist (before each release)
+
+1. Review Juchify's current public terms and privacy policy manually.
+2. Confirm no Juchify branding/logos/protected screenshots/artwork were added.
+3. Run the full test suite (unit + UI) on a real simulator.
+4. Build Release configuration.
+5. Confirm ATS has no insecure exceptions.
+6. Export diagnostics from a test device and inspect for sensitive data.
+7. Verify external-domain policy fails closed.
+8. Bump `MARKETING_VERSION` + update [Changelog](#changelog).
+9. Tag the release; publish source archive + checksums.
+
+Do not release if the website changes in a way that would require reverse engineering, scraping, page injection, content caching, or bypassing site controls.
+
+---
+
+## Manual QA Checklist
+
+### Browsing
+- Fresh install shows the unofficial-app disclaimer before the WebView.
+- Accepting it opens `https://juchify.com` (follows the 308 → `/en`).
+- Back/forward/reload/home/search/save/share/hide-show controls all work.
+- Unknown HTTPS links → confirmation alert; HTTP links blocked with explanation; `mailto:`/`tel:` require confirmation.
+- Search button: URL loads; garbage text loads as an address (no invented search route).
+- Save Page stores the URL locally + toast.
+- A page that never finishes loading → timeout error with Reload after 30s.
+
+### Loading & recovery
+- Slow/interrupted loads → timeout error after 30s + Reload.
+- Reload during a hung load restarts the timeout (no stale timers).
+- Rapid reload/stop leaves no stale loading state.
+- Web-process termination → error view; manual Reload only.
+
+### Playback
+- Sign in with a test Juchify account; verify playback through the site's own controls.
+- Lock screen: behavior matches what WebKit + the site naturally support.
+- Phone-call/headphone/Control-Center interruptions: recovery via the site's controls (banner appears).
+- **No native metadata/artwork/queue/downloads fabricated** — never.
+
+### Privacy
+- Ephemeral toggle → confirmation dialog warns about sign-out + audio stop before applying.
+- Purge Web Data & Sign Out → confirmation → reloads home.
+- Export diagnostics → no full URLs/cookies/tokens/account IDs/song names/media URLs/user content.
+- Exported navigation timeline has sanitized hosts only.
+
+### Accessibility
+- VoiceOver reads all native controls (labels from the Translation catalog).
+- Dynamic Type doesn't clip; touch targets ≥ 44pt; reduced motion respected.
+
+---
+
+
+---
+
+## Changelog
+
+### 0.1.2 (2026-08-01) — One-doc consolidation + GPLv3
+
+- **Merged all 11 standalone docs into this README** (HANDOFF, PRIVACY, SECURITY, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, architecture, threat-model, sideloading, release-process, manual-test-plan). Deleted the originals. The only remaining document is `docs/DESIGN.md`.
+- **License changed to GPLv3** — full license text embedded in the License section; standalone `LICENSE` file removed; Settings → License strings updated in both languages.
+
+### 0.1.1 (2026-08-01) — Overhaul: "make it actually work" + Chollima Radio V1
+
+- **Fixed the stuck-loading root cause**: infinite `updateUIView → attach → @Published` render loop (idempotent `attach` + change-guarded publishes).
+- Domain policy: subdomains of allowed hosts now load in-app (fixes `www.juchify.com` being blocked); scoped cancellation-error guard.
+- 30s hard load timeout → `WebContentError.loadTimeout` error screen with Reload.
+- Privacy-safe navigation breadcrumbs (6 event types, type-level host sanitization) exported via Inspection Report; PRIVACY/threat-model/manual-test-plan updated to match.
+- Ephemeral-session toggle now requires confirmation (it signs you out).
+- Custom Chollima tab bar (Browse + Settings) replacing iOS 26-broken system TabView; star splash; search + save-page toolbar buttons; `--ui-testing-offline` hook.
+- Dialogs converted from `confirmationDialog` to `.alert` (iOS 26 accessibility).
+- Renamed everything to **Juchebox** (docs, code, targets, scheme, module); product name standardized.
+- Git initialized (was none); atomic commit history; `.gitignore`/`.gitattributes`; BOM stripped, LF normalized.
+- Translation consolidated into the compile-checked catalog (dead keys removed, reason enums routed through `Translation.Key`).
+- Tests: 3 stale UI tests fixed; 30+ new unit tests (42 total, 0 failures); all 7 UI tests green.
+- UIBackgroundModes trimmed to `audio`; `Assets.xcassets/Contents.json` added; version fallback unified; HANDOFF path fixed.
+- UI-test fixes for iOS 26: `.alert` dialogs, custom tab bar queries, offline launch mode.
+
+### 0.1.0 — Initial source implementation
+
+- Strict domain policy, onboarding disclaimer, settings privacy controls, local diagnostics export, release documentation.
+
+---
+
+## Contribution Ground Rules
+
+Personal project, but if you accept changes from others (or future-you), enforce:
+
+- No scraping, downloading, recording, mirroring, indexing, offline playback, JS injection, ad blocking, private API access, credential interception.
+- No Juchify branding/assets; no analytics/ad SDKs/backends.
+- Zero dependencies unless reviewed.
+- Run the full test suite before shipping; confirm diagnostics stay sanitized; confirm fail-closed navigation.
+- Keep project communication professional and scope-focused.
+
+---
+
+## License
+
+Juchebox is licensed under the **GNU General Public License v3.0 (GPLv3)** — the full license text is below.
+
+**What this means:** you may use, study, modify, and share this software; any distributed or published modifications **must also be GPLv3** and include the source. This project is independent and not affiliated with or endorsed by Juchify, Chollima Front, DPRK institutions, or any music rightsholder.
+
+*Copyright (C) 2026 Juchebox contributors. This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.*
+
+<details>
+<summary>Full GNU General Public License, Version 3 text (click to expand)</summary>
+
+```text
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU GPL protect your rights with two steps:
+(1) assert copyright on the software, and (2) offer you this License
+giving you legal permission to copy, distribute and/or modify it.
+
+  For the developers' and authors' protection, the GPL clearly explains
+that there is no warranty for this free software.  For both users' and
+authors' sake, the GPL requires that modified versions be marked as
+changed, so that their problems will not be attributed erroneously to
+authors of previous versions.
+
+  Some devices are designed to deny users access to install or run
+modified versions of the software inside them, although the manufacturer
+can do so.  This is fundamentally incompatible with the aim of
+protecting users' freedom to change the software.  The systematic
+pattern of such abuse occurs in the area of products for individuals to
+use, which is precisely where it is most unacceptable.  Therefore, we
+have designed this version of the GPL to prohibit the practice for those
+products.  If such problems arise substantially in other domains, we
+stand ready to extend this provision to those domains in future versions
+of the GPL, as needed to protect the freedom of users.
+
+  Finally, every program is threatened constantly by software patents.
+States should not allow patents to restrict development and use of
+software on general-purpose computers, but in those that do, we wish to
+avoid the special danger that patents applied to a free program could
+make it effectively proprietary.  To prevent this, the GPL assures that
+patents cannot be used to render the program non-free.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Use with the GNU Affero General Public License.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU Affero General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the special requirements of the GNU Affero General Public License,
+section 13, concerning interaction through a network will apply to the
+combination as such.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    <program>  Copyright (C) <year>  <name of author>
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your program's commands
+might be different; for a GUI interface, you would use an "about box".
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU GPL, see
+<https://www.gnu.org/licenses/>.
+
+  The GNU General Public License does not permit incorporating your program
+into proprietary programs.  If your program is a subroutine library, you
+may consider it more useful to permit linking proprietary applications with
+the library.  If this is what you want to do, use the GNU Lesser General
+Public License instead of this License.  But first, please read
+<https://www.gnu.org/licenses/why-not-lgpl.html>.
+```
+
+</details>
