@@ -7,7 +7,7 @@ final class JucheboxUITests: XCTestCase {
 
     func testFirstRunDisclaimerAcceptance() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--reset-onboarding"]
+        app.launchArguments = ["--reset-onboarding", "--ui-testing-offline"]
         app.launch()
 
         let acceptButton = app.buttons["onboardingAcceptButton"]
@@ -26,7 +26,8 @@ final class JucheboxUITests: XCTestCase {
         XCTAssertTrue(app.buttons["reloadButton"].exists)
         XCTAssertTrue(app.buttons["homeButton"].exists)
         XCTAssertTrue(app.buttons["shareButton"].exists)
-        XCTAssertTrue(app.buttons["settingsButton"].exists)
+        XCTAssertTrue(app.buttons["searchButton"].exists)
+        XCTAssertTrue(app.buttons["savePageButton"].exists)
     }
 
     func testReloadAndChromeVisibilityControls() throws {
@@ -44,8 +45,8 @@ final class JucheboxUITests: XCTestCase {
     func testSettingsPrivacyControls() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.buttons["settingsButton"].waitForExistence(timeout: 10))
-        app.buttons["settingsButton"].tap()
+        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 10))
+        app.buttons["Settings"].tap()
 
         XCTAssertTrue(app.switches["ephemeralSessionToggle"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["clearWebsiteDataButton"].exists)
@@ -55,8 +56,9 @@ final class JucheboxUITests: XCTestCase {
     func testClearWebsiteDataConfirmation() throws {
         let app = launchAcceptedApp()
 
-        XCTAssertTrue(app.buttons["settingsButton"].waitForExistence(timeout: 10))
-        app.buttons["settingsButton"].tap()
+        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 10))
+        app.buttons["Settings"].tap()
+        XCTAssertTrue(app.buttons["clearWebsiteDataButton"].waitForExistence(timeout: 5))
         app.buttons["clearWebsiteDataButton"].tap()
 
         XCTAssertTrue(app.buttons["Purge Web Data & Sign Out"].waitForExistence(timeout: 5))
@@ -80,7 +82,7 @@ final class JucheboxUITests: XCTestCase {
 
     private func launchAcceptedApp(extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--accept-onboarding"] + extraArguments
+        app.launchArguments = ["--accept-onboarding", "--ui-testing-offline"] + extraArguments
         app.launch()
         return app
     }

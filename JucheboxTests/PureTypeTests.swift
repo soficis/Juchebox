@@ -11,7 +11,6 @@ final class PureTypeTests: XCTestCase {
             AccessibilityID.reloadButton,
             AccessibilityID.homeButton,
             AccessibilityID.shareButton,
-            AccessibilityID.settingsButton,
             AccessibilityID.hideControlsButton,
             AccessibilityID.showControlsButton,
             AccessibilityID.errorTitle,
@@ -20,6 +19,8 @@ final class PureTypeTests: XCTestCase {
             AccessibilityID.ephemeralSessionToggle,
             AccessibilityID.clearWebsiteDataButton,
             AccessibilityID.exportDiagnosticsButton,
+            AccessibilityID.searchButton,
+            AccessibilityID.savePageButton,
         ]
 
         XCTAssertEqual(identifiers.count, Set(identifiers).count, "Accessibility identifiers must be unique")

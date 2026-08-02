@@ -19,38 +19,27 @@ struct RootView: View {
     var body: some View {
         Group {
             if hasAcceptedUnofficialDisclaimer {
-                TabView(selection: $selectedTab) {
-                    WebScreen(
-                        appState: appState,
-                        audioSessionController: audioSessionController,
-                        diagnosticsLog: diagnosticsLog,
-                        domainPolicy: domainPolicy,
-                        privacySettings: privacySettings
-                    )
-                    .tabItem {
-                        Label(
-                            t(.toolbarHome, language: appLanguage),
-                            systemImage: selectedTab == 0 ? "globe.americas.fill" : "globe"
+                VStack(spacing: 0) {
+                    switch selectedTab {
+                    case 0:
+                        WebScreen(
+                            appState: appState,
+                            audioSessionController: audioSessionController,
+                            diagnosticsLog: diagnosticsLog,
+                            domainPolicy: domainPolicy,
+                            privacySettings: privacySettings
+                        )
+                    default:
+                        SettingsView(
+                            appState: appState,
+                            diagnosticsLog: diagnosticsLog,
+                            privacySettings: privacySettings
                         )
                     }
-                    .tag(0)
 
-                    SettingsView(
-                        appState: appState,
-                        diagnosticsLog: diagnosticsLog,
-                        privacySettings: privacySettings
-                    )
-                    .tabItem {
-                        Label(
-                            t(.toolbarSettings, language: appLanguage),
-                            systemImage: selectedTab == 1 ? "gearshape.fill" : "gearshape"
-                        )
-                    }
-                    .tag(1)
+                    ChollimaTabBar(selectedTab: $selectedTab, language: appLanguage)
                 }
-                .tint(AppTheme.secondaryText)
-                .toolbarBackground(AppTheme.surface, for: .tabBar)
-                .toolbarBackground(.visible, for: .tabBar)
+                .background(AppTheme.background)
             } else {
                 OnboardingView {
                     hasAcceptedUnofficialDisclaimer = true
@@ -61,4 +50,56 @@ struct RootView: View {
     }
 }
 
+private struct ChollimaTabBar: View {
+    @Binding var selectedTab: Int
+    let language: AppLanguage
 
+    var body: some View {
+        HStack(spacing: 0) {
+            tabButton(
+                title: t(.toolbarHome, language: language),
+                systemImage: selectedTab == 0 ? "globe.americas.fill" : "globe",
+                isSelected: selectedTab == 0
+            ) {
+                selectedTab = 0
+            }
+
+            tabButton(
+                title: t(.toolbarSettings, language: language),
+                systemImage: selectedTab == 1 ? "gearshape.fill" : "gearshape",
+                isSelected: selectedTab == 1
+            ) {
+                selectedTab = 1
+            }
+        }
+        .frame(height: 56)
+        .background(AppTheme.surface)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(AppTheme.secondaryText.opacity(0.3))
+                .frame(height: 1)
+        }
+    }
+
+    private func tabButton(
+        title: String,
+        systemImage: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 20, weight: .semibold))
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+            .foregroundStyle(isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+    }
+}

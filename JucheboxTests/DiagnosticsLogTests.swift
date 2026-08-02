@@ -1,6 +1,7 @@
 import XCTest
 @testable import Juchebox
 
+@MainActor
 final class DiagnosticsLogTests: XCTestCase {
     func testDiagnosticsExportUsesSanitizedHostOnly() throws {
         let log = DiagnosticsLog()

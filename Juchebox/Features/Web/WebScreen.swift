@@ -16,7 +16,6 @@ struct WebScreen: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isChromeVisible = true
-    @State private var isSettingsPresented = false
     @State private var sharedItems: [Any] = []
     @State private var isSharePresented = false
     @State private var searchQuery = ""
@@ -27,54 +26,54 @@ struct WebScreen: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            WebViewContainer(
-                appState: appState,
-                diagnosticsLog: diagnosticsLog,
-                domainPolicy: domainPolicy,
-                privacySettings: privacySettings
-            )
-            .id(privacySettings.isEphemeralSession)
-            .background(Color.black)
-
-            ChollimaSplash(language: appLanguage)
-                .transition(.opacity)
-                .opacity(showSplash ? 1 : 0)
-                .animation(reduceMotion ? .none : .easeOut(duration: AppMotion.defaultDuration), value: showSplash)
-                .allowsHitTesting(showSplash)
-
-            if let error = appState.webContentError {
-                WebErrorView(error: error, language: appLanguage) {
-                    appState.reload()
-                }
-            }
-
-            VStack(spacing: 8) {
-                Spacer()
-
-                if let notice = audioSessionController.notice {
-                    NoticeBanner(message: notice, actionTitle: t(.dismissButton, language: appLanguage)) {
-                        audioSessionController.notice = nil
-                    }
-                    .padding(.horizontal, 12)
-                }
-
-                if let toast = appState.toastMessage {
-                    NoticeBanner(message: toast, actionTitle: t(.okButton, language: appLanguage)) {
-                        appState.toastMessage = nil
-                    }
-                    .padding(.horizontal, 12)
-                }
-            }
-            .padding(.bottom, isChromeVisible ? 68 : 12)
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
+        VStack(spacing: 0) {
             LoadingProgressView(
                 isLoading: appState.isLoading,
                 progress: appState.estimatedProgress
             )
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+
+            ZStack(alignment: .bottom) {
+                WebViewContainer(
+                    appState: appState,
+                    diagnosticsLog: diagnosticsLog,
+                    domainPolicy: domainPolicy,
+                    privacySettings: privacySettings
+                )
+                .id(privacySettings.isEphemeralSession)
+                .background(Color.black)
+
+                ChollimaSplash(language: appLanguage)
+                    .transition(.opacity)
+                    .opacity(showSplash ? 1 : 0)
+                    .animation(reduceMotion ? .none : .easeOut(duration: AppMotion.defaultDuration), value: showSplash)
+                    .allowsHitTesting(showSplash)
+
+                if let error = appState.webContentError {
+                    WebErrorView(error: error, language: appLanguage) {
+                        appState.reload()
+                    }
+                }
+
+                VStack(spacing: 8) {
+                    Spacer()
+
+                    if let notice = audioSessionController.notice {
+                        NoticeBanner(message: notice, actionTitle: t(.dismissButton, language: appLanguage)) {
+                            audioSessionController.notice = nil
+                        }
+                        .padding(.horizontal, 12)
+                    }
+
+                    if let toast = appState.toastMessage {
+                        NoticeBanner(message: toast, actionTitle: t(.okButton, language: appLanguage)) {
+                            appState.toastMessage = nil
+                        }
+                        .padding(.horizontal, 12)
+                    }
+                }
+                .padding(.bottom, 12)
+            }
+
             if isChromeVisible {
                 WebToolbar(
                     canGoBack: appState.canGoBack,
@@ -86,7 +85,6 @@ struct WebScreen: View {
                     search: presentSearch,
                     share: shareCurrentPage,
                     savePage: saveCurrentPage,
-                    openSettings: { isSettingsPresented = true },
                     hideControls: { isChromeVisible = false }
                 )
             } else {
@@ -103,10 +101,9 @@ struct WebScreen: View {
                 .padding(.vertical, 8)
             }
         }
-        .confirmationDialog(
+        .alert(
             t(.externalLinkTitle, language: appLanguage),
-            isPresented: externalLinkBinding,
-            titleVisibility: .visible
+            isPresented: externalLinkBinding
         ) {
             if let request = appState.externalLinkRequest {
                 Button(Translation.string(for: request.primaryActionKey, language: appLanguage)) {
@@ -128,13 +125,6 @@ struct WebScreen: View {
             if let request = appState.externalLinkRequest {
                 Text(Translation.string(for: request.messageKey, language: appLanguage))
             }
-        }
-        .sheet(isPresented: $isSettingsPresented) {
-            SettingsView(
-                appState: appState,
-                diagnosticsLog: diagnosticsLog,
-                privacySettings: privacySettings
-            )
         }
         .sheet(isPresented: $isSharePresented) {
             ActivityView(activityItems: sharedItems)
@@ -245,7 +235,6 @@ private struct WebToolbar: View {
     let search: () -> Void
     let share: () -> Void
     let savePage: () -> Void
-    let openSettings: () -> Void
     let hideControls: () -> Void
 
     @AppStorage(AppStorageKey.appLanguage) private var appLanguageRaw = AppLanguage.english.rawValue
@@ -309,13 +298,6 @@ private struct WebToolbar: View {
             )
 
             ToolbarIconButton(
-                systemName: "gearshape",
-                accessibilityLabel: t(.toolbarSettings, language: appLanguage),
-                accessibilityIdentifier: AccessibilityID.settingsButton,
-                action: openSettings
-            )
-
-            ToolbarIconButton(
                 systemName: "rectangle.compress.vertical",
                 accessibilityLabel: t(.toolbarHideControls, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.hideControlsButton,
@@ -329,6 +311,10 @@ private struct WebToolbar: View {
             Rectangle()
                 .fill(AppTheme.secondaryText.opacity(0.3)) // Gold hairline
                 .frame(height: 1)
+        }
+        .background {
+            Color.black.opacity(0.85)
+                .ignoresSafeArea(edges: .bottom)
         }
     }
 }

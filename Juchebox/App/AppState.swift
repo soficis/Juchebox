@@ -30,16 +30,22 @@ final class AppState: ObservableObject {
     }
 
     func attach(_ webView: WKWebView) {
+        guard self.webView !== webView else { return }
         self.webView = webView
         updateNavigationState(from: webView)
     }
 
     func updateNavigationState(from webView: WKWebView) {
-        canGoBack = webView.canGoBack
-        canGoForward = webView.canGoForward
-        isLoading = webView.isLoading
-        estimatedProgress = webView.estimatedProgress
-        currentURL = webView.url ?? currentURL
+        let newCanGoBack = webView.canGoBack
+        let newCanGoForward = webView.canGoForward
+        let newIsLoading = webView.isLoading
+        let newProgress = webView.estimatedProgress
+
+        if newCanGoBack != canGoBack { canGoBack = newCanGoBack }
+        if newCanGoForward != canGoForward { canGoForward = newCanGoForward }
+        if newIsLoading != isLoading { isLoading = newIsLoading }
+        if newProgress != estimatedProgress { estimatedProgress = newProgress }
+        if let newURL = webView.url, newURL != currentURL { currentURL = newURL }
     }
 
     func clearError() {

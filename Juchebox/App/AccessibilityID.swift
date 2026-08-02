@@ -8,7 +8,6 @@ enum AccessibilityID {
     static let reloadButton = "reloadButton"
     static let homeButton = "homeButton"
     static let shareButton = "shareButton"
-    static let settingsButton = "settingsButton"
     static let hideControlsButton = "hideControlsButton"
     static let showControlsButton = "showControlsButton"
     static let errorTitle = "webErrorTitle"

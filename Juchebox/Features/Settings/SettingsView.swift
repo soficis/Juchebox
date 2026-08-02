@@ -143,10 +143,9 @@ struct SettingsView: View {
                     .foregroundStyle(AppTheme.secondaryText)
                 }
             }
-            .confirmationDialog(
+            .alert(
                 t(.ephemeralConfirmationTitle, language: appLanguage),
-                isPresented: $isEphemeralConfirmationPresented,
-                titleVisibility: .visible
+                isPresented: $isEphemeralConfirmationPresented
             ) {
                 Button(t(.ephemeralConfirmAction, language: appLanguage), role: .destructive) {
                     privacySettings.isEphemeralSession = true
@@ -157,10 +156,9 @@ struct SettingsView: View {
             } message: {
                 Text(t(.ephemeralConfirmationMessage, language: appLanguage))
             }
-            .confirmationDialog(
+            .alert(
                 t(.clearDataButton, language: appLanguage),
-                isPresented: $isClearConfirmationPresented,
-                titleVisibility: .visible
+                isPresented: $isClearConfirmationPresented
             ) {
                 Button(t(.clearDataButton, language: appLanguage), role: .destructive) {
                     clearWebsiteData()

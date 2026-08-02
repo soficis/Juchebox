@@ -40,7 +40,12 @@ struct WebViewContainer: UIViewRepresentable {
 
         context.coordinator.attach(webView)
         appState.attach(webView)
-        webView.load(URLRequest(url: appState.homeURL))
+
+        // UI tests pass --ui-testing-offline so the app stays idle and
+        // native chrome is queryable without depending on the live site.
+        if !CommandLine.arguments.contains("--ui-testing-offline") {
+            webView.load(URLRequest(url: appState.homeURL))
+        }
 
         return webView
     }
