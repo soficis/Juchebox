@@ -1,6 +1,6 @@
-# Korean Music Web Companion
+# Juchebox
 
-Korean Music Web Companion is an independent, sideload-only iOS browser companion for people who already choose to use the public Juchify website.
+Juchebox is an independent, sideload-only iOS browser companion for people who already choose to use the public Juchify website.
 
 It is not an official client, not endorsed by Juchify, Chollima Front, DPRK institutions, or any music rightsholder, and not a replacement service. The app is a native SwiftUI shell around `https://juchify.com` with a strict navigation policy, local-only privacy controls, and no analytics.
 
@@ -21,8 +21,8 @@ It is not an official client, not endorsed by Juchify, Chollima Front, DPRK inst
 
 ## Build From Source
 
-1. Open `KoreanMusicWebCompanion.xcodeproj` in Xcode.
-2. Select the `KoreanMusicWebCompanion` scheme.
+1. Open `Juchebox.xcodeproj` in Xcode.
+2. Select the `Juchebox` scheme.
 3. Set your Apple development team in Signing & Capabilities.
 4. Build and run on an iOS 17+ simulator or your own signed device.
 
@@ -48,7 +48,7 @@ Diagnostics are local-only and exportable only by explicit user action. They inc
 
 ## Security
 
-Navigation is restricted by `DomainPolicy`. Allowed in-app hosts are configured in `KoreanMusicWebCompanion/KoreanMusicWebCompanion/Resources/domain-allowlist.json`; unknown third-party navigation is confirmed before system handoff, and insecure HTTP is blocked.
+Navigation is restricted by `DomainPolicy`. Allowed in-app hosts are configured in `Juchebox/Juchebox/Resources/domain-allowlist.json`; unknown third-party navigation is confirmed before system handoff, and insecure HTTP is blocked.
 
 Report vulnerabilities through the repository security contact described in [SECURITY.md](SECURITY.md). Do not include passwords, cookies, account data, copyrighted media, or bypass instructions in reports.
 

@@ -29,7 +29,7 @@
 		A1B2C3D4E5F607182900B013 /* WebViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */; };
 		A1B2C3D4E5F607182900B101 /* DiagnosticsLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */; };
 		A1B2C3D4E5F607182900B102 /* DomainPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */; };
-		A1B2C3D4E5F607182900B201 /* KoreanMusicWebCompanionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F201 /* KoreanMusicWebCompanionUITests.swift */; };
+		A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */; };
 		A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F014 /* domain-allowlist.json */; };
 		A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F098 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -40,14 +40,14 @@
 			containerPortal = A1B2C3D4E5F607182900AA01 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A1B2C3D4E5F607182900AA04;
-			remoteInfo = KoreanMusicWebCompanion;
+			remoteInfo = Juchebox;
 		};
 		A1B2C3D4E5F607182900C002 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A1B2C3D4E5F607182900AA01 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = A1B2C3D4E5F607182900AA04;
-			remoteInfo = KoreanMusicWebCompanion;
+			remoteInfo = Juchebox;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -77,10 +77,10 @@
 		A1B2C3D4E5F607182900F015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLogTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainPolicyTests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900F201 /* KoreanMusicWebCompanionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoreanMusicWebCompanionUITests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F607182900P001 /* KoreanMusicWebCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KoreanMusicWebCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1B2C3D4E5F607182900P002 /* KoreanMusicWebCompanionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoreanMusicWebCompanionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1B2C3D4E5F607182900P003 /* KoreanMusicWebCompanionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoreanMusicWebCompanionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JucheboxUITests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900P001 /* Juchebox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Juchebox.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F607182900P002 /* JucheboxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F607182900P003 /* JucheboxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,9 +111,9 @@
 		A1B2C3D4E5F607182900AA02 = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F607182900G001 /* KoreanMusicWebCompanion */,
-				A1B2C3D4E5F607182900G010 /* KoreanMusicWebCompanionTests */,
-				A1B2C3D4E5F607182900G020 /* KoreanMusicWebCompanionUITests */,
+				A1B2C3D4E5F607182900G001 /* Juchebox */,
+				A1B2C3D4E5F607182900G010 /* JucheboxTests */,
+				A1B2C3D4E5F607182900G020 /* JucheboxUITests */,
 				A1B2C3D4E5F607182900AA03 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -121,14 +121,14 @@
 		A1B2C3D4E5F607182900AA03 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F607182900P001 /* KoreanMusicWebCompanion.app */,
-				A1B2C3D4E5F607182900P002 /* KoreanMusicWebCompanionTests.xctest */,
-				A1B2C3D4E5F607182900P003 /* KoreanMusicWebCompanionUITests.xctest */,
+				A1B2C3D4E5F607182900P001 /* Juchebox.app */,
+				A1B2C3D4E5F607182900P002 /* JucheboxTests.xctest */,
+				A1B2C3D4E5F607182900P003 /* JucheboxUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A1B2C3D4E5F607182900G001 /* KoreanMusicWebCompanion */ = {
+		A1B2C3D4E5F607182900G001 /* Juchebox */ = {
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F607182900G002 /* App */,
@@ -136,7 +136,7 @@
 				A1B2C3D4E5F607182900G006 /* Features */,
 				A1B2C3D4E5F607182900G00B /* Resources */,
 			);
-			path = KoreanMusicWebCompanion;
+			path = Juchebox;
 			sourceTree = "<group>";
 		};
 		A1B2C3D4E5F607182900G002 /* App */ = {
@@ -238,29 +238,29 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		A1B2C3D4E5F607182900G010 /* KoreanMusicWebCompanionTests */ = {
+		A1B2C3D4E5F607182900G010 /* JucheboxTests */ = {
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */,
 				A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */,
 			);
-			path = KoreanMusicWebCompanionTests;
+			path = JucheboxTests;
 			sourceTree = "<group>";
 		};
-		A1B2C3D4E5F607182900G020 /* KoreanMusicWebCompanionUITests */ = {
+		A1B2C3D4E5F607182900G020 /* JucheboxUITests */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F607182900F201 /* KoreanMusicWebCompanionUITests.swift */,
+				A1B2C3D4E5F607182900F201 /* JucheboxUITests.swift */,
 			);
-			path = KoreanMusicWebCompanionUITests;
+			path = JucheboxUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */ = {
+		A1B2C3D4E5F607182900AA04 /* Juchebox */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1B2C3D4E5F607182900CL02 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanion" */;
+			buildConfigurationList = A1B2C3D4E5F607182900CL02 /* Build configuration list for PBXNativeTarget "Juchebox" */;
 			buildPhases = (
 				A1B2C3D4E5F607182900BS01 /* Sources */,
 				A1B2C3D4E5F607182900BF01 /* Frameworks */,
@@ -270,14 +270,14 @@
 			);
 			dependencies = (
 			);
-			name = KoreanMusicWebCompanion;
-			productName = KoreanMusicWebCompanion;
-			productReference = A1B2C3D4E5F607182900P001 /* KoreanMusicWebCompanion.app */;
+			name = Juchebox;
+			productName = Juchebox;
+			productReference = A1B2C3D4E5F607182900P001 /* Juchebox.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A1B2C3D4E5F607182900AA05 /* KoreanMusicWebCompanionTests */ = {
+		A1B2C3D4E5F607182900AA05 /* JucheboxTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1B2C3D4E5F607182900CL03 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionTests" */;
+			buildConfigurationList = A1B2C3D4E5F607182900CL03 /* Build configuration list for PBXNativeTarget "JucheboxTests" */;
 			buildPhases = (
 				A1B2C3D4E5F607182900BS02 /* Sources */,
 				A1B2C3D4E5F607182900BF02 /* Frameworks */,
@@ -288,14 +288,14 @@
 			dependencies = (
 				A1B2C3D4E5F607182900D001 /* PBXTargetDependency */,
 			);
-			name = KoreanMusicWebCompanionTests;
-			productName = KoreanMusicWebCompanionTests;
-			productReference = A1B2C3D4E5F607182900P002 /* KoreanMusicWebCompanionTests.xctest */;
+			name = JucheboxTests;
+			productName = JucheboxTests;
+			productReference = A1B2C3D4E5F607182900P002 /* JucheboxTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A1B2C3D4E5F607182900AA06 /* KoreanMusicWebCompanionUITests */ = {
+		A1B2C3D4E5F607182900AA06 /* JucheboxUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1B2C3D4E5F607182900CL04 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionUITests" */;
+			buildConfigurationList = A1B2C3D4E5F607182900CL04 /* Build configuration list for PBXNativeTarget "JucheboxUITests" */;
 			buildPhases = (
 				A1B2C3D4E5F607182900BS03 /* Sources */,
 				A1B2C3D4E5F607182900BF03 /* Frameworks */,
@@ -306,9 +306,9 @@
 			dependencies = (
 				A1B2C3D4E5F607182900D002 /* PBXTargetDependency */,
 			);
-			name = KoreanMusicWebCompanionUITests;
-			productName = KoreanMusicWebCompanionUITests;
-			productReference = A1B2C3D4E5F607182900P003 /* KoreanMusicWebCompanionUITests.xctest */;
+			name = JucheboxUITests;
+			productName = JucheboxUITests;
+			productReference = A1B2C3D4E5F607182900P003 /* JucheboxUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -334,7 +334,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A1B2C3D4E5F607182900CL01 /* Build configuration list for PBXProject "KoreanMusicWebCompanion" */;
+			buildConfigurationList = A1B2C3D4E5F607182900CL01 /* Build configuration list for PBXProject "Juchebox" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -347,9 +347,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */,
-				A1B2C3D4E5F607182900AA05 /* KoreanMusicWebCompanionTests */,
-				A1B2C3D4E5F607182900AA06 /* KoreanMusicWebCompanionUITests */,
+				A1B2C3D4E5F607182900AA04 /* Juchebox */,
+				A1B2C3D4E5F607182900AA05 /* JucheboxTests */,
+				A1B2C3D4E5F607182900AA06 /* JucheboxUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -421,7 +421,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B2C3D4E5F607182900B201 /* KoreanMusicWebCompanionUITests.swift in Sources */,
+				A1B2C3D4E5F607182900B201 /* JucheboxUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,12 +430,12 @@
 /* Begin PBXTargetDependency section */
 		A1B2C3D4E5F607182900D001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */;
+			target = A1B2C3D4E5F607182900AA04 /* Juchebox */;
 			targetProxy = A1B2C3D4E5F607182900C001 /* PBXContainerItemProxy */;
 		};
 		A1B2C3D4E5F607182900D002 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */;
+			target = A1B2C3D4E5F607182900AA04 /* Juchebox */;
 			targetProxy = A1B2C3D4E5F607182900C002 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -474,7 +474,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = KoreanMusicWebCompanion/Resources/Info.plist;
+				INFOPLIST_FILE = Juchebox/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -498,7 +498,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = KoreanMusicWebCompanion/Resources/Info.plist;
+				INFOPLIST_FILE = Juchebox/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -531,7 +531,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KoreanMusicWebCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KoreanMusicWebCompanion";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Juchebox.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Juchebox";
 			};
 			name = Debug;
 		};
@@ -551,7 +551,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KoreanMusicWebCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KoreanMusicWebCompanion";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Juchebox.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Juchebox";
 			};
 			name = Release;
 		};
@@ -565,7 +565,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = KoreanMusicWebCompanion;
+				TEST_TARGET_NAME = Juchebox;
 			};
 			name = Debug;
 		};
@@ -579,14 +579,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = KoreanMusicWebCompanion;
+				TEST_TARGET_NAME = Juchebox;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A1B2C3D4E5F607182900CL01 /* Build configuration list for PBXProject "KoreanMusicWebCompanion" */ = {
+		A1B2C3D4E5F607182900CL01 /* Build configuration list for PBXProject "Juchebox" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1B2C3D4E5F607182900CD01 /* Debug */,
@@ -595,7 +595,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1B2C3D4E5F607182900CL02 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanion" */ = {
+		A1B2C3D4E5F607182900CL02 /* Build configuration list for PBXNativeTarget "Juchebox" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1B2C3D4E5F607182900CD03 /* Debug */,
@@ -604,7 +604,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1B2C3D4E5F607182900CL03 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionTests" */ = {
+		A1B2C3D4E5F607182900CL03 /* Build configuration list for PBXNativeTarget "JucheboxTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1B2C3D4E5F607182900CD05 /* Debug */,
@@ -613,7 +613,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A1B2C3D4E5F607182900CL04 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionUITests" */ = {
+		A1B2C3D4E5F607182900CL04 /* Build configuration list for PBXNativeTarget "JucheboxUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1B2C3D4E5F607182900CD07 /* Debug */,

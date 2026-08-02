@@ -4,8 +4,8 @@ This project distributes source first. iOS installation requires signing.
 
 ## Xcode
 
-1. Open `KoreanMusicWebCompanion.xcodeproj`.
-2. Select the `KoreanMusicWebCompanion` scheme.
+1. Open `Juchebox.xcodeproj`.
+2. Select the `Juchebox` scheme.
 3. Choose your own Apple development team.
 4. Build and run on your device.
 

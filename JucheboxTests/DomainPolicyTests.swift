@@ -1,5 +1,5 @@
 import XCTest
-@testable import KoreanMusicWebCompanion
+@testable import Juchebox
 
 final class DomainPolicyTests: XCTestCase {
     private let policy = DomainPolicy(allowedHosts: ["juchify.com", "listen.juchify.com"])

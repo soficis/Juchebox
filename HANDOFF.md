@@ -6,7 +6,7 @@ Welcome to the **Juchebox** iOS codebase! This document provides a complete tech
 
 ## 📖 Project Context & Objectives
 
-Juchebox (originally *Korean Music Web Companion*) is a specialized Swift/SwiftUI iOS application designed as a safe, isolated, and themed web wrapper around a configured `WKWebView` to access specific allowed music streaming websites of the Democratic People's Republic of Korea (DPRK).
+Juchebox (originally *Juchebox*) is a specialized Swift/SwiftUI iOS application designed as a safe, isolated, and themed web wrapper around a configured `WKWebView` to access specific allowed music streaming websites of the Democratic People's Republic of Korea (DPRK).
 
 ### Core Goals achieved during the Rebrand:
 1. **Zero Warnings/Errors**: Fully resolved Swift 6 strict concurrency errors, main-actor isolation issues, and Xcode recommended configuration settings.
@@ -23,7 +23,7 @@ Juchebox (originally *Korean Music Web Companion*) is a specialized Swift/SwiftU
 The application is structured cleanly using a modular, decoupled approach divided into four key layers:
 
 ```
-KoreanMusicWebCompanion/
+Juchebox/
 ├── App/                         # Global Application Configurations
 │   ├── JucheboxApp.swift        # App Entrypoint (@main)
 │   ├── AppState.swift           # MainActor-isolated global navigation/view state
@@ -65,7 +65,7 @@ KoreanMusicWebCompanion/
 
 ## 📡 Dynamic Localization Mapping
 
-The translation mapping is centralized in [Translation.swift](KoreanMusicWebCompanion/App/Translation.swift). Here are key linguistic transitions between the two profiles:
+The translation mapping is centralized in [Translation.swift](Juchebox/App/Translation.swift). Here are key linguistic transitions between the two profiles:
 
 | Original/Key | English Profile (Juche-Themed) | 조선말 Profile (North Korean Dialect) |
 | :--- | :--- | :--- |
@@ -103,12 +103,12 @@ To comply with Swift 6 and maintain zero compiler warnings:
 
 To build and compile the application:
 
-1. Open Xcode and load `KoreanMusicWebCompanion.xcodeproj`.
+1. Open Xcode and load `Juchebox.xcodeproj`.
 2. Select your target device (e.g., iPhone Simulator).
 3. Press `Cmd + R` to run.
 
 To verify via Command Line, execute the following command from the repository root:
 ```bash
-xcodebuild -project KoreanMusicWebCompanion.xcodeproj -scheme KoreanMusicWebCompanion -destination "generic/platform=iOS Simulator" clean build
+xcodebuild -project Juchebox.xcodeproj -scheme Juchebox -destination "generic/platform=iOS Simulator" clean build
 ```
 On success, you will see `** BUILD SUCCEEDED **` with no compiler errors or concurrency warnings.

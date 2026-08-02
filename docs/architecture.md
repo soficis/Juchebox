@@ -1,6 +1,6 @@
 # Architecture
 
-Korean Music Web Companion is a native SwiftUI app around a single WebKit browsing surface.
+Juchebox is a native SwiftUI app around a single WebKit browsing surface.
 
 ## Layers
 

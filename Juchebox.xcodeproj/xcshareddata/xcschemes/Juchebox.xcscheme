@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A1B2C3D4E5F607182900AA04"
-               BuildableName = "KoreanMusicWebCompanion.app"
-               BlueprintName = "KoreanMusicWebCompanion"
-               ReferencedContainer = "container:KoreanMusicWebCompanion.xcodeproj">
+               BuildableName = "Juchebox.app"
+               BlueprintName = "Juchebox"
+               ReferencedContainer = "container:Juchebox.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,9 +35,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A1B2C3D4E5F607182900AA05"
-               BuildableName = "KoreanMusicWebCompanionTests.xctest"
-               BlueprintName = "KoreanMusicWebCompanionTests"
-               ReferencedContainer = "container:KoreanMusicWebCompanion.xcodeproj">
+               BuildableName = "JucheboxTests.xctest"
+               BlueprintName = "JucheboxTests"
+               ReferencedContainer = "container:Juchebox.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -45,9 +45,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A1B2C3D4E5F607182900AA06"
-               BuildableName = "KoreanMusicWebCompanionUITests.xctest"
-               BlueprintName = "KoreanMusicWebCompanionUITests"
-               ReferencedContainer = "container:KoreanMusicWebCompanion.xcodeproj">
+               BuildableName = "JucheboxUITests.xctest"
+               BlueprintName = "JucheboxUITests"
+               ReferencedContainer = "container:Juchebox.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -67,9 +67,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A1B2C3D4E5F607182900AA04"
-            BuildableName = "KoreanMusicWebCompanion.app"
-            BlueprintName = "KoreanMusicWebCompanion"
-            ReferencedContainer = "container:KoreanMusicWebCompanion.xcodeproj">
+            BuildableName = "Juchebox.app"
+            BlueprintName = "Juchebox"
+            ReferencedContainer = "container:Juchebox.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -84,9 +84,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A1B2C3D4E5F607182900AA04"
-            BuildableName = "KoreanMusicWebCompanion.app"
-            BlueprintName = "KoreanMusicWebCompanion"
-            ReferencedContainer = "container:KoreanMusicWebCompanion.xcodeproj">
+            BuildableName = "Juchebox.app"
+            BlueprintName = "Juchebox"
+            ReferencedContainer = "container:Juchebox.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

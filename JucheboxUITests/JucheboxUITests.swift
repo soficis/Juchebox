@@ -1,6 +1,6 @@
 import XCTest
 
-final class KoreanMusicWebCompanionUITests: XCTestCase {
+final class JucheboxUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
     }

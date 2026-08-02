@@ -1,5 +1,5 @@
 import XCTest
-@testable import KoreanMusicWebCompanion
+@testable import Juchebox
 
 final class DiagnosticsLogTests: XCTestCase {
     func testDiagnosticsExportUsesSanitizedHostOnly() throws {

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Korean Music Web Companion is an independent iOS browser companion. It does not operate a server, proxy, analytics pipeline, advertising system, or crash-reporting service.
+Juchebox is an independent iOS browser companion. It does not operate a server, proxy, analytics pipeline, advertising system, or crash-reporting service.
 
 ## Data The App Does Not Collect
 
