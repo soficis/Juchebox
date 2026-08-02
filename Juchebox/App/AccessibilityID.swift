@@ -17,5 +17,7 @@ enum AccessibilityID {
     static let ephemeralSessionToggle = "ephemeralSessionToggle"
     static let clearWebsiteDataButton = "clearWebsiteDataButton"
     static let exportDiagnosticsButton = "exportDiagnosticsButton"
+    static let searchButton = "searchButton"
+    static let savePageButton = "savePageButton"
 }
 

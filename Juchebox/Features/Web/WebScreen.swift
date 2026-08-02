@@ -14,10 +14,17 @@ struct WebScreen: View {
     }
 
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isChromeVisible = true
     @State private var isSettingsPresented = false
     @State private var sharedItems: [Any] = []
     @State private var isSharePresented = false
+    @State private var searchQuery = ""
+    @State private var isSearchPresented = false
+
+    private var showSplash: Bool {
+        appState.isLoading && appState.estimatedProgress < 0.5 && appState.webContentError == nil
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -29,6 +36,12 @@ struct WebScreen: View {
             )
             .id(privacySettings.isEphemeralSession)
             .background(Color.black)
+
+            ChollimaSplash(language: appLanguage)
+                .transition(.opacity)
+                .opacity(showSplash ? 1 : 0)
+                .animation(reduceMotion ? .none : .easeOut(duration: AppMotion.defaultDuration), value: showSplash)
+                .allowsHitTesting(showSplash)
 
             if let error = appState.webContentError {
                 WebErrorView(error: error, language: appLanguage) {
@@ -70,7 +83,9 @@ struct WebScreen: View {
                     goForward: appState.goForward,
                     reload: appState.reload,
                     home: appState.loadHome,
+                    search: presentSearch,
                     share: shareCurrentPage,
+                    savePage: saveCurrentPage,
                     openSettings: { isSettingsPresented = true },
                     hideControls: { isChromeVisible = false }
                 )
@@ -124,6 +139,15 @@ struct WebScreen: View {
         .sheet(isPresented: $isSharePresented) {
             ActivityView(activityItems: sharedItems)
         }
+        .alert(t(.searchButton, language: appLanguage), isPresented: $isSearchPresented) {
+            TextField(t(.searchPlaceholder, language: appLanguage), text: $searchQuery)
+            Button(t(.searchGo, language: appLanguage)) {
+                submitSearch()
+            }
+            Button(t(.cancel, language: appLanguage), role: .cancel) {
+                searchQuery = ""
+            }
+        }
         .onAppear {
             applyUITestLaunchScenarios()
         }
@@ -162,6 +186,38 @@ struct WebScreen: View {
         sharedItems = [currentURL]
         isSharePresented = true
     }
+
+    private func presentSearch() {
+        isSearchPresented = true
+    }
+
+    private func submitSearch() {
+        let trimmed = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var urlString = trimmed
+        if !urlString.contains("://") {
+            urlString = "https://" + urlString
+        }
+        if let url = URL(string: urlString), url.host != nil {
+            appState.load(url)
+        } else if let url = URL(string: trimmed) {
+            appState.load(url)
+        }
+        searchQuery = ""
+    }
+
+    private func saveCurrentPage() {
+        guard let url = appState.currentURL else {
+            appState.showToast(t(.toastNoPageToSave, language: appLanguage))
+            return
+        }
+        var saved = UserDefaults.standard.stringArray(forKey: "savedPages") ?? []
+        if !saved.contains(url.absoluteString) {
+            saved.append(url.absoluteString)
+            UserDefaults.standard.set(saved, forKey: "savedPages")
+        }
+        appState.showToast(t(.toastPageSaved, language: appLanguage))
+    }
 }
 
 private struct LoadingProgressView: View {
@@ -186,7 +242,9 @@ private struct WebToolbar: View {
     let goForward: () -> Void
     let reload: () -> Void
     let home: () -> Void
+    let search: () -> Void
     let share: () -> Void
+    let savePage: () -> Void
     let openSettings: () -> Void
     let hideControls: () -> Void
 
@@ -230,10 +288,24 @@ private struct WebToolbar: View {
             Spacer(minLength: 8)
 
             ToolbarIconButton(
+                systemName: "magnifyingglass",
+                accessibilityLabel: t(.searchButton, language: appLanguage),
+                accessibilityIdentifier: AccessibilityID.searchButton,
+                action: search
+            )
+
+            ToolbarIconButton(
                 systemName: "square.and.arrow.up",
                 accessibilityLabel: t(.toolbarShare, language: appLanguage),
                 accessibilityIdentifier: AccessibilityID.shareButton,
                 action: share
+            )
+
+            ToolbarIconButton(
+                systemName: "bookmark",
+                accessibilityLabel: t(.saveButton, language: appLanguage),
+                accessibilityIdentifier: AccessibilityID.savePageButton,
+                action: savePage
             )
 
             ToolbarIconButton(
@@ -379,6 +451,27 @@ private struct NoticeBanner: View {
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(AppTheme.hairline, lineWidth: 1)
+        }
+    }
+}
+
+private struct ChollimaSplash: View {
+    let language: AppLanguage
+
+    var body: some View {
+        ZStack {
+            AppTheme.background
+                .ignoresSafeArea()
+
+            VStack(spacing: AppSpacing.md) {
+                StarShape()
+                    .fill(AppTheme.accent)
+                    .frame(width: 60, height: 60)
+
+                Text(t(.appName, language: language))
+                    .font(.system(size: 34, design: .serif).weight(.black))
+                    .foregroundStyle(AppTheme.secondaryText)
+            }
         }
     }
 }

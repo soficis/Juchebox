@@ -71,5 +71,7 @@ extension Translation.Key {
         .blockedTitleLookalike, .blockedTitleDownloadUnsupported,
         .blockedMessageMissingURL, .blockedMessageMalformedURL, .blockedMessageInsecureHTTP,
         .blockedMessageDownloadUnsupported,
+        .searchButton, .searchPlaceholder, .searchGo,
+        .saveButton, .toastPageSaved, .toastNoPageToSave,
     ]
 }

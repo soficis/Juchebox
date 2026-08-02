@@ -106,6 +106,12 @@ enum Translation {
         case blockedMessageUnsupportedScheme(String)
         case blockedMessageLookalike(String)
         case blockedMessageDownloadUnsupported
+        case searchButton
+        case searchPlaceholder
+        case searchGo
+        case saveButton
+        case toastPageSaved
+        case toastNoPageToSave
 
         var englishValue: String {
             switch self {
@@ -187,6 +193,12 @@ enum Translation {
             case .blockedMessageUnsupportedScheme(let scheme): return "\(scheme): links are not supported by this companion."
             case .blockedMessageLookalike(let host): return "\(host) resembles the allowed site but is not approved."
             case .blockedMessageDownloadUnsupported: return "This companion does not download, save, or expose website files."
+            case .searchButton: return "Search"
+            case .searchPlaceholder: return "Search or enter address"
+            case .searchGo: return "Go"
+            case .saveButton: return "Save Page"
+            case .toastPageSaved: return "Page saved."
+            case .toastNoPageToSave: return "No page to save."
             }
         }
 
@@ -270,6 +282,12 @@ enum Translation {
             case .blockedMessageUnsupportedScheme(let scheme): return "\(scheme): 련결방식은 지원되지 않습네다."
             case .blockedMessageLookalike(let host): return "\(host) 주소는 위장된 위조페지일 위험이 존재합네다."
             case .blockedMessageDownloadUnsupported: return "본 열람기에서는 곡이나 화상자료를 보관하거나 배포하지 않습네다."
+            case .searchButton: return "검색"
+            case .searchPlaceholder: return "검색 또는 주소 입력"
+            case .searchGo: return "이동"
+            case .saveButton: return "페지 보관"
+            case .toastPageSaved: return "페지가 보관되었습니다."
+            case .toastNoPageToSave: return "보관할 페지가 없습네다."
             }
         }
     }
