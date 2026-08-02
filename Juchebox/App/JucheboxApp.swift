@@ -2,6 +2,12 @@ import SwiftUI
 
 @main
 struct JucheboxApp: App {
+    @StateObject private var authStore: AuthStore
+    @StateObject private var appState: AppState
+    @StateObject private var audioSessionController = AudioSessionController()
+    @StateObject private var catalog: CatalogStore
+    private let playerController = AVPlayerController()
+
     init() {
         if CommandLine.arguments.contains("--reset-onboarding") {
             UserDefaults.standard.set(false, forKey: AppStorageKey.hasAcceptedUnofficialDisclaimer)
@@ -10,15 +16,7 @@ struct JucheboxApp: App {
         if CommandLine.arguments.contains("--accept-onboarding") {
             UserDefaults.standard.set(true, forKey: AppStorageKey.hasAcceptedUnofficialDisclaimer)
         }
-    }
 
-    @StateObject private var authStore = AuthStore()
-    @StateObject private var appState: AppState
-    @StateObject private var audioSessionController = AudioSessionController()
-    @StateObject private var catalog: CatalogStore
-    private let playerController = AVPlayerController()
-
-    init() {
         let auth = AuthStore()
         _authStore = StateObject(wrappedValue: auth)
 
