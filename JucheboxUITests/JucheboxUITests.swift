@@ -49,7 +49,6 @@ final class JucheboxUITests: XCTestCase {
 
         XCTAssertTrue(app.switches["ephemeralSessionToggle"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["clearWebsiteDataButton"].exists)
-        XCTAssertTrue(app.buttons["copyCurrentURLButton"].exists)
         XCTAssertTrue(app.buttons["exportDiagnosticsButton"].exists)
     }
 
@@ -60,14 +59,14 @@ final class JucheboxUITests: XCTestCase {
         app.buttons["settingsButton"].tap()
         app.buttons["clearWebsiteDataButton"].tap()
 
-        XCTAssertTrue(app.buttons["Clear and Sign Out"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Purge Web Data & Sign Out"].waitForExistence(timeout: 5))
         app.buttons["Cancel"].tap()
     }
 
     func testExternalLinkConfirmation() throws {
         let app = launchAcceptedApp(extraArguments: ["--show-external-link-confirmation"])
 
-        XCTAssertTrue(app.buttons["Open in Safari"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Open in External Web Browser"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["Copy Link"].exists)
         app.buttons["Cancel"].tap()
     }

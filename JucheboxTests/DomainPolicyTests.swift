@@ -63,6 +63,16 @@ final class DomainPolicyTests: XCTestCase {
         )
     }
 
+    func testAllowsSubdomainOfAllowedHost() {
+        XCTAssertEqual(policy.decision(for: makeURL("https://www.juchify.com")), .allowInApp)
+        XCTAssertEqual(policy.decision(for: makeURL("https://cdn.juchify.com")), .allowInApp)
+    }
+
+    func testTrailingDotHostIsNormalized() {
+        XCTAssertEqual(policy.decision(for: makeURL("https://juchify.com.")), .allowInApp)
+        XCTAssertEqual(policy.decision(for: makeURL("https://www.juchify.com.")), .allowInApp)
+    }
+
     func testTargetBlankUsesSamePolicy() {
         XCTAssertEqual(
             policy.decision(for: makeURL("https://example.com/new"), context: .newWindow),
