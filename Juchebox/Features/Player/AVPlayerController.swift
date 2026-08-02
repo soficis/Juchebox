@@ -109,11 +109,6 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         stateSubject.send(.empty)
     }
 
-    deinit {
-        stop()
-        backgroundCancellables.removeAll()
-    }
-
     // MARK: - Background throttling
 
     private func setupBackgroundObservers() {
