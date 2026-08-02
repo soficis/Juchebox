@@ -161,6 +161,7 @@ final class JSBridgeTests: XCTestCase {
 
 // MARK: - PlayerControllerMockTests
 
+@MainActor
 final class PlayerControllerMockTests: XCTestCase {
     func testMockControllerPlayPause() {
         let mock = MockPlayerController()
@@ -209,6 +210,7 @@ final class PlayerControllerMockTests: XCTestCase {
 
 // MARK: - MockPlayerController
 
+@MainActor
 private final class MockPlayerController: PlayerControllerProtocol {
     private let subject = PassthroughSubject<PlayerState, Never>()
     var statePublisher: AnyPublisher<PlayerState, Never> { subject.eraseToAnyPublisher() }

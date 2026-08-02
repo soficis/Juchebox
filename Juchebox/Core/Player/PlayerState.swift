@@ -1,14 +1,14 @@
 import Foundation
 
 struct TrackInfo: Equatable, Sendable {
-    let id: String?
-    let title: String?
-    let artist: String?
-    let album: String?
-    let albumId: String?
-    let artistId: String?
-    let duration: TimeInterval?
-    let artworkURL: URL?
+    let id: String? = nil
+    let title: String? = nil
+    let artist: String? = nil
+    let album: String? = nil
+    let albumId: String? = nil
+    let artistId: String? = nil
+    let duration: TimeInterval? = nil
+    let artworkURL: URL? = nil
 
     static let empty = TrackInfo()
 }
@@ -43,8 +43,8 @@ enum PlayerCommand: Equatable, Sendable {
 }
 
 struct QueueState: Equatable, Sendable {
-    var upcoming: [TrackInfo]
-    var history: [TrackInfo]
+    var upcoming: [TrackInfo] = []
+    var history: [TrackInfo] = []
 
     static let empty = QueueState()
 

@@ -2,7 +2,8 @@ import Combine
 import Foundation
 import WebKit
 
-protocol PlayerControllerProtocol: AnyObject, Sendable {
+@MainActor
+protocol PlayerControllerProtocol: AnyObject {
     var statePublisher: AnyPublisher<PlayerState, Never> { get }
     func currentState() -> PlayerState
     func play()
@@ -15,7 +16,8 @@ protocol PlayerControllerProtocol: AnyObject, Sendable {
     func stop()
 }
 
-protocol JSExtractorProtocol: AnyObject, Sendable {
+@MainActor
+protocol JSExtractorProtocol: AnyObject {
     func extractState() async -> PlayerState
     func sendCommand(_ command: PlayerCommand) async
     func attach(to webView: WKWebView)

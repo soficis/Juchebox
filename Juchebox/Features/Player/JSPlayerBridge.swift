@@ -11,7 +11,7 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
     private(set) var latestState: PlayerState = .empty
 
     private weak var webView: WKWebView?
-    private let contentWorld = WKContentWorld(name: "juchebox_player")
+    private let contentWorld = WKContentWorld.world(name: "juchebox_player")
     private let messageHandlerName = "playerBridge"
 
     // MARK: - JSExtractorProtocol
@@ -140,7 +140,7 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
             source: source,
             injectionTime: .atDocumentEnd,
             forMainFrameOnly: true,
-            in: WKContentWorld(name: "juchebox_player")
+            in: WKContentWorld.world(name: "juchebox_player")
         )
     }
 
