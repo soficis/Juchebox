@@ -51,7 +51,7 @@ Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, pr
 # Build (simulator, any Mac with Xcode)
 xcodebuild -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# Full test suite (57 unit + 10 UI)
+# Full test suite (57 unit + 11 UI — 10 offline + 1 live-site online test)
 xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Git (this repo)
@@ -369,7 +369,7 @@ V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overl
 
 ## Testing
 
-**Current state: `TEST SUCCEEDED` — 57 unit + 10 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-02).
+**Current state: `TEST SUCCEEDED` — 57 unit + 11 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-02). 10 of the 11 UI tests are offline; the 11th (`OnlinePlayerBridgeUITests`) runs against the live juchify.com by design.
 
 ### Unit tests (57, run in milliseconds)
 
@@ -384,7 +384,7 @@ V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overl
 
 > `DiagnosticsLogTests` is `@MainActor`-annotated — keep it that way (Swift 6).
 
-### UI tests (10, launch-argument driven)
+### UI tests (11 — 10 offline + 1 online)
 
 | Test | Launch args |
 |---|---|
@@ -398,22 +398,34 @@ V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overl
 | `testMiniPlayerBarVisibility` | `--accept-onboarding --ui-testing-offline` |
 | `testNowPlayingViewTransportControls` | `--accept-onboarding --ui-testing-offline` |
 | `testPlayerStateSynchronization` | `--accept-onboarding --ui-testing-offline` |
+| `testOnlinePlayerBridgeConnectsToLiveSite` *(online)* | `--accept-onboarding --online-player-probe` |
 
-**Launch-argument hooks** (all in `WebScreen.applyUITestLaunchScenarios` / `JucheboxApp`):
+The online test is the only one that **requires the live site**: it launches without `--ui-testing-offline`, loads juchify.com, and asserts the injected bridge script posted parsed state to the native side within 120s (probe label `bridge:connected`). It fails — honestly — while the site is unreachable, in maintenance mode, or if the site's player markup changes. Run it separately:
+
+```bash
+xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -only-testing:JucheboxUITests/OnlinePlayerBridgeUITests
+```
+
+`--online-player-probe` shows a test-only overlay (`OnlineBridgeProbe` in `RootView`) rendering the bridge's real `messageCount` and parsed state — never fabricated data.
+
+**Launch-argument hooks** (all in `WebScreen.applyUITestLaunchScenarios` / `JucheboxApp` / `RootView`):
 
 - `--reset-onboarding` — clear the onboarding-accepted flag
 - `--accept-onboarding` — skip onboarding
-- `--ui-testing-offline` — **do not load juchify.com** (keeps the app idle for XCUITest; REQUIRED for every UI test)
+- `--ui-testing-offline` — **do not load juchify.com** (keeps the app idle for XCUITest; REQUIRED for every offline UI test)
 - `--show-network-error` — force the network-error view
 - `--show-external-link-confirmation` — force the external-link alert
+- `--online-player-probe` — show the live bridge-state probe overlay (online tests only)
 
-**UI-test quirks (learned the hard way):** no system `TabView` (custom tab bar), dialogs are `.alert` not `confirmationDialog`, tabs are plain buttons (`app.buttons["Settings"]`), and every query is fast only when the app is idle — hence `--ui-testing-offline`.
+**UI-test quirks (learned the hard way):** no system `TabView` (custom tab bar), dialogs are `.alert` not `confirmationDialog`, tabs are plain buttons (`app.buttons["homeTab"]` / `app.buttons["settingsTab"]` — labels like "Home" collide with the toolbar `homeButton`), lazy `List` rows below the fold need a swipe before asserting existence, and every offline query is fast only when the app is idle — hence `--ui-testing-offline`.
 
 ### Test-writing rules
 
 - Pure logic tests need no `@MainActor`; anything touching `DiagnosticsLog` does.
 - `@testable import Juchebox` for internal types.
-- UI tests must not depend on the network or on string literals that drift — strings live in `Translation`, assertions match current labels ("Open in External Web Browser", "Purge Web Data & Sign Out").
+- UI tests must not depend on the network **except the one online test that exists precisely to do so** (`OnlinePlayerBridgeUITests`); strings live in `Translation`, assertions match current labels ("Open in External Web Browser", "Purge Web Data & Sign Out").
 
 ---
 
@@ -490,7 +502,7 @@ Do not release if the website changes in a way that would require reverse engine
 - 3-tab layout: Browse (WebView) / Now Playing / Settings, with WebView preserved across tab switches.
 - Audio session: route-change auto-pause, interruption recovery, background playback throttling.
 - Translation: 25 new player UI keys (EN/조선말), TranslationCompletenessTests updated.
-- Tests: 15 new unit tests (PlayerTests — state, queue, bridge, mock protocol); 3 new UI tests. Total: 57 unit + 10 UI.
+- Tests: 15 new unit tests (PlayerTests — state, queue, bridge, mock protocol); 3 new UI tests. Total: 57 unit + 10 UI offline (+ 1 live-site online test).
 - Doctrine revised: read-only JS extraction and native now-playing sync are now permitted within the player architecture.
 
 ### 0.1.2 (2026-08-01) — One-doc consolidation + GPLv3
