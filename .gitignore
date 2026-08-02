@@ -1,0 +1,16 @@
+.DS_Store
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Tooling artifacts
+.omo/
+.codegraph/
+*.xcuserdatad/
+
+# macOS
+.DS_Store

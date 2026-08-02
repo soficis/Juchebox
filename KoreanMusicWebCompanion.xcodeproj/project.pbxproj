@@ -1,0 +1,628 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A1B2C3D4E5F607182900B001 /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F001 /* AccessibilityID.swift */; };
+		A1B2C3D4E5F607182900B099 /* Translation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F099 /* Translation.swift */; };
+		A1B2C3D4E5F607182900B002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F002 /* AppState.swift */; };
+		A1B2C3D4E5F607182900B003 /* AppStorageKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F003 /* AppStorageKey.swift */; };
+		A1B2C3D4E5F607182900B004 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F004 /* AppTheme.swift */; };
+		A1B2C3D4E5F607182900B005 /* AudioSessionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F005 /* AudioSessionController.swift */; };
+		A1B2C3D4E5F607182900B006 /* JucheboxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F006 /* JucheboxApp.swift */; };
+		A1B2C3D4E5F607182900B007 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F007 /* RootView.swift */; };
+		A1B2C3D4E5F607182900B008 /* DomainPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F008 /* DomainPolicy.swift */; };
+		A1B2C3D4E5F607182900B009 /* PrivacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F009 /* PrivacySettings.swift */; };
+		A1B2C3D4E5F607182900B00A /* WebsiteDataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00A /* WebsiteDataCleaner.swift */; };
+		A1B2C3D4E5F607182900B00B /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00B /* DiagnosticsLog.swift */; };
+		A1B2C3D4E5F607182900B00C /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00C /* OnboardingView.swift */; };
+		A1B2C3D4E5F607182900B00D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00D /* SettingsView.swift */; };
+		A1B2C3D4E5F607182900B00E /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00E /* ActivityView.swift */; };
+		A1B2C3D4E5F607182900B00F /* ExternalLinkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00F /* ExternalLinkRequest.swift */; };
+		A1B2C3D4E5F607182900B010 /* WebContentError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F010 /* WebContentError.swift */; };
+		A1B2C3D4E5F607182900B011 /* WebNavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F011 /* WebNavigationCoordinator.swift */; };
+		A1B2C3D4E5F607182900B012 /* WebScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F012 /* WebScreen.swift */; };
+		A1B2C3D4E5F607182900B013 /* WebViewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */; };
+		A1B2C3D4E5F607182900B101 /* DiagnosticsLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */; };
+		A1B2C3D4E5F607182900B102 /* DomainPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */; };
+		A1B2C3D4E5F607182900B201 /* KoreanMusicWebCompanionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F201 /* KoreanMusicWebCompanionUITests.swift */; };
+		A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F014 /* domain-allowlist.json */; };
+		A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F098 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A1B2C3D4E5F607182900C001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1B2C3D4E5F607182900AA01 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1B2C3D4E5F607182900AA04;
+			remoteInfo = KoreanMusicWebCompanion;
+		};
+		A1B2C3D4E5F607182900C002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1B2C3D4E5F607182900AA01 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1B2C3D4E5F607182900AA04;
+			remoteInfo = KoreanMusicWebCompanion;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A1B2C3D4E5F607182900F001 /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F099 /* Translation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Translation.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F003 /* AppStorageKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorageKey.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F004 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F005 /* AudioSessionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionController.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F006 /* JucheboxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JucheboxApp.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F007 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F008 /* DomainPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainPolicy.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F009 /* PrivacySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettings.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00A /* WebsiteDataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteDataCleaner.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00B /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00C /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00E /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F00F /* ExternalLinkRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRequest.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F010 /* WebContentError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebContentError.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F011 /* WebNavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebNavigationCoordinator.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F012 /* WebScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebScreen.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewContainer.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F014 /* domain-allowlist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "domain-allowlist.json"; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F098 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLogTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainPolicyTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F201 /* KoreanMusicWebCompanionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KoreanMusicWebCompanionUITests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900P001 /* KoreanMusicWebCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KoreanMusicWebCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F607182900P002 /* KoreanMusicWebCompanionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoreanMusicWebCompanionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F607182900P003 /* KoreanMusicWebCompanionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoreanMusicWebCompanionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A1B2C3D4E5F607182900BF01 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F607182900BF02 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F607182900BF03 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A1B2C3D4E5F607182900AA02 = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900G001 /* KoreanMusicWebCompanion */,
+				A1B2C3D4E5F607182900G010 /* KoreanMusicWebCompanionTests */,
+				A1B2C3D4E5F607182900G020 /* KoreanMusicWebCompanionUITests */,
+				A1B2C3D4E5F607182900AA03 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900AA03 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900P001 /* KoreanMusicWebCompanion.app */,
+				A1B2C3D4E5F607182900P002 /* KoreanMusicWebCompanionTests.xctest */,
+				A1B2C3D4E5F607182900P003 /* KoreanMusicWebCompanionUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G001 /* KoreanMusicWebCompanion */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900G002 /* App */,
+				A1B2C3D4E5F607182900G003 /* Core */,
+				A1B2C3D4E5F607182900G006 /* Features */,
+				A1B2C3D4E5F607182900G00B /* Resources */,
+			);
+			path = KoreanMusicWebCompanion;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G002 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F001 /* AccessibilityID.swift */,
+				A1B2C3D4E5F607182900F099 /* Translation.swift */,
+				A1B2C3D4E5F607182900F002 /* AppState.swift */,
+				A1B2C3D4E5F607182900F003 /* AppStorageKey.swift */,
+				A1B2C3D4E5F607182900F004 /* AppTheme.swift */,
+				A1B2C3D4E5F607182900F005 /* AudioSessionController.swift */,
+				A1B2C3D4E5F607182900F006 /* JucheboxApp.swift */,
+				A1B2C3D4E5F607182900F007 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G003 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900G004 /* DomainPolicy */,
+				A1B2C3D4E5F607182900G005 /* Privacy */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G004 /* DomainPolicy */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F008 /* DomainPolicy.swift */,
+			);
+			path = DomainPolicy;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G005 /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F009 /* PrivacySettings.swift */,
+				A1B2C3D4E5F607182900F00A /* WebsiteDataCleaner.swift */,
+			);
+			path = Privacy;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G006 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900G007 /* Diagnostics */,
+				A1B2C3D4E5F607182900G008 /* Onboarding */,
+				A1B2C3D4E5F607182900G009 /* Settings */,
+				A1B2C3D4E5F607182900G00A /* Web */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G007 /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F00B /* DiagnosticsLog.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G008 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F00C /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G009 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F00D /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G00A /* Web */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F00E /* ActivityView.swift */,
+				A1B2C3D4E5F607182900F00F /* ExternalLinkRequest.swift */,
+				A1B2C3D4E5F607182900F010 /* WebContentError.swift */,
+				A1B2C3D4E5F607182900F011 /* WebNavigationCoordinator.swift */,
+				A1B2C3D4E5F607182900F012 /* WebScreen.swift */,
+				A1B2C3D4E5F607182900F013 /* WebViewContainer.swift */,
+			);
+			path = Web;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G00B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F098 /* Assets.xcassets */,
+				A1B2C3D4E5F607182900F014 /* domain-allowlist.json */,
+				A1B2C3D4E5F607182900F015 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G010 /* KoreanMusicWebCompanionTests */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F101 /* DiagnosticsLogTests.swift */,
+				A1B2C3D4E5F607182900F102 /* DomainPolicyTests.swift */,
+			);
+			path = KoreanMusicWebCompanionTests;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F607182900G020 /* KoreanMusicWebCompanionUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D4E5F607182900F201 /* KoreanMusicWebCompanionUITests.swift */,
+			);
+			path = KoreanMusicWebCompanionUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F607182900CL02 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanion" */;
+			buildPhases = (
+				A1B2C3D4E5F607182900BS01 /* Sources */,
+				A1B2C3D4E5F607182900BF01 /* Frameworks */,
+				A1B2C3D4E5F607182900BR01 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KoreanMusicWebCompanion;
+			productName = KoreanMusicWebCompanion;
+			productReference = A1B2C3D4E5F607182900P001 /* KoreanMusicWebCompanion.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A1B2C3D4E5F607182900AA05 /* KoreanMusicWebCompanionTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F607182900CL03 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionTests" */;
+			buildPhases = (
+				A1B2C3D4E5F607182900BS02 /* Sources */,
+				A1B2C3D4E5F607182900BF02 /* Frameworks */,
+				A1B2C3D4E5F607182900BR02 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1B2C3D4E5F607182900D001 /* PBXTargetDependency */,
+			);
+			name = KoreanMusicWebCompanionTests;
+			productName = KoreanMusicWebCompanionTests;
+			productReference = A1B2C3D4E5F607182900P002 /* KoreanMusicWebCompanionTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A1B2C3D4E5F607182900AA06 /* KoreanMusicWebCompanionUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1B2C3D4E5F607182900CL04 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionUITests" */;
+			buildPhases = (
+				A1B2C3D4E5F607182900BS03 /* Sources */,
+				A1B2C3D4E5F607182900BF03 /* Frameworks */,
+				A1B2C3D4E5F607182900BR03 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1B2C3D4E5F607182900D002 /* PBXTargetDependency */,
+			);
+			name = KoreanMusicWebCompanionUITests;
+			productName = KoreanMusicWebCompanionUITests;
+			productReference = A1B2C3D4E5F607182900P003 /* KoreanMusicWebCompanionUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A1B2C3D4E5F607182900AA01 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A1B2C3D4E5F607182900AA04 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					A1B2C3D4E5F607182900AA05 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A1B2C3D4E5F607182900AA04;
+					};
+					A1B2C3D4E5F607182900AA06 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A1B2C3D4E5F607182900AA04;
+					};
+				};
+			};
+			buildConfigurationList = A1B2C3D4E5F607182900CL01 /* Build configuration list for PBXProject "KoreanMusicWebCompanion" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A1B2C3D4E5F607182900AA02;
+			productRefGroup = A1B2C3D4E5F607182900AA03 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */,
+				A1B2C3D4E5F607182900AA05 /* KoreanMusicWebCompanionTests */,
+				A1B2C3D4E5F607182900AA06 /* KoreanMusicWebCompanionUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A1B2C3D4E5F607182900BR01 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F607182900R001 /* domain-allowlist.json in Resources */,
+				A1B2C3D4E5F607182900B098 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F607182900BR02 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F607182900BR03 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1B2C3D4E5F607182900BS01 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F607182900B001 /* AccessibilityID.swift in Sources */,
+				A1B2C3D4E5F607182900B099 /* Translation.swift in Sources */,
+				A1B2C3D4E5F607182900B002 /* AppState.swift in Sources */,
+				A1B2C3D4E5F607182900B003 /* AppStorageKey.swift in Sources */,
+				A1B2C3D4E5F607182900B004 /* AppTheme.swift in Sources */,
+				A1B2C3D4E5F607182900B005 /* AudioSessionController.swift in Sources */,
+				A1B2C3D4E5F607182900B006 /* JucheboxApp.swift in Sources */,
+				A1B2C3D4E5F607182900B007 /* RootView.swift in Sources */,
+				A1B2C3D4E5F607182900B008 /* DomainPolicy.swift in Sources */,
+				A1B2C3D4E5F607182900B009 /* PrivacySettings.swift in Sources */,
+				A1B2C3D4E5F607182900B00A /* WebsiteDataCleaner.swift in Sources */,
+				A1B2C3D4E5F607182900B00B /* DiagnosticsLog.swift in Sources */,
+				A1B2C3D4E5F607182900B00C /* OnboardingView.swift in Sources */,
+				A1B2C3D4E5F607182900B00D /* SettingsView.swift in Sources */,
+				A1B2C3D4E5F607182900B00E /* ActivityView.swift in Sources */,
+				A1B2C3D4E5F607182900B00F /* ExternalLinkRequest.swift in Sources */,
+				A1B2C3D4E5F607182900B010 /* WebContentError.swift in Sources */,
+				A1B2C3D4E5F607182900B011 /* WebNavigationCoordinator.swift in Sources */,
+				A1B2C3D4E5F607182900B012 /* WebScreen.swift in Sources */,
+				A1B2C3D4E5F607182900B013 /* WebViewContainer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F607182900BS02 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F607182900B101 /* DiagnosticsLogTests.swift in Sources */,
+				A1B2C3D4E5F607182900B102 /* DomainPolicyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1B2C3D4E5F607182900BS03 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F607182900B201 /* KoreanMusicWebCompanionUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1B2C3D4E5F607182900D001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */;
+			targetProxy = A1B2C3D4E5F607182900C001 /* PBXContainerItemProxy */;
+		};
+		A1B2C3D4E5F607182900D002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1B2C3D4E5F607182900AA04 /* KoreanMusicWebCompanion */;
+			targetProxy = A1B2C3D4E5F607182900C002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A1B2C3D4E5F607182900CD01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ENABLE_TESTABILITY = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F607182900CD02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F607182900CD03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KoreanMusicWebCompanion/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.local.Juchebox;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F607182900CD04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KoreanMusicWebCompanion/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.local.Juchebox;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F607182900CD05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				DEVELOPMENT_TEAM = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KoreanMusicWebCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KoreanMusicWebCompanion";
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F607182900CD06 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				DEVELOPMENT_TEAM = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KoreanMusicWebCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/KoreanMusicWebCompanion";
+			};
+			name = Release;
+		};
+		A1B2C3D4E5F607182900CD07 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				DEVELOPMENT_TEAM = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = KoreanMusicWebCompanion;
+			};
+			name = Debug;
+		};
+		A1B2C3D4E5F607182900CD08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				DEVELOPMENT_TEAM = "";
+				PRODUCT_BUNDLE_IDENTIFIER = dev.local.JucheboxUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = KoreanMusicWebCompanion;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A1B2C3D4E5F607182900CL01 /* Build configuration list for PBXProject "KoreanMusicWebCompanion" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F607182900CD01 /* Debug */,
+				A1B2C3D4E5F607182900CD02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F607182900CL02 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanion" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F607182900CD03 /* Debug */,
+				A1B2C3D4E5F607182900CD04 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F607182900CL03 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F607182900CD05 /* Debug */,
+				A1B2C3D4E5F607182900CD06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1B2C3D4E5F607182900CL04 /* Build configuration list for PBXNativeTarget "KoreanMusicWebCompanionUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1B2C3D4E5F607182900CD07 /* Debug */,
+				A1B2C3D4E5F607182900CD08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A1B2C3D4E5F607182900AA01 /* Project object */;
+}
