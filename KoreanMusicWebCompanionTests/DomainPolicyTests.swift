@@ -1,4 +1,4 @@
-﻿import XCTest
+import XCTest
 @testable import KoreanMusicWebCompanion
 
 final class DomainPolicyTests: XCTestCase {

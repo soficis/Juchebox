@@ -1,4 +1,4 @@
-﻿import XCTest
+import XCTest
 
 final class KoreanMusicWebCompanionUITests: XCTestCase {
     override func setUpWithError() throws {
