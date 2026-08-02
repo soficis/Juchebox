@@ -28,14 +28,15 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
         let controller = webView.configuration.userContentController
 
         // Remove previous registration so re-attach is safe.
-        controller.removeScriptMessageHandler(forName: messageHandlerName)
+        controller.removeScriptMessageHandler(forName: messageHandlerName, contentWorld: contentWorld)
         removeAllScripts(from: controller, in: contentWorld)
 
         // Inject polling script.
         controller.addUserScript(Self.playerBridgeScript())
 
-        // Register message handler for state updates.
-        controller.add(self, name: messageHandlerName)
+        // Register message handler in the SAME content world the script runs
+        // in — a default-world handler would never receive named-world messages.
+        controller.add(self, contentWorld: contentWorld, name: messageHandlerName)
 
         self.webView = webView
     }
@@ -130,7 +131,7 @@ final class JSPlayerBridge: NSObject, JSExtractorProtocol, WKScriptMessageHandle
                 data.currentTime = (media && !isNaN(media.currentTime)) ? media.currentTime : null;
                 data.duration     = (media && !isNaN(media.duration) && isFinite(media.duration)) ? media.duration : null;
 
-                window.webkit.messageHandlers.playerBridge.postMessage(JSON.stringify(data));
+                window.webkit.messageHandlers.playerBridge.postMessage(data);
             }
 
             setInterval(scan, 1000);
