@@ -150,6 +150,14 @@ final class AudioSessionController: ObservableObject {
 
     // MARK: - Interruptions
 
+    private static let headphonePorts: Set<AVAudioSession.Port> = [
+        .headphones,
+        .headsetMic,
+        .bluetoothA2DP,
+        .bluetoothHFP,
+        .bluetoothLE,
+    ]
+
     private func observeInterruptions() {
         guard observers.isEmpty else { return }
 
@@ -177,8 +185,15 @@ final class AudioSessionController: ObservableObject {
                 queue: .main
             ) { [weak self] notification in
                 guard let self else { return }
+                let userInfo = notification.userInfo
+                let reasonValue = userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
+                let reason = reasonValue.flatMap(AVAudioSession.RouteChangeReason.init(rawValue:))
+                let previousRouteOutputs = userInfo?[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription
+                let wasHeadphones = previousRouteOutputs?.outputs.contains {
+                    Self.headphonePorts.contains($0.portType)
+                } ?? false
                 Task { @MainActor in
-                    self.handleRouteChange(notification)
+                    self.handleRouteChange(reason: reason, wasHeadphones: wasHeadphones)
                 }
             }
         )
@@ -216,25 +231,12 @@ final class AudioSessionController: ObservableObject {
         }
     }
 
-    private func handleRouteChange(_ notification: Notification) {
+    private func handleRouteChange(reason: AVAudioSession.RouteChangeReason?, wasHeadphones: Bool) {
         notice = "Audio route changed. Use the website controls if playback paused."
 
-        guard let userInfo = notification.userInfo,
-              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
-              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue),
-              reason == .oldDeviceUnavailable else {
+        guard reason == .oldDeviceUnavailable else {
             return
         }
-
-        let previousRoute = userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription
-        let headphonePorts: Set<AVAudioSession.Port> = [
-            .headphones,
-            .headsetMic,
-            .bluetoothA2DP,
-            .bluetoothHFP,
-            .bluetoothLE,
-        ]
-        let wasHeadphones = previousRoute?.outputs.contains { headphonePorts.contains($0.portType) } ?? false
 
         if wasHeadphones {
             playerController?.pause()
@@ -266,7 +268,6 @@ final class AudioSessionController: ObservableObject {
 
     deinit {
         removeRemoteCommandTargets()
-        cancellables.removeAll()
 
         let observersToClean = observers
         observers = []
