@@ -81,8 +81,8 @@ struct HomeView: View {
 
             Spacer()
 
-            NavigationLink {
-                SettingsView(appState: appState, authStore: appState.authStore)
+            Button {
+                appState.showSettings = true
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 20, weight: .semibold))
@@ -90,6 +90,10 @@ struct HomeView: View {
                     .frame(width: 44, height: 44)
             }
             .accessibilityIdentifier(AccessibilityID.settingsTab)
+            .sheet(isPresented: $appState.showSettings) {
+                SettingsView(appState: appState, authStore: appState.authStore)
+                    .presentationDetents([.medium, .large])
+            }
         }
         .padding(.top, AppSpacing.md)
     }

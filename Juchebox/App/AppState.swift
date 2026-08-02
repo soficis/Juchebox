@@ -16,6 +16,7 @@ final class AppState: ObservableObject {
 
     @Published var selectedTab: Int = 0
     @Published var navigationPath: [CatalogRoute] = []
+    @Published var showSettings = false
 
     // MARK: - Dependencies
 
