@@ -251,7 +251,8 @@ final class AudioSessionController: ObservableObject {
 
     // MARK: - Cleanup
 
-    private func removeRemoteCommandTargets() {
+    // Only touches the thread-safe MPRemoteCommandCenter singleton — safe from deinit.
+    nonisolated private func removeRemoteCommandTargets() {
         let center = MPRemoteCommandCenter.shared()
         center.playCommand.removeTarget(nil)
         center.pauseCommand.removeTarget(nil)
