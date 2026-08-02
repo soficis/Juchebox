@@ -57,8 +57,11 @@ final class JucheboxUITests: XCTestCase {
 
         app.buttons["settingsTab"].tap()
         XCTAssertTrue(app.staticTexts["Language Selection"].waitForExistence(timeout: 5))
-        scrollUp(app)
-        XCTAssertTrue(app.staticTexts["Version"].waitForExistence(timeout: 5))
+        let versionText = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '0.2'")).firstMatch
+        for _ in 0..<4 where !versionText.exists {
+            scrollUp(app)
+        }
+        XCTAssertTrue(versionText.waitForExistence(timeout: 3), "Version row not reachable by scrolling")
     }
 
     /// Drags from upper-center to lower-center — starts inside the List,
