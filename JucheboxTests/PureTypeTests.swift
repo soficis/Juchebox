@@ -65,6 +65,53 @@ final class PureTypeTests: XCTestCase {
         XCTAssertEqual(song.streamURL?.absoluteString, "https://juchify.com/uploads/audio-123.mp3")
     }
 
+    func testMediaURLProxiedPath() {
+        XCTAssertEqual(JuchifyMediaURL.proxiedPath("/album/650"), "/api/proxy/album/650")
+        XCTAssertEqual(JuchifyMediaURL.proxiedPath("album/650"), "/api/proxy/album/650")
+        XCTAssertEqual(JuchifyMediaURL.proxiedPath("/api/playlist/8654"), "/api/proxy/playlist/8654")
+    }
+
+    func testMediaURLCoverUploadsConvertsToWebp() {
+        let url = JuchifyMediaURL.coverURL(path: "/uploads/album_715_0bda5b01.png", albumID: 715, size: 320)
+        XCTAssertEqual(url?.absoluteString, "https://juchify.com/uploads/album_715_0bda5b01.webp?w=320")
+    }
+
+    func testMediaURLCoverLegacySongCoverUsesAlbumCoversPattern() {
+        let url = JuchifyMediaURL.coverURL(path: "storage/track_image_media/afcf8ceb.png", albumID: 29)
+        XCTAssertEqual(url?.absoluteString, "https://juchify.com/storage/album_covers/album_29_afcf8ceb.webp")
+    }
+
+    func testMediaURLCoverStorageConvertsToWebp() {
+        let url = JuchifyMediaURL.coverURL(path: "storage/artist_photos/photo.jpg")
+        XCTAssertEqual(url?.absoluteString, "https://juchify.com/storage/artist_photos/photo.webp")
+    }
+
+    func testMediaURLCoverJpegExtension() {
+        let url = JuchifyMediaURL.coverURL(path: "/uploads/cover.jpeg")
+        XCTAssertEqual(url?.absoluteString, "https://juchify.com/uploads/cover.webp")
+    }
+
+    func testMediaURLAudioURL() {
+        XCTAssertEqual(
+            JuchifyMediaURL.audioURL(filePath: "storage/track_media/abc.mp3")?.absoluteString,
+            "https://juchify.com/storage/track_media/abc.mp3"
+        )
+        XCTAssertEqual(
+            JuchifyMediaURL.audioURL(filePath: "/uploads/audio-1.mp3")?.absoluteString,
+            "https://juchify.com/uploads/audio-1.mp3"
+        )
+        XCTAssertNil(JuchifyMediaURL.audioURL(filePath: nil))
+        XCTAssertNil(JuchifyMediaURL.audioURL(filePath: ""))
+    }
+
+    func testMediaURLHLSURL() {
+        XCTAssertEqual(
+            JuchifyMediaURL.hlsURL(hlsPath: "/api/playlist/8654")?.absoluteString,
+            "https://juchify.com/api/proxy/playlist/8654"
+        )
+        XCTAssertNil(JuchifyMediaURL.hlsURL(hlsPath: nil))
+    }
+
     func testLocalizedNamesValueForLanguage() {
         let names = LocalizedNames(en: "We Are Koreans", kp: "우리는 조선사람")
         XCTAssertEqual(names.value(for: .english), "We Are Koreans")

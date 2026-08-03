@@ -161,6 +161,7 @@ private final class MockPlayerController: PlayerControllerProtocol {
     var statePublisher: AnyPublisher<PlayerState, Never> { subject.eraseToAnyPublisher() }
     var onTrackEnded: (() -> Void)?
     var onPreviousRequested: (() -> Void)?
+    var onStreamFailed: (() -> Void)?
 
     private(set) var storedState = PlayerState.empty
     private(set) var lastCommand: PlayerCommand?
@@ -204,6 +205,11 @@ private final class MockPlayerController: PlayerControllerProtocol {
 
     func setTrack(_ track: TrackInfo) {
         storedState.currentTrack = track
+    }
+
+    func reportStreamUnavailable() {
+        storedState.streamError = "No stream available for this track."
+        subject.send(storedState)
     }
 
     func stop() {}

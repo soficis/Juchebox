@@ -26,6 +26,10 @@ final class AppState: ObservableObject {
     private var playerController: (any PlayerControllerProtocol)?
     private var playerStateCancellable: AnyCancellable?
 
+    private var pendingStreamSongID: Int?
+    private var hlsFallbackUsedForSongID: Int?
+    private var failedInCycle: Set<Int> = []
+
     init(
         apiClient: JuchifyAPIClient = JuchifyAPIClient(),
         authStore: AuthStore = AuthStore()
@@ -50,6 +54,11 @@ final class AppState: ObservableObject {
         controller.onPreviousRequested = { [weak self] in
             self?.playPrevious()
         }
+        controller.onStreamFailed = { [weak self] in
+            Task { @MainActor in
+                self?.handleStreamFailure()
+            }
+        }
         isPlayerBarVisible = true
     }
 
@@ -63,6 +72,7 @@ final class AppState: ObservableObject {
             nowPlayingQueue = fullQueue
             queueIndex = fullQueue.firstIndex(where: { $0.id == song.id }) ?? 0
         }
+        failedInCycle.removeAll()
         playCurrent()
         prefetchStreamURLs(for: nowPlayingQueue)
     }
@@ -72,6 +82,7 @@ final class AppState: ObservableObject {
         guard !queue.isEmpty else { return }
         nowPlayingQueue = queue
         queueIndex = min(index, queue.count - 1)
+        failedInCycle.removeAll()
         playCurrent()
         prefetchStreamURLs(for: nowPlayingQueue)
     }
@@ -106,6 +117,10 @@ final class AppState: ObservableObject {
     private func playCurrent() {
         guard nowPlayingQueue.indices.contains(queueIndex) else { return }
         let song = nowPlayingQueue[queueIndex]
+        pendingStreamSongID = song.id
+        if hlsFallbackUsedForSongID != song.id {
+            hlsFallbackUsedForSongID = nil
+        }
 
         // Immediate feedback: mini-player + now-playing show the track now.
         playerController?.setTrack(song.trackInfo)
@@ -120,14 +135,47 @@ final class AppState: ObservableObject {
             // this fetch is in flight, discard the result.
             let requestedSongID = song.id
             Task {
-                guard let enriched = try? await enrichedSong(song) else { return }
+                guard let enriched = try? await enrichedSong(song) else {
+                    playerController?.reportStreamUnavailable()
+                    return
+                }
                 guard nowPlayingQueue.indices.contains(queueIndex),
                       nowPlayingQueue[queueIndex].id == requestedSongID else { return }
                 nowPlayingQueue[queueIndex] = enriched
-                guard let url = enriched.streamURL else { return }
+                guard let url = enriched.streamURL else {
+                    playerController?.reportStreamUnavailable()
+                    return
+                }
                 playerController?.setStream(url: url, startTime: 0)
                 playerController?.setTrack(enriched.trackInfo)
             }
+        }
+    }
+
+    /// The engine reports a dead stream (404/403/decode). Try the HLS fallback
+    /// once per song; if that also fails, auto-advance through the queue until
+    /// every queued track has been attempted.
+    private func handleStreamFailure() {
+        guard let songID = pendingStreamSongID,
+              let index = nowPlayingQueue.firstIndex(where: { $0.id == songID }) else {
+            return
+        }
+        let song = nowPlayingQueue[index]
+
+        if hlsFallbackUsedForSongID != songID, let hlsURL = song.hlsStreamURL {
+            hlsFallbackUsedForSongID = songID
+            playerController?.setStream(url: hlsURL, startTime: 0)
+            return
+        }
+
+        hlsFallbackUsedForSongID = nil
+        failedInCycle.insert(songID)
+
+        if nowPlayingQueue.count > 1, failedInCycle.count < nowPlayingQueue.count {
+            playNext()
+        } else {
+            failedInCycle.removeAll()
+            playerController?.pause()
         }
     }
 

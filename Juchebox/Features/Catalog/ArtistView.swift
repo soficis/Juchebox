@@ -57,7 +57,10 @@ struct ArtistView: View {
 
     private func header(_ artist: Artist) -> some View {
         VStack(spacing: AppSpacing.md) {
-            AsyncImage(url: photoURL) { image in
+            CachedAsyncImage(
+                url: JuchifyMediaURL.coverURL(path: artist.photoURL, size: 640),
+                fallbackURL: rawPhotoURL
+            ) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 ZStack {
@@ -110,7 +113,7 @@ struct ArtistView: View {
         }
     }
 
-    private var photoURL: URL? {
+    private var rawPhotoURL: URL? {
         guard let path = artist?.photoURL, !path.isEmpty else { return nil }
         let full = path.hasPrefix("/") ? path : "/" + path
         return URL(string: "https://juchify.com\(full)")

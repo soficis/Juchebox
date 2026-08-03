@@ -38,6 +38,9 @@ struct JucheboxApp: App {
                 audioSessionController.start()
                 audioSessionController.configure(player: playerController)
                 appState.configurePlayer(controller: playerController)
+                playerController.tokenProvider = { [weak authStore] in
+                    authStore?.tokenProvider()
+                }
             }
         }
     }

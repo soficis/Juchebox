@@ -148,7 +148,10 @@ struct AlbumRow: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            AsyncImage(url: albumCoverURL) { image in
+            CachedAsyncImage(
+                url: album.coverURL,
+                fallbackURL: album.coverFallbackURL
+            ) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 AppTheme.surface
@@ -170,12 +173,6 @@ struct AlbumRow: View {
         }
         .contentShape(Rectangle())
     }
-
-    private var albumCoverURL: URL? {
-        guard let path = album.coverPath, !path.isEmpty else { return nil }
-        let full = path.hasPrefix("/") ? path : "/" + path
-        return URL(string: "https://juchify.com\(full)")
-    }
 }
 
 struct ArtistRow: View {
@@ -183,7 +180,10 @@ struct ArtistRow: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            AsyncImage(url: photoURL) { image in
+            CachedAsyncImage(
+                url: JuchifyMediaURL.coverURL(path: artist.photoURL, size: 320),
+                fallbackURL: rawPhotoURL
+            ) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 ZStack {
@@ -203,7 +203,7 @@ struct ArtistRow: View {
         .contentShape(Rectangle())
     }
 
-    private var photoURL: URL? {
+    private var rawPhotoURL: URL? {
         guard let path = artist.photoURL, !path.isEmpty else { return nil }
         let full = path.hasPrefix("/") ? path : "/" + path
         return URL(string: "https://juchify.com\(full)")

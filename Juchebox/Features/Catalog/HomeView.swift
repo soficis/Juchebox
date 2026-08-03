@@ -9,7 +9,7 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            LazyVStack(alignment: .leading, spacing: AppSpacing.lg) {
                 header
 
                 if let feed = catalog.homeFeed {
@@ -43,10 +43,7 @@ struct HomeView: View {
                         )
                     }
                 } else if catalog.errorMessage == nil {
-                    ProgressView()
-                        .tint(AppTheme.secondaryText)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, AppSpacing.xl)
+                    loadingSkeleton
                 } else {
                     errorView
                 }
@@ -61,6 +58,24 @@ struct HomeView: View {
         .refreshable {
             await catalog.refreshHome()
         }
+        .sheet(isPresented: $appState.showSettings) {
+            SettingsView(appState: appState, authStore: appState.authStore)
+                .presentationDetents([.medium, .large])
+        }
+    }
+
+    private var loadingSkeleton: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            RoundedRectangle(cornerRadius: AppRadius.lg)
+                .fill(AppTheme.surface)
+                .frame(height: 180)
+            ForEach(0..<4, id: \.self) { _ in
+                RoundedRectangle(cornerRadius: AppRadius.sm)
+                    .fill(AppTheme.surface)
+                    .frame(height: 48)
+            }
+        }
+        .padding(.top, AppSpacing.md)
     }
 
     // MARK: - Header
@@ -90,10 +105,6 @@ struct HomeView: View {
                     .frame(width: 44, height: 44)
             }
             .accessibilityIdentifier(AccessibilityID.settingsTab)
-            .sheet(isPresented: $appState.showSettings) {
-                SettingsView(appState: appState, authStore: appState.authStore)
-                    .presentationDetents([.medium, .large])
-            }
         }
         .padding(.top, AppSpacing.md)
     }
@@ -107,14 +118,15 @@ struct HomeView: View {
                 appState.play(song: hero, from: catalog.homeFeed?.newTracks)
             } label: {
                 ZStack(alignment: .bottomLeading) {
-                    AsyncImage(url: hero.artworkURL) { image in
+                    CachedAsyncImage(
+                        url: hero.artworkURL,
+                        fallbackURL: hero.artworkFallbackURL
+                    ) { image in
                         image.resizable().aspectRatio(contentMode: .fill)
                     } placeholder: {
                         AppTheme.surface
                     }
-                    .frame(height: 180)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     LinearGradient(
                         colors: [.clear, AppTheme.background.opacity(0.9)],
@@ -131,6 +143,8 @@ struct HomeView: View {
                     }
                     .padding(AppSpacing.md)
                 }
+                .aspectRatio(2.06, contentMode: .fit)
+                .frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppRadius.lg)
@@ -211,7 +225,10 @@ struct SongRow: View {
     var body: some View {
         Button(action: onPlay) {
             HStack(spacing: AppSpacing.md) {
-                AsyncImage(url: song.artworkURL) { image in
+                CachedAsyncImage(
+                    url: song.artworkURL,
+                    fallbackURL: song.artworkFallbackURL
+                ) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
                     AppTheme.surface
@@ -248,7 +265,10 @@ struct AlbumCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            AsyncImage(url: albumCoverURL) { image in
+            CachedAsyncImage(
+                url: album.coverURL,
+                fallbackURL: album.coverFallbackURL
+            ) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 AppTheme.surface
@@ -269,10 +289,91 @@ struct AlbumCard: View {
                 .frame(width: 140, alignment: .leading)
         }
     }
+}
 
-    private var albumCoverURL: URL? {
-        guard let path = album.coverPath, !path.isEmpty else { return nil }
-        let full = path.hasPrefix("/") ? path : "/" + path
-        return URL(string: "https://juchify.com\(full)")
+// MARK: - Image caching
+
+/// In-memory image cache shared by every `CachedAsyncImage` in the app.
+@MainActor
+final class ImageCache {
+    static let shared = ImageCache()
+
+    private let cache = NSCache<NSURL, UIImage>()
+
+    func image(for url: URL) -> UIImage? {
+        cache.object(forKey: url as NSURL)
+    }
+
+    func insert(_ image: UIImage, for url: URL) {
+        cache.setObject(image, forKey: url as NSURL)
+    }
+}
+
+/// `AsyncImage` replacement with an in-memory cache and an automatic fallback
+/// URL: the canonical webp cover is tried first, then the raw path, then the
+/// placeholder. Loading is lazy and cancellation-safe (per-view `task(id:)`).
+struct CachedAsyncImage<Content: View, Placeholder: View>: View {
+    let url: URL?
+    var fallbackURL: URL?
+    let content: (Image) -> Content
+    let placeholder: () -> Placeholder
+
+    init(
+        url: URL?,
+        fallbackURL: URL? = nil,
+        @ViewBuilder content: @escaping (Image) -> Content,
+        @ViewBuilder placeholder: @escaping () -> Placeholder
+    ) {
+        self.url = url
+        self.fallbackURL = fallbackURL
+        self.content = content
+        self.placeholder = placeholder
+    }
+
+    @State private var image: UIImage?
+    @State private var attempt = 0
+
+    private var candidates: [URL] {
+        var result: [URL] = []
+        if let url {
+            result.append(url)
+        }
+        if let fallbackURL, fallbackURL != url {
+            result.append(fallbackURL)
+        }
+        return result
+    }
+
+    var body: some View {
+        Group {
+            if let image {
+                content(Image(uiImage: image))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                placeholder()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .task(id: attempt) {
+            await load()
+        }
+    }
+
+    private func load() async {
+        guard candidates.indices.contains(attempt) else { return }
+        let target = candidates[attempt]
+
+        if let cached = ImageCache.shared.image(for: target) {
+            image = cached
+            return
+        }
+
+        guard let data = try? await URLSession.shared.data(from: target).0,
+              let decoded = UIImage(data: data) else {
+            attempt += 1
+            return
+        }
+        ImageCache.shared.insert(decoded, for: target)
+        image = decoded
     }
 }

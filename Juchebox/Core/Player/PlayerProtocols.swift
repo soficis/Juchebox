@@ -1,12 +1,12 @@
 import Combine
 import Foundation
-import WebKit
 
 @MainActor
 protocol PlayerControllerProtocol: AnyObject {
     var statePublisher: AnyPublisher<PlayerState, Never> { get }
     var onTrackEnded: (() -> Void)? { get set }
     var onPreviousRequested: (() -> Void)? { get set }
+    var onStreamFailed: (() -> Void)? { get set }
     func currentState() -> PlayerState
     func play()
     func pause()
@@ -16,12 +16,6 @@ protocol PlayerControllerProtocol: AnyObject {
     func previousTrack()
     func setStream(url: URL, startTime: TimeInterval)
     func setTrack(_ track: TrackInfo)
+    func reportStreamUnavailable()
     func stop()
-}
-
-@MainActor
-protocol JSExtractorProtocol: AnyObject {
-    func extractState() async -> PlayerState
-    func sendCommand(_ command: PlayerCommand) async
-    func attach(to webView: WKWebView)
 }

@@ -47,6 +47,15 @@ struct NowPlayingView: View {
             Spacer()
             artworkView
             trackInfoView
+
+            if let error = appState.playerState.streamError {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.warning)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, AppSpacing.md)
+            }
+
             progressView
             transportControls
             shuffleRepeatRow
@@ -67,7 +76,10 @@ struct NowPlayingView: View {
     private var artworkView: some View {
         Group {
             if let url = track?.artworkURL {
-                AsyncImage(url: url) { image in
+                CachedAsyncImage(
+                    url: url,
+                    fallbackURL: track?.artworkFallbackURL
+                ) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
                     placeholderArtwork

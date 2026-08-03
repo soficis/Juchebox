@@ -96,6 +96,16 @@ struct AlbumSummary: Codable, Equatable, Sendable {
     }
 
     var displayTitle: String { title ?? names?.en ?? names?.kp ?? "Unknown Album" }
+
+    var coverURL: URL? {
+        JuchifyMediaURL.coverURL(path: coverPath, albumID: id, size: 320)
+    }
+
+    var coverFallbackURL: URL? {
+        guard let coverPath, !coverPath.isEmpty else { return nil }
+        let full = coverPath.hasPrefix("/") ? coverPath : "/" + coverPath
+        return URL(string: "https://juchify.com\(full)")
+    }
 }
 
 /// Full album with its track list.
@@ -161,13 +171,26 @@ struct Song: Codable, Equatable, Identifiable, Sendable {
     var displayTitle: String { title ?? titles?.en ?? titles?.kp ?? "Unknown Track" }
     var displayArtist: String { artistName ?? artistNames?.en ?? artistNames?.kp ?? "Unknown Artist" }
 
-    /// Resolved streaming URL (direct MP3, no auth required).
+    /// Direct MP3 stream URL built from `file_path` (no auth required for `/uploads/` files).
     var streamURL: URL? {
-        guard let filePath, !filePath.isEmpty else { return nil }
-        return URL(string: "https://juchify.com\(filePath.hasPrefix("/") ? filePath : "/" + filePath)")
+        JuchifyMediaURL.audioURL(filePath: filePath)
     }
 
+    /// Proxied HLS playlist URL built from `hls_path` (needs the Bearer auth header).
+    var hlsStreamURL: URL? {
+        JuchifyMediaURL.hlsURL(hlsPath: hlsPath)
+    }
+
+    /// Canonical cover URL — `.webp` form with CDN `w=` resize, exactly as the
+    /// website's own image builder produces it. Needs `albumID` to construct the
+    /// `storage/album_covers/album_{id}_{name}.webp` pattern for legacy covers.
     var artworkURL: URL? {
+        JuchifyMediaURL.coverURL(path: coverPath, albumID: albumID, size: 320)
+    }
+
+    /// Raw cover URL fallback (original extension) for when the canonical webp
+    /// variant is missing on the server.
+    var artworkFallbackURL: URL? {
         guard let coverPath, !coverPath.isEmpty else { return nil }
         let path = coverPath.hasPrefix("/") ? coverPath : "/" + coverPath
         return URL(string: "https://juchify.com\(path)")
@@ -189,7 +212,8 @@ struct Song: Codable, Equatable, Identifiable, Sendable {
             albumId: albumID.map(String.init),
             artistId: artistID.map(String.init),
             duration: duration.map(TimeInterval.init),
-            artworkURL: artworkURL
+            artworkURL: artworkURL,
+            artworkFallbackURL: artworkFallbackURL
         )
     }
 }
@@ -291,5 +315,74 @@ struct CMSSection: Codable, Equatable, Sendable {
             case sectionType = "section_type"
             case limitItems = "limit_items"
         }
+    }
+}
+
+// MARK: - Media URL construction
+
+/// Builds Juchify media URLs exactly the way the website's client does, so
+/// artwork and streams resolve to the same canonical resources the site serves.
+enum JuchifyMediaURL {
+    static let baseURL = URL(string: "https://juchify.com")!
+
+    /// The web client's proxy builder (`module 64799`): any path becomes
+    /// `/api/proxy/...`; paths already starting with `/api/` lose that prefix
+    /// first (`/api/playlist/1` → `/api/proxy/playlist/1`).
+    static func proxiedPath(_ path: String) -> String {
+        var p = path.hasPrefix("/") ? path : "/" + path
+        if p.hasPrefix("/api/") {
+            p.removeFirst(4)
+        }
+        return "/api/proxy" + p
+    }
+
+    /// Cover URL as the web client's image builder (`module 58149`) produces it:
+    /// `.webp` conversion, `storage/album_covers/album_{id}_{name}.webp` for
+    /// legacy song covers, and an optional CDN `w=` resize param.
+    static func coverURL(path: String?, albumID: Int? = nil, size: Int? = nil) -> URL? {
+        guard let path, !path.isEmpty, !path.contains("placeholder") else { return nil }
+        if path == "/kcbs-logo.png" {
+            return URL(string: "https://juchify.com/kcbs-logo.png")
+        }
+        if path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        let base = "https://juchify.com"
+        var result: String
+        if path.hasPrefix("/uploads/") || path.hasPrefix("/storage/") {
+            result = base + path.webpConverted
+        } else if path.hasPrefix("storage/track_image_media/") {
+            let name = ((path as NSString).lastPathComponent as NSString).deletingPathExtension
+            result = "\(base)/storage/album_covers/album_\(albumID ?? 0)_\(name).webp"
+        } else if path.hasPrefix("uploads/") || path.hasPrefix("storage/") {
+            result = base + "/" + path.webpConverted
+        } else {
+            result = base + "/" + path
+        }
+        if let size, size > 0 {
+            result += (result.contains("?") ? "&" : "?") + "w=\(size)"
+        }
+        return URL(string: result)
+    }
+
+    /// Direct MP3 URL from `file_path`. `/uploads/` files stream without auth.
+    static func audioURL(filePath: String?) -> URL? {
+        guard let filePath, !filePath.isEmpty else { return nil }
+        let full = filePath.hasPrefix("/") ? filePath : "/" + filePath
+        return URL(string: "https://juchify.com\(full)")
+    }
+
+    /// Proxied HLS playlist URL from `hls_path`. The server expects the Bearer
+    /// header on media requests (injected by the player engine).
+    static func hlsURL(hlsPath: String?) -> URL? {
+        guard let hlsPath, !hlsPath.isEmpty else { return nil }
+        return URL(string: "https://juchify.com" + proxiedPath(hlsPath))
+    }
+}
+
+private extension String {
+    /// `uploads/x.png` → `uploads/x.webp` — the CDN serves webp cover variants.
+    var webpConverted: String {
+        replacingOccurrences(of: #"\.(png|jpe?g)$"#, with: ".webp", options: .regularExpression)
     }
 }

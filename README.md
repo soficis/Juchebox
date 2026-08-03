@@ -37,7 +37,7 @@ Juchebox is a native SwiftUI music app that talks directly to Juchify's public A
 | **Product name** | Juchebox (주체박스) |
 | **Repo / project identifier** | `KoreanMusicWebCompanion` (folder + Xcode project name; kept for tooling stability) |
 | **Bundle ID** | `dev.local.Juchebox` |
-| **Version** | 0.3.0 (MARKETING_VERSION) |
+| **Version** | 0.3.1 (MARKETING_VERSION) |
 | **Minimum iOS** | 17.0 |
 | **Swift / Xcode** | Swift 6 strict concurrency · Xcode 16+ (built and tested on Xcode 26.6) |
 | **Dependencies** | **Zero** (SwiftUI, AVFoundation, MediaPlayer, Security, XCTest only) |
@@ -223,7 +223,7 @@ JuchifyAPIClient ──(GET /api/proxy/home-fast?lang=)──▶ CatalogStore.ho
 |---|---|---|
 | 1 | **Native client over WebView shell** | The old hybrid (WKWebView + JS bridge) could never deliver persistent native playback: page navigation kills WebKit-owned audio, and lockscreen Now Playing requires AVPlayer-owned audio. The user demanded a real music app; the API contract (below) made a native client straightforward. |
 | 2 | **Same-origin `/api/proxy/` instead of private endpoints** | The website itself routes all API calls through `https://juchify.com/api/proxy/...` (verified in the Next.js chunks: `t.startsWith("/api/") && (t = t.slice(4)), "/api/proxy".concat(t)`). We use exactly the public surface the site uses — no private backend host, no CORS issues. |
-| 3 | **Direct MP3 playback (`file_path`) as the default stream** | Verified working with **no auth** (HTTP 200, `audio/mpeg`). HLS (`hls_path`) exists but requires a Bearer token; MP3 keeps playback working for anonymous users. |
+| 3 | **Direct MP3 playback (`file_path`) as the default stream** | Verified working with **no auth** for `/uploads/` files. HLS (`hls_path`) and `storage/` audio are currently dead server-side (see [Streaming](#the-juchify-api-verified-contract)); the player falls back to HLS once per song and otherwise surfaces a clear error and advances. |
 | 4 | **Auth via Bearer token in Keychain** | `POST /api/auth/login` → `{token, user}` (verified). Registration needs a human captcha — users register in a browser once, then the app stores the token in Keychain. |
 | 5 | **Zero third-party dependencies** | Reproducible builds, audit-friendly privacy model, trivial for a solo dev to maintain. |
 | 6 | **Custom tab bar, not SwiftUI `TabView`** | iOS 26's floating tab bar triggers an infinite `layoutSubviews` loop when combined with bottom safe-area content. The custom `ChollimaTabBar` avoids the system bug and matches the design exactly. |
@@ -258,14 +258,20 @@ All endpoints below were probed live on 2026-08-02. Base: `https://juchify.com` 
 
 ### Streaming
 
-- **MP3 (default):** `https://juchify.com{file_path}` — no auth (verified 200, `audio/mpeg`, 5.8 MB for a 4:07 track).
-- **HLS:** `hls_path` (e.g. `/api/playlist/8654`) with Bearer token; the web player checks `canPlayType("application/vnd.apple.mpegurl")` — native iOS playback.
-- **Radio:** `generate-radio-token` (KCBS live) returns `{token, streamUrl}` with periodic `renew-token` rotation.
+Verified live 2026-08-03 (reverse-engineered from the site's own Next.js player chunks):
+
+- **MP3 (default):** `https://juchify.com{file_path}` — **no auth** (verified `206`, `audio/mpeg`). Works for every `/uploads/...` file (newer catalog).
+- **`storage/...` files are currently NOT served by the server.** `storage/track_media/...` MP3s return 404 directly, through `/api/proxy/`, and on every path variant probed (2026-08-03). The web client's own MusicProvider never assigns an audio source to its player element in the current deployment — regular song playback is broken site-wide server-side; only KCBS Radio (`generate-radio-token`/`renew-token` → `{token, streamUrl}`, auth + `X-Juchify-Client` headers) actually plays audio on the site.
+- **HLS (`hls_path` → `/api/playlist/{id}`) is a dead reference.** It 404s directly, proxied (via the `s()` builder: `/api/proxy/playlist/{id}`), and with a Bearer token. The app still tries it once per song as a fallback — if the server ever enables it, the Bearer header is already wired into the player engine.
+- **Covers are served as `.webp`.** The web client's image builder (`Qc`, module 58149) converts `/uploads|/storage` paths to `.webp` and for legacy song covers (`storage/track_image_media/...`) builds `https://juchify.com/storage/album_covers/album_{albumId}_{name}.webp`, optionally with a CDN `w=` resize param. The app mirrors this exact builder (`JuchifyMediaURL`) and falls back to the raw path if the webp variant is missing.
+- **Proxy builder (`s()`, module 64799):** any path → `/api/proxy/...`; `/api/...` paths drop the prefix first (`/api/playlist/1` → `/api/proxy/playlist/1`).
+- **Playback resilience:** the app tries the direct MP3 first; on failure it retries once through the proxied HLS URL (with Bearer), then surfaces "stream unavailable" and auto-advances through the queue. A dead server-side track can no longer silently freeze the player.
 
 ### Model notes
 
 - Names come as `{"EN": "...", "KP": "..."}` maps (`titles`, `artist_names`, `album_names`, `names`) plus some flat `title_en/ko` fields — the Codable models tolerate both.
 - `is_locked`/`unlock_date` exist on songs/albums; the app honors them (no bypass).
+- Home/search song stubs carry **no** `file_path`/`hls_path` — only the album endpoint exposes them, which is why `AppState` enriches stubs via their album before playback.
 
 ---
 
@@ -417,6 +423,15 @@ Do not release if the API changes in a way that would require bypassing site con
 ---
 
 ## Changelog
+
+### 0.3.1 (2026-08-03) — Playback resilience, canonical covers, fluid Home
+
+- **Streaming truth established by reversing the site's own player chunks** (module 4491 MusicProvider, 58149 image builder, 64799 proxy builder). The web client's player element is never given an audio source in the current deployment — regular playback is broken server-side; only KCBS Radio streams. `storage/track_media/...` MP3s 404 on every probed variant. Documented in the API contract.
+- **Canonical cover URLs** (`JuchifyMediaURL`): the app now builds artwork exactly like the site — `.webp` conversion, the `storage/album_covers/album_{id}_{name}.webp` legacy pattern, CDN `w=` resize — with automatic fallback to the raw path, then placeholder. Fixes most missing thumbnails.
+- **Image caching + lazy loading**: `CachedAsyncImage` (NSCache-backed, per-view cancellation-safe `task(id:)` retry chain) replaces `AsyncImage` at all 8 call sites; HomeView switched from `VStack` to `LazyVStack` with a skeleton loading state. Scrolling no longer builds/decodes every row up front.
+- **Playback resilience**: the engine now injects the Bearer token into media requests (`AVURLAsset` header options), detects load failures (404/403/decode), and routes them through `onStreamFailed`. `AppState` tries the direct MP3, retries once through the proxied HLS URL, then shows a "stream unavailable" banner and auto-advances through the queue — a dead track can no longer freeze the player silently. Enrichment failures are surfaced the same way.
+- **Cleanup**: removed the dead `JSExtractorProtocol` (WebKit leftover).
+- **Tests**: 7 new media-URL tests (proxy builder, webp conversion, album-covers pattern, audio/HLS URL builders) — full suite still green.
 
 ### 0.3.0 (2026-08-02) — Native Client (WebView → true third-party app)
 

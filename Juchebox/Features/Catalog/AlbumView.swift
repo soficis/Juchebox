@@ -52,7 +52,10 @@ struct AlbumView: View {
 
     private func header(_ album: Album) -> some View {
         VStack(spacing: AppSpacing.md) {
-            AsyncImage(url: coverURL) { image in
+            CachedAsyncImage(
+                url: JuchifyMediaURL.coverURL(path: album.coverPath, albumID: albumID, size: 640),
+                fallbackURL: rawCoverURL(album.coverPath)
+            ) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 AppTheme.surface
@@ -122,8 +125,8 @@ struct AlbumView: View {
         }
     }
 
-    private var coverURL: URL? {
-        guard let path = album?.coverPath, !path.isEmpty else { return nil }
+    private func rawCoverURL(_ path: String?) -> URL? {
+        guard let path, !path.isEmpty else { return nil }
         let full = path.hasPrefix("/") ? path : "/" + path
         return URL(string: "https://juchify.com\(full)")
     }

@@ -9,6 +9,7 @@ struct TrackInfo: Equatable, Sendable {
     let artistId: String?
     let duration: TimeInterval?
     let artworkURL: URL?
+    let artworkFallbackURL: URL?
 
     init(
         id: String? = nil,
@@ -18,7 +19,8 @@ struct TrackInfo: Equatable, Sendable {
         albumId: String? = nil,
         artistId: String? = nil,
         duration: TimeInterval? = nil,
-        artworkURL: URL? = nil
+        artworkURL: URL? = nil,
+        artworkFallbackURL: URL? = nil
     ) {
         self.id = id
         self.title = title
@@ -28,6 +30,7 @@ struct TrackInfo: Equatable, Sendable {
         self.artistId = artistId
         self.duration = duration
         self.artworkURL = artworkURL
+        self.artworkFallbackURL = artworkFallbackURL
     }
 
     static let empty = TrackInfo()
@@ -40,6 +43,7 @@ struct PlayerState: Equatable, Sendable {
     var duration: TimeInterval = 0
     var isStalled: Bool = false
     var streamURL: URL?
+    var streamError: String?
 
     static let empty = PlayerState()
 

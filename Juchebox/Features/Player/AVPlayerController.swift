@@ -19,6 +19,14 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     var onTrackEnded: (() -> Void)?
     var onPreviousRequested: (() -> Void)?
 
+    /// Called when the current item fails to load (HTTP 404/403, decode error).
+    /// The owner (AppState) may fall back to another stream URL or advance.
+    var onStreamFailed: (() -> Void)?
+
+    /// Supplies the Bearer token attached to media requests. HLS playlist URLs
+    /// (`/api/proxy/playlist/{id}`) require it server-side.
+    var tokenProvider: (() -> String?)?
+
     var statePublisher: AnyPublisher<PlayerState, Never> {
         stateSubject.eraseToAnyPublisher()
     }
@@ -67,7 +75,12 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         stop()
         setupBackgroundObservers()
 
-        let item = AVPlayerItem(url: url)
+        var options: [String: Any] = [:]
+        if let token = tokenProvider?() {
+            options["AVURLAssetHTTPHeaderFieldsKey"] = ["Authorization": "Bearer \(token)"]
+        }
+        let asset = AVURLAsset(url: url, options: options)
+        let item = AVPlayerItem(asset: asset)
         playerItem = item
 
         startTimeObserver()
@@ -79,6 +92,17 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
                 var state = self.stateSubject.value
                 state.isStalled = (status == .waitingToPlayAtSpecifiedRate)
                 self.stateSubject.send(state)
+            }
+            .store(in: &cancellables)
+
+        // Load failure detection — surfaces 404/403 streams to the owner.
+        item.publisher(for: \.status)
+            .sink { [weak self] status in
+                guard let self, status == .failed else { return }
+                var state = self.stateSubject.value
+                state.streamError = "This track's stream could not be loaded."
+                self.stateSubject.send(state)
+                self.onStreamFailed?()
             }
             .store(in: &cancellables)
 
@@ -94,6 +118,7 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
 
         var state = stateSubject.value
         state.streamURL = url
+        state.streamError = nil
         stateSubject.send(state)
 
         if startTime > 0 {
@@ -113,6 +138,17 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         stateSubject.send(state)
     }
 
+    /// Surfaces "no stream could be resolved for this track" without an item —
+    /// used when enrichment never produced a stream URL. Routes through the same
+    /// failure machinery as a real load failure.
+    func reportStreamUnavailable() {
+        var state = stateSubject.value
+        state.streamError = "No stream available for this track."
+        state.isPlaying = false
+        stateSubject.send(state)
+        onStreamFailed?()
+    }
+
     /// Stops playback and resets transport fields, but PRESERVES the current
     /// track metadata so the now-playing UI doesn't blank between tracks.
     func stop() {
@@ -130,6 +166,7 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         state.duration = 0
         state.isStalled = false
         state.isPlaying = false
+        state.streamError = nil
         stateSubject.send(state)
     }
 
