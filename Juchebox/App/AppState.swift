@@ -83,9 +83,23 @@ final class AppState: ObservableObject {
     private func playCurrent() {
         guard nowPlayingQueue.indices.contains(queueIndex) else { return }
         let song = nowPlayingQueue[queueIndex]
-        guard let url = song.streamURL else { return }
-        playerController?.setStream(url: url, startTime: 0)
-        playerController?.setTrack(song.trackInfo)
+        if let url = song.streamURL {
+            playerController?.setStream(url: url, startTime: 0)
+            playerController?.setTrack(song.trackInfo)
+        } else {
+            Task {
+                do {
+                    let enriched = try await apiClient.song(id: song.id)
+                    if nowPlayingQueue.indices.contains(queueIndex) {
+                        nowPlayingQueue[queueIndex] = enriched
+                    }
+                    if let url = enriched.streamURL {
+                        playerController?.setStream(url: url, startTime: 0)
+                        playerController?.setTrack(enriched.trackInfo)
+                    }
+                } catch { /* song detail fetch failed; nothing to play */ }
+            }
+        }
     }
 
     func playerCommand(_ command: PlayerCommand) {
