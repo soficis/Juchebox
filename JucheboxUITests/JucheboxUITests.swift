@@ -57,7 +57,9 @@ final class JucheboxUITests: XCTestCase {
 
         app.buttons["settingsTab"].tap()
         XCTAssertTrue(app.staticTexts["Language Selection"].waitForExistence(timeout: 5))
-        let versionValue = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '0.2'")).firstMatch
+        let versionValue = app.staticTexts.matching(
+            NSPredicate(format: "label MATCHES %@", "^[0-9]+\\.[0-9]+\\.[0-9]+.*")
+        ).firstMatch
         for _ in 0..<4 where !versionValue.exists {
             app.swipeUp()
         }
