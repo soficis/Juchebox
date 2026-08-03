@@ -1,8 +1,8 @@
 # Juchebox (주체박스)
 
-**An independent, sideload-only iOS browser companion for the public Juchify website.**
+**An independent, sideload-only native iOS client for the public Juchify streaming service.**
 
-Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, privacy-conscious single-site browser with a strict navigation policy, local-only diagnostics, and zero third-party dependencies. It is **not** an official client, not endorsed by Juchify, Chollima Front, DPRK institutions, or any music rightsholder, and not a replacement service.
+Juchebox is a native SwiftUI music app that talks directly to Juchify's public API (`https://juchify.com/api/proxy/...`) — the same endpoints the website itself uses. No WebView, no scraping, no private backend. Bilingual catalog (English/조선말), native HLS/MP3 streaming via AVPlayer with lock-screen controls and background audio, themed as **Chollima Radio** (Spotify's dark immersive grammar in DPRK revolutionary-poster material). It is **not** an official client, not endorsed by Juchify, Chollima Front, DPRK institutions, or any music rightsholder, and not a replacement service.
 
 > **One-doc policy:** this README is the single source of truth for the project. All handoff, architecture, privacy, security, testing, release, license, and operations information lives here. The only other document is [`docs/DESIGN.md`](docs/DESIGN.md), the Chollima Radio design-system contract.
 
@@ -17,17 +17,16 @@ Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, pr
 5. [Project Map](#project-map)
 6. [Architecture](#architecture)
 7. [Key Design Decisions (Decision Log)](#key-design-decisions-decision-log)
-8. [The Stuck-Loading-Screen Saga (Root-Cause History)](#the-stuck-loading-screen-saga-root-cause-history)
-9. [Navigation & Security Model](#navigation--security-model)
-10. [Diagnostics & Privacy](#diagnostics--privacy)
-11. [Localization](#localization)
-12. [Design System: Chollima Radio](#design-system-chollima-radio)
-13. [Testing](#testing)
-14. [Sideloading & Release](#sideloading--release)
-15. [Manual QA Checklist](#manual-qa-checklist)
-17. [Changelog](#changelog)
-18. [Contribution Ground Rules](#contribution-ground-rules)
-19. [License](#license)
+8. [The Juchify API (verified contract)](#the-juchify-api-verified-contract)
+9. [Auth & Privacy](#auth--privacy)
+10. [Localization](#localization)
+11. [Design System: Chollima Radio](#design-system-chollima-radio)
+12. [Testing](#testing)
+13. [Sideloading & Release](#sideloading--release)
+14. [Manual QA Checklist](#manual-qa-checklist)
+16. [Changelog](#changelog)
+17. [Contribution Ground Rules](#contribution-ground-rules)
+18. [License](#license)
 
 ---
 
@@ -38,12 +37,12 @@ Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, pr
 | **Product name** | Juchebox (주체박스) |
 | **Repo / project identifier** | `KoreanMusicWebCompanion` (folder + Xcode project name; kept for tooling stability) |
 | **Bundle ID** | `dev.local.Juchebox` |
-| **Version** | 0.2.0 (MARKETING_VERSION) |
+| **Version** | 0.3.0 (MARKETING_VERSION) |
 | **Minimum iOS** | 17.0 |
 | **Swift / Xcode** | Swift 6 strict concurrency · Xcode 16+ (built and tested on Xcode 26.6) |
-| **Dependencies** | **Zero** (SwiftUI, WebKit, AVFoundation, XCTest only) |
-| **Homepage** | `https://juchify.com` (redirects to `/en` — 308, verified 2026-08-01) |
-| **Allowlist** | `Juchebox/Resources/domain-allowlist.json` → `juchify.com` (+ subdomains allowed by code) |
+| **Dependencies** | **Zero** (SwiftUI, AVFoundation, MediaPlayer, Security, XCTest only) |
+| **API base** | `https://juchify.com/api/proxy/...` (same-origin reverse proxy the website uses) |
+| **Catalog** | 5,539 songs (verified `totalSongCount`, 2026-08-02) |
 
 **One-liners:**
 
@@ -51,11 +50,11 @@ Juchebox is a native SwiftUI shell around `https://juchify.com` — a themed, pr
 # Build (simulator, any Mac with Xcode)
 xcodebuild -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# Full test suite (57 unit + 11 UI — 10 offline + 1 live-site online test)
+# Full test suite (23 unit + 6 UI)
 xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox -destination 'platform=iOS Simulator,name=iPhone 17'
 
 # Git (this repo)
-git log --oneline        # 32 commits, all atomic
+git log --oneline        # 40+ commits, all atomic
 git status               # working tree should be clean
 ```
 
@@ -65,22 +64,22 @@ git status               # working tree should be clean
 
 ### What it IS
 
-- A single-site WebKit browser for Juchify, themed as **Chollima Radio** — Spotify's dark immersive grammar in DPRK revolutionary-poster material (crimson `#CD2027`, gold `#D4A843`, coal `#0A0A0A`).
-- A **browser companion**, not a music client: content stays the site's, the native chrome is ours. Native surfaces show only user-created data (saved pages) or legitimate WKWebView state (loading, host, errors).
-- A privacy box: no analytics, no backend, no telemetry, ephemeral-session option, local-only sanitized diagnostics.
-- A hybrid media player using a native AVPlayer layer for background audio and lock-screen controls, with read-only WebKit player-state extraction for now-playing information.
+- A **native music client**: SwiftUI screens for Home (popular/new/releases), Search, Album, Artist, and Library, fed by Juchify's public API.
+- Native **streaming player**: AVPlayer plays the site's direct MP3 files (`file_path`) and HLS streams (`hls_path`) with lock-screen Now Playing, remote commands, and background audio.
+- A privacy box: no analytics, no backend of ours, no telemetry, no third-party SDKs. Auth token lives in the iOS Keychain.
+- Themed as **Chollima Radio** — crimson `#CD2027`, gold `#D4A843`, coal `#0A0A0A`.
 
 ### What it is NOT (hard doctrine — do not violate)
 
-- ❌ No music downloading, recording, extraction, offline playback, scraping, mirroring, crawling, or indexing.
-- ❌ No private API client, no reverse engineering of Juchify internals, no page-modifying JavaScript injection — read-only player state extraction only using a WKUserScript — no ad blocking, no DRM/paywall bypass, no credential interception.
-- ❌ No bundled Juchify logo, favicon, screenshots, copyrighted artwork, or protected branding.
+- ❌ No downloading, recording, caching-to-disk, offline playback, mirroring, or redistribution of tracks.
+- ❌ No scraping of private endpoints, no credential interception, no bypassing site controls or lock/unlock gating (`is_locked` songs stay locked).
+- ❌ No WebView. No JavaScript injection. The site is only ever read through its public JSON API.
+- ❌ No bundled Juchify logo, favicon, screenshots, copyrighted artwork, or protected branding (artwork is loaded from the site's own CDN at runtime).
 - ❌ No backend, proxy, telemetry, analytics SDK, advertising SDK, or crash-reporting SDK.
-- ❌ Now-playing metadata is synchronized from the site's own player state — never fabricated.
-- ❌ No hardcoded site routes you haven't verified (`juchify.com/search?q=` is **forbidden** — it's an invented URL; search loads user-entered text).
+- ❌ Now-playing metadata comes from the API — never fabricated.
 - ❌ No new third-party dependencies without an explicit, reviewed need.
 
-The app's identity: **"The People's Portal to Juchify"** — a beautiful single-site browser, not a faux music client.
+The app's identity: **"The People's Portal to Juchify"** — a beautiful native client for the world's most exclusive music catalog.
 
 ---
 
@@ -90,6 +89,7 @@ The app's identity: **"The People's Portal to Juchify"** — a beautiful single-
 - Xcode 16 or newer (project uses `objectVersion = 60`, Xcode 16-era; tested on Xcode 26.6)
 - Swift 6 (strict concurrency is enforced; the codebase is `@MainActor`-heavy by design)
 - A user-controlled Apple signing setup for device installs (simulator needs none)
+- Network access to `juchify.com` (catalog reads need no account; likes/playlists/history need a Juchify account)
 
 ---
 
@@ -112,7 +112,7 @@ open Juchebox.xcodeproj   # select scheme "Juchebox", Cmd+R
 
 **Signing:** set your Apple Development Team in *Signing & Capabilities* when building for a device. The project hardcodes `DEVELOPMENT_TEAM = ""` in all 6 build configs — replace it with yours or remove it and let Xcode prompt.
 
-**CI:** not set up (deferred — personal project). The `.github/` directory does not exist. If you want CI later, the recipe is: `macos-15` runner, Xcode 16.2+, `CODE_SIGNING_ALLOWED=NO`, same `xcodebuild test` command. Note: **UI tests require `--ui-testing-offline`** (see [Testing](#testing)) — they must not depend on the live site.
+**CI:** not set up (deferred — personal project). The `.github/` directory does not exist. If you want CI later, the recipe is: `macos-15` runner, Xcode 16.2+, `CODE_SIGNING_ALLOWED=NO`, same `xcodebuild test` command. Note: the UI tests hit the live API (Home/Search) by design — they need network.
 
 ---
 
@@ -124,52 +124,46 @@ KoreanMusicWebCompanion/                  ← repo root (physical folder name = 
 │   └── xcshareddata/xcschemes/Juchebox.xcscheme
 ├── Juchebox/                             ← app target
 │   ├── App/
-│   │   ├── JucheboxApp.swift             ← @main entry; handles --reset/--accept-onboarding launch args
-│   │   ├── RootView.swift                ← onboarding gate + custom ChollimaTabBar (2 tabs: Browse/Settings)
-│   │   ├── AppState.swift                ← @MainActor ObservableObject; navigation state + commands
+│   │   ├── JucheboxApp.swift             ← @main; wires API client, auth, catalog store, player
+│   │   ├── RootView.swift                ← 4-tab ChollimaTabBar + mini player + navigation
+│   │   ├── AppState.swift                ← player state, queue, navigation, playback commands
 │   │   ├── AppTheme.swift                ← color tokens + AppSpacing/AppRadius/AppMotion enums
 │   │   ├── Translation.swift             ← Translation.Key enum (compile-checked EN/KP catalog) + t() helper
 │   │   ├── AppStorageKey.swift           ← UserDefaults key constants
-│   │   ├── AccessibilityID.swift         ← UI-test identifiers (17, all unique)
-│   │   └── AudioSessionController.swift  ← AVAudioSession interruptions/route changes → notice banner
+│   │   └── AccessibilityID.swift         ← UI-test identifiers (all unique)
 │   ├── Core/
-│   │   ├── DomainPolicy/DomainPolicy.swift  ← PURE fail-closed navigation decision engine (+ reason enums)
-│   │   ├── Player/
-│   │   │   ├── PlayerState.swift         ← player state model (track, play state, queue position)
-│   │   │   └── PlayerProtocols.swift     ← PlayerControllerProtocol, JSBridgeProtocol (read-only)
-│   │   └── Privacy/
-│   │       ├── PrivacySettings.swift     ← @MainActor; persistent vs ephemeral session mode
-│   │       └── WebsiteDataCleaner.swift  ← WKWebsiteDataStore purge
+│   │   ├── API/
+│   │   │   ├── JuchifyModels.swift       ← Song/Album/Artist/HomeFeed/SearchResults Codable models
+│   │   │   ├── JuchifyAPIClient.swift    ← URLSession client for /api/proxy/*, Bearer auth, errors
+│   │   │   └── CatalogStore.swift        ← @MainActor async loading for Home/Search
+│   │   ├── Auth/
+│   │   │   └── AuthStore.swift           ← Keychain token storage + login state
+│   │   └── Player/
+│   │       ├── PlayerState.swift         ← TrackInfo/PlayerState/PlayerCommand/QueueState (Sendable)
+│   │       └── PlayerProtocols.swift     ← PlayerControllerProtocol (engine contract)
 │   ├── Features/
-│   │   ├── Web/
-│   │   │   ├── WebScreen.swift           ← main screen: splash, webview, banners, toolbar, dialogs
-│   │   │   ├── WebViewContainer.swift    ← UIViewRepresentable; makeUIView + --ui-testing-offline hook
-│   │   │   ├── WebNavigationCoordinator.swift ← KVO, WKNavDelegate, 30s timeout, breadcrumbs, policy
-│   │   │   ├── WebContentError.swift     ← error enum with title/message/diagnostic codes
-│   │   │   ├── ExternalLinkRequest.swift ← confirmation-dialog model (routes through Translation keys)
-│   │   │   └── ActivityView.swift        ← UIActivityViewController bridge
-│   │   ├── Settings/SettingsView.swift   ← "Party Directives": language, ephemeral, purge, diagnostics
-│   │   ├── Onboarding/OnboardingView.swift ← first-run disclaimer + DPRK flag + StarShape
-│   │   ├── Player/
-│   │   │   ├── AVPlayerController.swift  ← AVPlayer-backed playback, lockscreen controls, background audio
-│   │   │   ├── JSPlayerBridge.swift     ← read-only WKUserScript extracting player state from site
-│   │   │   ├── MiniPlayerBar.swift      ← 48pt persistent bar (gold title, crimson controls) above tab bar
-│   │   │   └── NowPlayingView.swift     ← full-screen: artwork, progress, transport, shuffle/repeat
-│   │   └── Diagnostics/
-│   │       ├── DiagnosticsLog.swift      ← 50-entry error ring buffer + export text
-│   │       └── NavigationBreadcrumb.swift ← SanitizedHost + 6-event breadcrumb type
+│   │   ├── Catalog/
+│   │   │   ├── HomeView.swift            ← hero + popular/new/release sections, settings gear
+│   │   │   ├── SearchView.swift          ← query → songs/albums/artists
+│   │   │   ├── AlbumView.swift           ← cover, track list, play-all
+│   │   │   └── ArtistView.swift          ← bio, photo, discography
+│   │   ├── Library/
+│   │   │   └── LibraryView.swift         ← liked songs, recently played, sign-in sheet
+│   │   ├── Settings/SettingsView.swift   ← language, about, license, version, sign out
+│   │   ├── Onboarding/OnboardingView.swift ← first-run disclaimer
+│   │   └── Player/
+│   │       ├── AVPlayerController.swift  ← AVPlayer engine, lockscreen, background, queue-advance
+│   │       ├── MiniPlayerBar.swift       ← 48pt persistent bar above the tab bar
+│   │       └── NowPlayingView.swift      ← full-screen: artwork, scrub, transport, shuffle/repeat
 │   └── Resources/
 │       ├── Info.plist                    ← ATS strict, UIBackgroundModes = [audio], display "Juchebox"
-│       ├── domain-allowlist.json         ← ["juchify.com"]
 │       └── Assets.xcassets/              ← AppIcon (red star + gold vinyl)
-├── JucheboxTests/                        ← 6 files, 57 tests (see Testing)
-│   ├── DomainPolicyTests.swift           ← 12
-│   ├── DiagnosticsLogTests.swift         ← 5
-│   ├── WebContentErrorTests.swift        ← 12
-│   ├── TranslationCompletenessTests.swift← 4
-│   ├── PureTypeTests.swift               ← 9
-│   └── PlayerTests.swift                 ← 15 (state, queue, bridge, mock protocol)
-├── JucheboxUITests/JucheboxUITests.swift ← 7 tests, launch-argument driven
+├── JucheboxTests/                        ← 5 files, 23 tests (see Testing)
+│   ├── PlayerTests.swift                 ← state/queue/mock protocol
+│   ├── PureTypeTests.swift               ← IDs, language, model formatting
+│   ├── TranslationCompletenessTests.swift← bilingual parity
+│   └── (DomainPolicy/WebContent/Diagnostics tests removed with the WebView)
+├── JucheboxUITests/JucheboxUITests.swift ← 6 tests, launch-argument driven, live-API aware
 ├── docs/DESIGN.md                        ← Chollima Radio design system (the ONLY other doc)
 ├── .gitignore · .gitattributes           ← license: GPLv3, see the License section below
 ```
@@ -183,35 +177,43 @@ KoreanMusicWebCompanion/                  ← repo root (physical folder name = 
 | Layer | Contains | Rule |
 |---|---|---|
 | **App** | Composition, shared state, theme, translation, accessibility IDs | `@MainActor`; state changes go through `AppState` |
-| **Core** | `DomainPolicy` (pure), `PrivacySettings`, `WebsiteDataCleaner` | **Pure logic has no UI strings** — reasons map to `Translation.Key` |
-| **Features** | Views + WebKit glue + diagnostics | Views are thin; logic lives in coordinator/AppState |
-| **Player** | Playback, now-playing, lockscreen controls, queue | `AVPlayer`/`AVFoundation`, `MediaPlayer`, `Combine` via `PlayerControllerProtocol` |
-| **Resources** | Info.plist, allowlist, assets | Config only |
+| **Core/API** | `JuchifyModels` (Codable), `JuchifyAPIClient` (URLSession), `CatalogStore` | Pure data flow; no UI strings |
+| **Core/Auth** | `AuthStore` (Keychain) | Token provider handed to the API client |
+| **Core/Player** | Player state types + protocol contract | `Sendable` value types |
+| **Features** | Catalog/Library/Settings/Player views | Views are thin; logic lives in stores/AppState |
+| **Resources** | Info.plist, assets | Config only |
 
 ### Data flow (the critical path)
 
 ```
-WKWebView ──KVO (estimatedProgress, isLoading, url, canGoBack/Forward)──▶
-    WebNavigationCoordinator ──updateState(from:)──▶ AppState.updateNavigationState
-                                                        │  (change-guarded @Published)
-                                                        ▼
-                                              SwiftUI views (WebScreen, toolbar, splash)
+JuchifyAPIClient ──(GET /api/proxy/home-fast?lang=)──▶ CatalogStore.homeFeed
+        ▲                                                    │ (@Published)
+        │ Bearer token (optional)                            ▼
+   AuthStore ◀─── login()                                HomeView sections
+        │                                                    │ (row tap)
+        └── Keychain ◀───── tokenProvider() ◀──────────── AppState.play(song:)
+                                                              │
+                                                              ▼
+                                                   AVPlayerController.setStream(url:)
+                                                   (direct MP3 or HLS) ──▶ lock screen
 ```
 
-- `WebNavigationCoordinator` (`@MainActor`, `NSObject`) owns the KVO observations and every `WKNavigationDelegate` callback. It records breadcrumbs, enforces the 30s timeout, and applies `DomainPolicy` decisions.
-- The KVO bridge is deliberately the "triple-hop" pattern: `nonisolated private func updateState(from:)` → `DispatchQueue.main.async` → `Task { @MainActor }`. **Do not "simplify" this** — `NSKeyValueObservation` without an explicit queue runs on the thread that *makes the change*, and `MainActor.assumeIsolated` would be a runtime crash trap.
-- `AppState` is a **100-line @MainActor ObservableObject** — deliberately NOT decomposed (KISS verdict from adversarial review). It holds: `canGoBack/Forward`, `isLoading`, `estimatedProgress`, `currentURL`, `webContentError`, `externalLinkRequest`, `toastMessage`, plus commands (`goBack/goForward/reload/loadHome/load`).
+- `JuchifyAPIClient` is a thin `URLSession` wrapper: JSON decoding, HTTP error mapping (`{"error": "..."}` payloads → `JuchifyAPIError.server`), optional `Authorization: Bearer` header via a token closure.
+- `CatalogStore` owns async loading (Home feed, Search) with `@Published` state; detail views fetch their own album/artist via `appState.apiClient`.
+- `AppState` holds the queue (`nowPlayingQueue` + `queueIndex`), routes transport commands, and drives `AVPlayerController` — including `setTrack(_:)` so lock-screen metadata reflects the real song.
+- The player engine (`AVPlayerController`) is `@MainActor`, publishes `PlayerState` via `CurrentValueSubject`, observes time/stall/end, and the audio session controller mirrors state to `MPNowPlayingInfoCenter`/`MPRemoteCommandCenter`.
 
-### The two invariants that keep the app alive
+### The invariants that keep the app alive
 
-1. **`AppState.attach(_:)` is idempotent**: `guard self.webView !== webView else { return }`. Calling `attach` from `updateUIView` on every render **must not** re-publish state. (This was the infinite-layout bug — see [the saga](#the-stuck-loading-screen-saga-root-cause-history).)
-2. **`updateNavigationState(from:)` only publishes changed values** (`if newValue != current`). Without this, KVO ticks re-trigger re-renders → re-attach → feedback loop.
+1. **`AppState.configurePlayer` is idempotent** (`guard playerController == nil`). Never re-wire the engine on view re-renders.
+2. **`play(queue:startAt:)` guards empty queues** and clamps the index. No crash on empty album/playlist.
+3. **Stream URLs are built from the API's `file_path`** — never from guesses. `Song.streamURL` prefixes `https://juchify.com`.
 
 ### Concurrency map
 
-- `@MainActor`: `AppState`, `WebNavigationCoordinator`, `DiagnosticsLog`, `PrivacySettings`, `AudioSessionController`.
-- Pure `Sendable`: `DomainPolicy`, `DomainPolicyDecision`, `ExternalNavigationReason`, `BlockedNavigationReason`, `NavigationBreadcrumb`, `SanitizedHost`, `Translation.Key`, `WebContentError`, `LoadState`-style enums.
-- Tests touching `DiagnosticsLog` must be `@MainActor` (see `DiagnosticsLogTests`).
+- `@MainActor`: `AppState`, `CatalogStore`, `AuthStore`, `AVPlayerController`, `AudioSessionController`, all views.
+- Pure `Sendable`: `JuchifyModels`, `JuchifyAPIError`, `PlayerState`/`TrackInfo`/`PlayerCommand`/`QueueState`, `Translation.Key`.
+- `JuchifyAPIClient` is `Sendable` (URLSession is thread-safe); its token closure is `@Sendable`.
 
 ---
 
@@ -219,129 +221,76 @@ WKWebView ──KVO (estimatedProgress, isLoading, url, canGoBack/Forward)──
 
 | # | Decision | Why |
 |---|---|---|
-| 1 | **Single WKWebView, browser companion** | The doctrine makes any "native music client" impossible. One webview + native chrome is the correct, honest shape. |
-| 2 | **Fail-closed navigation** (`DomainPolicy`) | Only allowlisted hosts (and their subdomains) load in-app. Unknown HTTPS → user confirmation. HTTP → blocked. |
-| 3 | **Zero third-party dependencies** | Reproducible builds, audit-friendly privacy model, trivial for a solo dev to maintain. |
-| 4 | **Local-only diagnostics** | Breadcrumbs + errors, host-only sanitization, export by explicit user action. Never sent anywhere. |
-| 5 | **Translation enum with exhaustive switches** | `Translation.Key` has compile-checked `englishValue`/`koreanValue` — you *cannot* add a key without both languages. All UI strings (including toolbar labels and error text) route through it. |
+| 1 | **Native client over WebView shell** | The old hybrid (WKWebView + JS bridge) could never deliver persistent native playback: page navigation kills WebKit-owned audio, and lockscreen Now Playing requires AVPlayer-owned audio. The user demanded a real music app; the API contract (below) made a native client straightforward. |
+| 2 | **Same-origin `/api/proxy/` instead of private endpoints** | The website itself routes all API calls through `https://juchify.com/api/proxy/...` (verified in the Next.js chunks: `t.startsWith("/api/") && (t = t.slice(4)), "/api/proxy".concat(t)`). We use exactly the public surface the site uses — no private backend host, no CORS issues. |
+| 3 | **Direct MP3 playback (`file_path`) as the default stream** | Verified working with **no auth** (HTTP 200, `audio/mpeg`). HLS (`hls_path`) exists but requires a Bearer token; MP3 keeps playback working for anonymous users. |
+| 4 | **Auth via Bearer token in Keychain** | `POST /api/auth/login` → `{token, user}` (verified). Registration needs a human captcha — users register in a browser once, then the app stores the token in Keychain. |
+| 5 | **Zero third-party dependencies** | Reproducible builds, audit-friendly privacy model, trivial for a solo dev to maintain. |
 | 6 | **Custom tab bar, not SwiftUI `TabView`** | iOS 26's floating tab bar triggers an infinite `layoutSubviews` loop when combined with bottom safe-area content. The custom `ChollimaTabBar` avoids the system bug and matches the design exactly. |
-| 7 | **`.alert` instead of `.confirmationDialog`** | iOS 26 hides `role: .cancel` buttons of `confirmationDialog` from the accessibility tree, breaking UI tests and VoiceOver. Alerts expose all buttons. |
-| 8 | **30s hard load timeout** in the coordinator, not AppState | A navigation-lifetime concern belongs with the navigation lifecycle. Restarts on every `didStartProvisionalNavigation`, cancels on commit/finish/fail. No soft timeout (3G users would see spam). |
-| 9 | **Subdomains of allowed hosts load in-app** | `www.juchify.com` was being blocked as a "lookalike" by `host.contains("juchify")`. Now: exact match → subdomain suffix → deception filter → external. |
-| 10 | **Product = Juchebox, project = KoreanMusicWebCompanion** | Renamed every reference (docs, code, targets, scheme, module, `@testable` imports) but kept the physical folder/xcodeproj name for tooling stability. |
-| 11 | **Ephemeral toggle requires confirmation** | It silently signs you out and kills playback mid-session; a destructive action deserves a warning. |
-| 12 | **No auto-reload on web-process termination** | Manual reload respects user agency; auto-reload risks a crash loop and interrupting audio. |
-| 13 | **`--ui-testing-offline` launch hook** | UI tests must not depend on the live site (it's a heavy SPA; the app never idles while loading). Hook skips the home load. |
-| 14 | **Hybrid media player pivot** | User demanded persistent playback while browsing + lockscreen controls. Pure WKWebView can't provide lockscreen Now Playing (iOS requires AVPlayer audio). Solution: keep WebView for catalog, add native AVPlayer layer driven by a read-only JS bridge that extracts the site's player state. Lockscreen controls via MPNowPlayingInfoCenter/MPRemoteCommandCenter. Doctrine revised to permit read-only JS extraction and native now-playing sync. |
+| 7 | **Settings as a sheet** | A `NavigationLink` push from inside the scrolling Home view proved unreliable under XCUITest (tap landed, push never happened). A `Button` + `.sheet` is deterministic. |
+| 8 | **Bilingual catalog via `?lang=` + `LocalizedNames`** | Every entity carries `{EN, KP}` name maps; `LocalizedNames.value(for:)` picks by the app language with fallback. |
+| 9 | **`totalSongCount` in the Home feed** | The API reports 5,539 songs — the app renders it as a live catalog size. No fabricated counts. |
+| 10 | **Doctrine revision (WebView-era rules removed)** | "No private API client" and "browser companion only" doctrine was written for the WebView era. Reading the site's own public JSON API is the new, honest shape. The hard rules that remain: no downloading/recording/redistribution, no bypassing site controls, no branding theft. |
+| 11 | **Delete, don't deprecate** | The entire WebView machinery (coordinator, policy engine, diagnostics, JS bridge, allowlist) was deleted in one commit. Dead code in a solo project is a liability, not a safety net. |
 
 ---
 
-## The Stuck-Loading-Screen Saga (Root-Cause History)
+## The Juchify API (verified contract)
 
-> Read this before debugging loading issues — the obvious causes were already found and fixed.
+All endpoints below were probed live on 2026-08-02. Base: `https://juchify.com` — catalog endpoints through `/api/proxy/`, auth through `/api/auth/`.
 
-**User report:** app stuck on a loading screen (3pt progress bar, never finished).
+### Catalog (no auth)
 
-**Investigation** (5-member adversarial review over the actual source, then verified by building on a real Mac):
+| Endpoint | Returns |
+|---|---|
+| `GET /api/proxy/home-fast?lang=en` | `{popularAlbums[50], newTracks[12], newReleases[30], popularSongs[12], upcomingRelease, totalSongCount}` |
+| `GET /api/proxy/song/{id}?lang=en` | Full song: id, title, duration, `file_path` (MP3), `hls_path`, artist/album names (EN/KP), cover |
+| `GET /api/proxy/album/{id}` | Album + `songs[]` (full track list) |
+| `GET /api/proxy/artist/{id}?lang=en` | Artist bio, photo, `albums[]` |
+| `GET /api/proxy/search?q=...&lang=en&page=N` | `{songs[], albums[], artists[], pagination{hasMore, totals}}` |
+| `GET /api/proxy/releases/new?limit=N` | New songs with `release_date` |
+| `GET /api/proxy/random-song` | A random song |
+| `GET /api/proxy/cms/homepage-sections/{1-4}/data?lang=en` | Curated sections |
 
-1. **THE REAL BUG — infinite SwiftUI render loop.** `WebViewContainer.updateUIView` calls `AppState.attach(webView)` on every render; `attach` unconditionally re-published all `@Published` properties → SwiftUI re-renders → `updateUIView` again → infinite `layoutSubviews` loop at ~99% CPU. The main thread was starved: the WebView could never finish loading and the progress bar stuck forever. **This predated the overhaul and was the original complaint.**
-   - *Fix:* idempotent `attach` (`guard self.webView !== webView`) + change-guarded publishes in `updateNavigationState`.
-   - *Detection:* `sample <pid>` on the Mac showed `_UIHostingView.layoutSubviews` consuming 100% of the main thread.
-2. **`www.juchify.com` was silently blocked** by `isDeceptiveJuchifyHost` (`host.contains("juchify")` matched legitimate subdomains), and `showFailureIfNeeded` overwrote the real error with generic "Navigation Cancelled" on initial load (when `webView.url == nil`).
-   - *Fix:* subdomain-suffix check runs BEFORE the deception filter; cancellation suppression is scoped to `.blocked` errors only.
-3. **No load timeout anywhere.** If the site never finished (heavy SPA, hanging connection), the bar spun forever with zero fallback.
-   - *Fix:* 30s hard timeout in `WebNavigationCoordinator` → `WebContentError.loadTimeout` (code 201) → error screen with Reload.
-4. **iOS 26 environment traps** (found while making the UI tests green on the Mac):
-   - System `TabView` + bottom `safeAreaInset` → infinite layout loop → replaced with custom `ChollimaTabBar`.
-   - `confirmationDialog` cancel buttons invisible to XCUITest/VoiceOver → switched to `.alert`.
-   - `--ui-testing-offline` added so UI tests don't depend on the live site.
+### Auth (Bearer token)
 
-**What did NOT turn out to be the cause:** the site's own JS splash (H5 — removed from scope), process termination (H6 — manual reload kept), `.id(isEphemeralSession)` black flash (transient only).
+`POST /api/auth/login` `{username, password}` → `{token, user}`. Token goes in `Authorization: Bearer` for: `user/liked-songs`, `user/recently-played`, `user/playlists`, `playlists/{id}/songs`, `songs/{id}/like`, `radio/generate-radio-token`, `radio/renew-token`, and the HLS playlist endpoint (`/api/playlist/{id}`).
 
-**Diagnosing a future hang:** the app now records a privacy-safe navigation breadcrumb timeline (`loadStarted → provisionalNavigationStarted → didCommit → didFinish/didFail/timeoutFired`) — export it via *Settings → Export Inspection Report* and read the timeline: if `didCommit` never fires, the load never committed; if it fires but `didFinish` doesn't, the site's content is likely stuck.
+### Streaming
 
----
+- **MP3 (default):** `https://juchify.com{file_path}` — no auth (verified 200, `audio/mpeg`, 5.8 MB for a 4:07 track).
+- **HLS:** `hls_path` (e.g. `/api/playlist/8654`) with Bearer token; the web player checks `canPlayType("application/vnd.apple.mpegurl")` — native iOS playback.
+- **Radio:** `generate-radio-token` (KCBS live) returns `{token, streamUrl}` with periodic `renew-token` rotation.
 
-## Navigation & Security Model
+### Model notes
 
-### DomainPolicy decision order (HTTPS)
-
-1. Exact allowlist match → `.allowInApp`
-2. Host ends with `.<allowed>` (subdomains) → `.allowInApp`
-3. Deception filter (punycode homograph, hosts containing the allowed brand outside a subdomain) → `.block(.lookalikeHost)`
-4. Everything else → `.openExternally` (user confirmation dialog, then system handoff)
-
-Non-HTTPS: HTTP blocked · `mailto:/tel:/sms:/maps:/facetime:` → system handoff · anything else → blocked.
-
-### Diagnostic codes
-
-| Code | Meaning | Domain |
-|---|---|---|
-| 100–105 | BlockedNavigationReason (missing/malformed URL, insecure HTTP, unsupported scheme, lookalike, download) | `DomainPolicy` |
-| 200 | Web process terminated | (NSURLErrorDomain default) |
-| 201 | Load timeout | `Navigation` |
-| `-1009` etc. | Standard NSURLError codes | `NSURLErrorDomain` |
-
-### Security defaults
-
-- ATS strict: HTTPS only, no exceptions (`NSAllowsArbitraryLoads = false`).
-- No JavaScript bridge, no injected user script, no custom backend, no certificate-bypass mode.
-- `UIBackgroundModes` = `[audio]` only (trimmed — `fetch/processing/external-accessory` were unused).
-- Hardcoded `DEVELOPMENT_TEAM` is personal info — document or remove if the repo goes public.
-
-### Vulnerability reporting (personal project)
-
-Report issues privately to the maintainer. **Do not** include passwords, cookies, account data, copyrighted media, private media URLs, tokens, or headers in a report. **In scope:** navigation-policy bypasses, insecure transport regressions, diagnostics leaking sensitive data, stored credentials outside WebKit, script-injection regressions. **Out of scope:** bypassing Juchify controls, extracting media, scraping, reverse-engineering private endpoints, weakening rightsholder protections.
+- Names come as `{"EN": "...", "KP": "..."}` maps (`titles`, `artist_names`, `album_names`, `names`) plus some flat `title_en/ko` fields — the Codable models tolerate both.
+- `is_locked`/`unlock_date` exist on songs/albums; the app honors them (no bypass).
 
 ---
 
-## Diagnostics & Privacy
+## Auth & Privacy
 
-### What diagnostics contain
-
-Export via *Settings → Party Directives → Export Inspection Report* (or *검열보고서 수출*). Format:
-
-```
-주체박스 (주체음악) 검열보고서 / Juchebox Inspection Report
-Generated/생성일: <ISO8601>
-App Version: 0.1.0 (1)
-iOS Version: ...
-Device Class: iPhone
-Current Session: persistent
-
-Navigation Timeline / 페지 련결 기록:
-- <ts> event=navigateStarted host=juchify.com session=persistent
-- <ts> event=didCommit host=juchify.com session=persistent
-- <ts> event=didFinish host=juchify.com session=persistent
-
-Error Events / 오유 기록:
-- <ts> domain=DomainPolicy code=104 host=juchify-fake.com session=persistent
-```
-
-**Never included:** full URLs (path/query/fragment), cookies, tokens, login identifiers, page HTML, song names, media URLs, headers, user-entered content. `SanitizedHost` enforces host-only at the **type level** — a full URL cannot even be constructed into a breadcrumb.
-
-### The privacy box
-
-- No server, no analytics, no advertising SDK, no crash reporting, no telemetry.
-- Browsing/login/streaming happens inside WebKit; Juchify processes it under its own policies.
-- **Persistent session** (default): sign-in survives via WebKit's data store.
-- **Ephemeral session**: non-persistent `WKWebsiteDataStore`; sign-in/website data does not survive app close. Toggling it on **requires confirmation** (it signs you out and stops playback).
-- **Purge Web Data & Sign Out**: clears WebKit website data and reloads home.
+- **Sign-in** (Library tab): username/password → token in **Keychain** (`dev.local.Juchebox.auth`), never UserDefaults. The token provider closure is handed to the API client.
+- **What's stored:** only the auth token + the language preference. No song history, no analytics, no crash reports.
+- **Playback works without an account** (direct MP3). Likes/playlists/recently-played require sign-in.
+- **Sign out** removes the Keychain token; nothing else is stored to clear.
+- **Sanitization:** URLs shown to the user are derived from API fields (cover art, stream URLs) — never full site HTML or request dumps.
 
 ---
 
 ## Localization
 
-Bilingual: **English** (Juche-flavored: "The People's Revolutionary Music Explorer", "Party Directives") and **조선말** (North Korean Munhwaŏ — retains initial ㄹ/ㄴ, e.g. "련결", "리해"; English is deliberately rendered as "미제승냥이말").
+Bilingual: **English** (Juche-flavored: "The People's Revolutionary Music Explorer", "Party Directives") and **조선말** (North Korean Munhwaŏ — retains initial ㄹ/ㄴ, e.g. "련결", "리해"; English is deliberately rendered as "미제승냥이말"). Catalog metadata comes from the API's own `{EN, KP}` name maps.
 
 ### How to add a string
 
 1. Add a case to `Translation.Key` in `App/Translation.swift`.
 2. Add the `englishValue` arm **and** the `koreanValue` arm — the compiler enforces both (exhaustive switch).
-3. Use it in views via the `t(.key, language: appLanguage)` helper (the `@AppStorage` + computed `appLanguage` pattern, see `WebScreen`).
-4. If the key has an associated value (e.g. `.externalLinkMessage(host)`), test it in `TranslationCompletenessTests.testAssociatedValueKeysHaveBothLanguages`.
+3. Use it in views via the `t(.key, language: appLanguage)` helper.
+4. If the key has an associated value, test it in `TranslationCompletenessTests`.
 
-**Rules:** no inline bilingual ternaries (`appLanguage == .korean ? "x" : "y"`) in views — everything goes through the catalog (this was a historical source of UI-test breakage). `TranslationCompletenessTests` asserts every non-associated key is non-empty in both languages.
+**Rules:** no inline bilingual ternaries in views — everything goes through the catalog. `TranslationCompletenessTests` asserts every non-associated key is non-empty in both languages.
 
 ---
 
@@ -363,69 +312,48 @@ Quick tokens (all values live in `AppTheme.swift`):
 | Radius | `AppRadius` sm4/md8/lg12 |
 | Motion | `AppMotion` fast 0.15 / default 0.25 (GPU-composited, reduced-motion respected) |
 
-V1 chrome: 2-tab `ChollimaTabBar` (Browse + Settings), star+splash loading overlay, search + save-page toolbar buttons. V2 additions: mini-player bar (48pt, above tab bar), Now Playing view, 3-tab layout (Browse/Now Playing/Settings). **Deliberately NOT built** (not needed): card grid/Discover, My Library list UI, skeleton shimmer, 4-tab shell.
+V3 native client chrome: 4-tab `ChollimaTabBar` (Browse/Search/Library/Now Playing), hero card + section rows on Home, horizontal album cards, album/artist detail with play-all, mini-player bar (48pt, above tab bar), full-screen Now Playing with scrub/transport/shuffle/repeat. **Deliberately NOT built** (not needed): card grid/Discover, skeleton shimmer, equalizer visualization.
 
 ---
 
 ## Testing
 
-**Current state: `TEST SUCCEEDED` — 57 unit + 11 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-02). 10 of the 11 UI tests are offline; the 11th (`OnlinePlayerBridgeUITests`) runs against the live juchify.com by design.
+**Current state: `TEST SUCCEEDED` — 23 unit + 6 UI, 0 failures** (verified on iPhone 17 simulator, iOS 26.5, 2026-08-02).
 
-### Unit tests (57, run in milliseconds)
+### Unit tests (23, run in milliseconds)
 
 | File | Count | Covers |
 |---|---|---|
-| `DomainPolicyTests` | 12 | allow/block/external decisions, subdomains, trailing dot, lookalikes, redirects, new-window |
-| `WebContentErrorTests` | 12 | NSURLError mapping, loadTimeout metadata, blocked-reason codes + both languages |
-| `PureTypeTests` | 9 | AccessibilityID uniqueness (17), AppLanguage, AppStorageKey, ExternalLinkRequest keys, SanitizedHost, reason codes |
+| `PlayerTests` | 12 | PlayerState transitions, queue enqueue/markPlayed/clear, PlayerCommand equality, mock controller protocol |
+| `PureTypeTests` | 6 | AccessibilityID uniqueness, AppLanguage raw/display, AppStorageKeys, Song duration/stream-URL formatting, LocalizedNames |
 | `TranslationCompletenessTests` | 4 | every key non-empty in both languages, associated-value keys |
-| `DiagnosticsLogTests` | 5 | host-only sanitization, breadcrumb export, 50-entry eviction, failure breadcrumbs |
-| `PlayerTests` | 15 | player state transitions, queue management, JS bridge parsing, mock PlayerControllerProtocol |
 
-> `DiagnosticsLogTests` is `@MainActor`-annotated — keep it that way (Swift 6).
+> `DiagnosticsLogTests`/`DomainPolicyTests`/`WebContentErrorTests` were removed with the WebView machinery.
 
-### UI tests (11 — 10 offline + 1 online)
+### UI tests (6, launch-argument driven, live-API aware)
 
-| Test | Launch args |
+| Test | Checks |
 |---|---|
-| `testFirstRunDisclaimerAcceptance` | `--reset-onboarding --ui-testing-offline` |
-| `testNativeNavigationControlsExposeAccessibilityIdentifiers` | `--accept-onboarding --ui-testing-offline` |
-| `testReloadAndChromeVisibilityControls` | `--accept-onboarding --ui-testing-offline` |
-| `testSettingsPrivacyControls` | `--accept-onboarding --ui-testing-offline` |
-| `testClearWebsiteDataConfirmation` | `--accept-onboarding --ui-testing-offline` |
-| `testExternalLinkConfirmation` | `+ --show-external-link-confirmation` |
-| `testNetworkErrorPresentation` | `+ --show-network-error` |
-| `testMiniPlayerBarVisibility` | `--accept-onboarding --ui-testing-offline` |
-| `testNowPlayingViewTransportControls` | `--accept-onboarding --ui-testing-offline` |
-| `testPlayerStateSynchronization` | `--accept-onboarding --ui-testing-offline` |
-| `testOnlinePlayerBridgeConnectsToLiveSite` *(online)* | `--accept-onboarding --online-player-probe` |
+| `testFirstRunDisclaimerAcceptance` | onboarding flow → home tab appears |
+| `testTabBarExposesAllTabs` | Browse/Search/Library/Now Playing present |
+| `testSearchFieldExistsAndAcceptsInput` | search tab → field exists + accepts text |
+| `testLibraryShowsSignInPromptWhenSignedOut` | library tab → sign-in button |
+| `testNowPlayingShowsEmptyState` | now-playing tab → "No track playing" |
+| `testSettingsExposesLanguageAndVersion` | settings sheet → language + version row (scroll-aware) |
 
-The online test is the only one that **requires the live site**: it launches without `--ui-testing-offline`, loads juchify.com, and asserts the injected bridge script posted parsed state to the native side within 120s (probe label `bridge:connected`). It fails — honestly — while the site is unreachable, in maintenance mode, or if the site's player markup changes. Run it separately:
-
-```bash
-xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
-  -destination 'platform=iOS Simulator,name=iPhone 17' \
-  -only-testing:JucheboxUITests/OnlinePlayerBridgeUITests
-```
-
-`--online-player-probe` shows a test-only overlay (`OnlineBridgeProbe` in `RootView`) rendering the bridge's real `messageCount` and parsed state — never fabricated data.
-
-**Launch-argument hooks** (all in `WebScreen.applyUITestLaunchScenarios` / `JucheboxApp` / `RootView`):
+**Launch-argument hooks:**
 
 - `--reset-onboarding` — clear the onboarding-accepted flag
 - `--accept-onboarding` — skip onboarding
-- `--ui-testing-offline` — **do not load juchify.com** (keeps the app idle for XCUITest; REQUIRED for every offline UI test)
-- `--show-network-error` — force the network-error view
-- `--show-external-link-confirmation` — force the external-link alert
-- `--online-player-probe` — show the live bridge-state probe overlay (online tests only)
 
-**UI-test quirks (learned the hard way):** no system `TabView` (custom tab bar), dialogs are `.alert` not `confirmationDialog`, tabs are plain buttons (`app.buttons["homeTab"]` / `app.buttons["settingsTab"]` — labels like "Home" collide with the toolbar `homeButton`), lazy `List` rows below the fold need a swipe before asserting existence, and every offline query is fast only when the app is idle — hence `--ui-testing-offline`.
+**UI-test quirks (learned the hard way):** no system `TabView` (custom tab bar); settings opens via a sheet (a `NavigationLink` push from a scrolling view is flaky); lazy `List` rows need a scroll loop (`swipeUp()` until the target exists); the tab bar swallows gesture swipes that start on it; Xcode 26 marks XCUITest APIs `@MainActor` — the test class must be `@MainActor`.
 
 ### Test-writing rules
 
-- Pure logic tests need no `@MainActor`; anything touching `DiagnosticsLog` does.
+- Pure logic tests need no `@MainActor`; anything touching `AVPlayerController`/stores does.
 - `@testable import Juchebox` for internal types.
-- UI tests must not depend on the network **except the one online test that exists precisely to do so** (`OnlinePlayerBridgeUITests`); strings live in `Translation`, assertions match current labels ("Open in External Web Browser", "Purge Web Data & Sign Out").
+- UI tests that touch Home/Search hit the live API — they need network and will fail honestly when juchify.com is down.
+- Strings live in `Translation`; assertions match current labels.
 
 ---
 
@@ -444,46 +372,43 @@ xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
 3. Run the full test suite (unit + UI) on a real simulator.
 4. Build Release configuration.
 5. Confirm ATS has no insecure exceptions.
-6. Export diagnostics from a test device and inspect for sensitive data.
-7. Verify external-domain policy fails closed.
-8. Bump `MARKETING_VERSION` + update [Changelog](#changelog).
-9. Tag the release; publish source archive + checksums.
+6. Verify the app works signed-out (catalog + playback) and signed-in (library).
+7. Bump `MARKETING_VERSION` + update [Changelog](#changelog).
+8. Tag the release; publish source archive + checksums.
 
-Do not release if the website changes in a way that would require reverse engineering, scraping, page injection, content caching, or bypassing site controls.
+Do not release if the API changes in a way that would require bypassing site controls or weakening rightsholder protections.
 
 ---
 
 ## Manual QA Checklist
 
-### Browsing
-- Fresh install shows the unofficial-app disclaimer before the WebView.
-- Accepting it opens `https://juchify.com` (follows the 308 → `/en`).
-- Back/forward/reload/home/search/save/share/hide-show controls all work.
-- Unknown HTTPS links → confirmation alert; HTTP links blocked with explanation; `mailto:`/`tel:` require confirmation.
-- Search button: URL loads; garbage text loads as an address (no invented search route).
-- Save Page stores the URL locally + toast.
-- A page that never finishes loading → timeout error with Reload after 30s.
-
-### Loading & recovery
-- Slow/interrupted loads → timeout error after 30s + Reload.
-- Reload during a hung load restarts the timeout (no stale timers).
-- Rapid reload/stop leaves no stale loading state.
-- Web-process termination → error view; manual Reload only.
+### Catalog & browsing
+- Fresh install shows the unofficial-app disclaimer before the Home screen.
+- Home loads popular songs, new releases, new tracks, popular albums (live API).
+- Search returns songs/albums/artists; pagination fields present.
+- Album detail shows full track list; tapping a row plays it; Play Album queues the whole album.
+- Artist detail shows bio + discography; album links navigate.
 
 ### Playback
-- Sign in with a test Juchify account; verify playback through the site's own controls.
-- Lock screen: behavior matches what WebKit + the site naturally support.
-- Phone-call/headphone/Control-Center interruptions: recovery via the site's controls (banner appears).
-- **No native metadata/artwork/queue/downloads fabricated** — never.
+- Tap any song → plays instantly (direct MP3), mini-player bar appears.
+- Lock screen shows real title/artist/artwork; play/pause/next/prev/seek work from the lock screen and Control Center.
+- Backgrounding keeps audio playing (UIBackgroundModes audio).
+- Next/prev advance within the queue (album or search results).
+- Phone-call/headphone interruptions pause and recover via the site's natural resume.
+- Scrubbing updates the lockscreen elapsed time.
 
-### Privacy
-- Ephemeral toggle → confirmation dialog warns about sign-out + audio stop before applying.
-- Purge Web Data & Sign Out → confirmation → reloads home.
-- Export diagnostics → no full URLs/cookies/tokens/account IDs/song names/media URLs/user content.
-- Exported navigation timeline has sanitized hosts only.
+### Sign-in & library
+- Library tab shows the sign-in prompt when signed out.
+- Sign-in with a valid Juchify account → liked songs + recently played load.
+- Sign out clears the token; library returns to the prompt.
+- Token persists across app restarts (Keychain).
+
+### Privacy & settings
+- Settings sheet: language switch re-labels the UI immediately; version row matches MARKETING_VERSION.
+- No analytics/telemetry behavior observable (no network calls other than juchify.com API + artwork CDN).
 
 ### Accessibility
-- VoiceOver reads all native controls (labels from the Translation catalog).
+- VoiceOver reads native controls (labels from the Translation catalog).
 - Dynamic Type doesn't clip; touch targets ≥ 44pt; reduced motion respected.
 
 ---
@@ -493,42 +418,28 @@ Do not release if the website changes in a way that would require reverse engine
 
 ## Changelog
 
-### 0.2.0 (2026-08-02) — Hybrid Media Player with Lock-Screen Controls
+### 0.3.0 (2026-08-02) — Native Client (WebView → true third-party app)
 
-- Hybrid media player pivot: added native AVPlayer audio layer with MPNowPlayingInfoCenter + MPRemoteCommandCenter for lock-screen controls and background playback.
-- JS bridge: read-only WKUserScript extracts player state (track metadata, play/pause, stream URL) from the Juchify site player.
-- Mini-player bar: persistent 48pt bar (Chollima Radio design — gold title, crimson controls) above the tab bar.
-- Now Playing view: full-screen with artwork, progress scrubber, transport controls, shuffle/repeat toggles.
-- 3-tab layout: Browse (WebView) / Now Playing / Settings, with WebView preserved across tab switches.
-- Audio session: route-change auto-pause, interruption recovery, background playback throttling.
-- Translation: 25 new player UI keys (EN/조선말), TranslationCompletenessTests updated.
-- Tests: 15 new unit tests (PlayerTests — state, queue, bridge, mock protocol); 3 new UI tests. Total: 57 unit + 10 UI offline (+ 1 live-site online test).
-- Doctrine revised: read-only JS extraction and native now-playing sync are now permitted within the player architecture.
+- **Full native rewrite**: deleted the WebView shell (coordinator, domain policy, diagnostics, JS bridge, allowlist) and replaced it with a native SwiftUI client against Juchify's public `/api/proxy/` JSON API.
+- **Catalog**: Home (popular/new/releases, 5,539-song count), Search (songs/albums/artists with pagination), Album detail with full track list + play-all, Artist detail with bio + discography.
+- **Player**: native streaming via AVPlayer — direct MP3 (`file_path`, no auth needed) with queue support, lock-screen Now Playing + remote commands, background audio, mini-player bar, full-screen Now Playing.
+- **Auth**: sign-in via `/api/auth/login` → Bearer token in Keychain; liked songs + recently played in the Library tab. Playback works without an account.
+- **Translation**: catalog keys added (Browse/Search/Library, section titles, sign-in strings) in EN/조선말.
+- **Tests**: 23 unit + 6 UI, all green on the simulator (live-API aware UI tests).
+- Doctrine revised: reading the site's public API is the new shape; no-download/no-bypass rules remain.
+
+### 0.2.0 (2026-08-02) — Hybrid Media Player (superseded by 0.3.0)
+
+- Hybrid WKWebView + JS bridge + AVPlayer attempt. Superseded: page navigation killed WebKit audio; bridge never fed real streams to the player. Removed in 0.3.0.
 
 ### 0.1.2 (2026-08-01) — One-doc consolidation + GPLv3
-
-- **Merged all 11 standalone docs into this README** (HANDOFF, PRIVACY, SECURITY, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, architecture, threat-model, sideloading, release-process, manual-test-plan). Deleted the originals. The only remaining document is `docs/DESIGN.md`.
-- **License changed to GPLv3** — full license text embedded in the License section; standalone `LICENSE` file removed; Settings → License strings updated in both languages.
+- Merged all standalone docs into this README; license changed to GPLv3 (full text embedded below).
 
 ### 0.1.1 (2026-08-01) — Overhaul: "make it actually work" + Chollima Radio V1
-
-- **Fixed the stuck-loading root cause**: infinite `updateUIView → attach → @Published` render loop (idempotent `attach` + change-guarded publishes).
-- Domain policy: subdomains of allowed hosts now load in-app (fixes `www.juchify.com` being blocked); scoped cancellation-error guard.
-- 30s hard load timeout → `WebContentError.loadTimeout` error screen with Reload.
-- Privacy-safe navigation breadcrumbs (6 event types, type-level host sanitization) exported via Inspection Report; PRIVACY/threat-model/manual-test-plan updated to match.
-- Ephemeral-session toggle now requires confirmation (it signs you out).
-- Custom Chollima tab bar (Browse + Settings) replacing iOS 26-broken system TabView; star splash; search + save-page toolbar buttons; `--ui-testing-offline` hook.
-- Dialogs converted from `confirmationDialog` to `.alert` (iOS 26 accessibility).
-- Renamed everything to **Juchebox** (docs, code, targets, scheme, module); product name standardized.
-- Git initialized (was none); atomic commit history; `.gitignore`/`.gitattributes`; BOM stripped, LF normalized.
-- Translation consolidated into the compile-checked catalog (dead keys removed, reason enums routed through `Translation.Key`).
-- Tests: 3 stale UI tests fixed; 30+ new unit tests (42 total, 0 failures); all 7 UI tests green.
-- UIBackgroundModes trimmed to `audio`; `Assets.xcassets/Contents.json` added; version fallback unified; HANDOFF path fixed.
-- UI-test fixes for iOS 26: `.alert` dialogs, custom tab bar queries, offline launch mode.
+- Fixed the stuck-loading root cause (infinite SwiftUI render loop); custom tab bar; 30s load timeout; privacy-safe breadcrumbs; onboarding disclaimer. All WebView-era — removed in 0.3.0.
 
 ### 0.1.0 — Initial source implementation
-
-- Strict domain policy, onboarding disclaimer, settings privacy controls, local diagnostics export, release documentation.
+- Strict domain policy, onboarding disclaimer, settings privacy controls, local diagnostics export. All WebView-era — removed in 0.3.0.
 
 ---
 
@@ -536,10 +447,11 @@ Do not release if the website changes in a way that would require reverse engine
 
 Personal project, but if you accept changes from others (or future-you), enforce:
 
-- No scraping, downloading, recording, mirroring, indexing, offline playback, JS injection, ad blocking, private API access, credential interception.
+- No downloading, recording, mirroring, indexing, offline playback, JS injection, ad blocking, private API access, credential interception.
 - No Juchify branding/assets; no analytics/ad SDKs/backends.
+- No bypassing Juchify's content controls (`is_locked` songs stay locked).
 - Zero dependencies unless reviewed.
-- Run the full test suite before shipping; confirm diagnostics stay sanitized; confirm fail-closed navigation.
+- Run the full test suite before shipping; confirm the app still works signed-out (catalog + playback).
 - Keep project communication professional and scope-focused.
 
 ---
@@ -1063,10 +975,10 @@ available, or (2) arrange to deprive yourself of the benefit of the
 patent license for this particular work, or (3) arrange, in a manner
 consistent with the requirements of this License, to extend the patent
 license to downstream recipients.  "Knowingly relying" means you have
-actual knowledge that, but for the patent license, your conveying the
-covered work in a country, or your recipient's use of the covered work
-in a country, would infringe one or more identifiable patents in that
-country that you have reason to believe are valid.
+actual knowledge that, but for the patent license, your conveying of
+the covered work in a country, or your recipient's use of the covered
+work in a country, would infringe one or more identifiable patents in
+that country that you have reason to believe are valid.
 
   If, pursuant to or in connection with a single transaction or
 arrangement, you convey, or propagate by procuring conveyance of, a
@@ -1077,14 +989,14 @@ you grant is automatically extended to all recipients of the covered
 work and works based on it.
 
   A patent license is "discriminatory" if it does not include within
-the scope of its coverage, prohibits the exercise of, or is
-conditioned on the non-exercise of one or more of the rights that are
-specifically granted under this License.  You may not convey a covered
-work if you are a party to an arrangement with a third party that is
-in the business of distributing software, under which you make payment
-to the third party based on the extent of your activity of conveying
-the work, and under which the third party grants, to any of the
-parties who would receive the covered work from you, a discriminatory
+its scope of coverage, prohibits the exercise of, or is conditioned on
+the non-exercise of one or more of the rights that are specifically
+granted under this License.  You may not convey a covered work if you
+are a party to an arrangement with a third party that is in the
+business of distributing software, under which you make payment to the
+third party based on the extent of your activity of conveying the
+work, and under which the third party grants, to any of the parties
+who would receive the covered work from you, a discriminatory
 patent license (a) in connection with copies of the covered work
 conveyed by you (or copies made from those copies), or (b) primarily
 for and in connection with specific products or compilations that
