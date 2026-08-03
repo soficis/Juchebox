@@ -83,23 +83,32 @@ final class AppState: ObservableObject {
     private func playCurrent() {
         guard nowPlayingQueue.indices.contains(queueIndex) else { return }
         let song = nowPlayingQueue[queueIndex]
+
+        // Immediate feedback: mini-player + now-playing show the track now.
+        playerController?.setTrack(song.trackInfo)
+
         if let url = song.streamURL {
             playerController?.setStream(url: url, startTime: 0)
-            playerController?.setTrack(song.trackInfo)
         } else {
+            // Feed/search songs lack file_path; the album endpoint is the only
+            // place that exposes it. Fetch the album and locate the full song.
             Task {
-                do {
-                    let enriched = try await apiClient.song(id: song.id)
-                    if nowPlayingQueue.indices.contains(queueIndex) {
-                        nowPlayingQueue[queueIndex] = enriched
-                    }
-                    if let url = enriched.streamURL {
-                        playerController?.setStream(url: url, startTime: 0)
-                        playerController?.setTrack(enriched.trackInfo)
-                    }
-                } catch { /* song detail fetch failed; nothing to play */ }
+                guard let enriched = try? await enrichedSong(song) else { return }
+                guard nowPlayingQueue.indices.contains(queueIndex) else { return }
+                nowPlayingQueue[queueIndex] = enriched
+                if let url = enriched.streamURL {
+                    playerController?.setStream(url: url, startTime: 0)
+                }
             }
         }
+    }
+
+    /// Resolves a streamable song from a feed/search stub via its album.
+    private func enrichedSong(_ song: Song) async throws -> Song {
+        guard let albumID = song.albumID else { return song }
+        let album = try await apiClient.album(id: albumID)
+        guard let full = album.songs?.first(where: { $0.id == song.id }) else { return song }
+        return full
     }
 
     func playerCommand(_ command: PlayerCommand) {
