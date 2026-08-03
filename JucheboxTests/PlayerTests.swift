@@ -159,6 +159,8 @@ final class PlayerControllerMockTests: XCTestCase {
 private final class MockPlayerController: PlayerControllerProtocol {
     private let subject = PassthroughSubject<PlayerState, Never>()
     var statePublisher: AnyPublisher<PlayerState, Never> { subject.eraseToAnyPublisher() }
+    var onTrackEnded: (() -> Void)?
+    var onPreviousRequested: (() -> Void)?
 
     private(set) var storedState = PlayerState.empty
     private(set) var lastCommand: PlayerCommand?

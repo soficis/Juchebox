@@ -5,6 +5,8 @@ import WebKit
 @MainActor
 protocol PlayerControllerProtocol: AnyObject {
     var statePublisher: AnyPublisher<PlayerState, Never> { get }
+    var onTrackEnded: (() -> Void)? { get set }
+    var onPreviousRequested: (() -> Void)? { get set }
     func currentState() -> PlayerState
     func play()
     func pause()

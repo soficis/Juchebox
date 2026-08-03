@@ -44,6 +44,12 @@ final class AppState: ObservableObject {
             .sink { [weak self] state in
                 self?.playerState = state
             }
+        controller.onTrackEnded = { [weak self] in
+            self?.playNext()
+        }
+        controller.onPreviousRequested = { [weak self] in
+            self?.playPrevious()
+        }
         isPlayerBarVisible = true
     }
 
@@ -58,6 +64,7 @@ final class AppState: ObservableObject {
             queueIndex = fullQueue.firstIndex(where: { $0.id == song.id }) ?? 0
         }
         playCurrent()
+        prefetchStreamURLs(for: nowPlayingQueue)
     }
 
     /// Plays a whole album/playlist as a queue.
@@ -66,6 +73,22 @@ final class AppState: ObservableObject {
         nowPlayingQueue = queue
         queueIndex = min(index, queue.count - 1)
         playCurrent()
+        prefetchStreamURLs(for: nowPlayingQueue)
+    }
+
+    /// Pre-enriches every queued song that lacks a stream URL so next/previous
+    /// switches don't wait on per-track fetches. Stale-guarded per song.
+    private func prefetchStreamURLs(for queue: [Song]) {
+        let stubs = queue.enumerated().filter { $0.element.streamURL == nil }
+        guard !stubs.isEmpty else { return }
+        Task {
+            for (offset, stub) in stubs {
+                guard let enriched = try? await enrichedSong(stub) else { continue }
+                guard nowPlayingQueue.indices.contains(offset),
+                      nowPlayingQueue[offset].id == stub.id else { continue }
+                nowPlayingQueue[offset] = enriched
+            }
+        }
     }
 
     func playNext() {
@@ -89,16 +112,21 @@ final class AppState: ObservableObject {
 
         if let url = song.streamURL {
             playerController?.setStream(url: url, startTime: 0)
+            playerController?.setTrack(song.trackInfo)
         } else {
             // Feed/search songs lack file_path; the album endpoint is the only
             // place that exposes it. Fetch the album and locate the full song.
+            // Guard against staleness: if the user taps another track while
+            // this fetch is in flight, discard the result.
+            let requestedSongID = song.id
             Task {
                 guard let enriched = try? await enrichedSong(song) else { return }
-                guard nowPlayingQueue.indices.contains(queueIndex) else { return }
+                guard nowPlayingQueue.indices.contains(queueIndex),
+                      nowPlayingQueue[queueIndex].id == requestedSongID else { return }
                 nowPlayingQueue[queueIndex] = enriched
-                if let url = enriched.streamURL {
-                    playerController?.setStream(url: url, startTime: 0)
-                }
+                guard let url = enriched.streamURL else { return }
+                playerController?.setStream(url: url, startTime: 0)
+                playerController?.setTrack(enriched.trackInfo)
             }
         }
     }

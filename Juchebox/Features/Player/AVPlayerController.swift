@@ -13,6 +13,12 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     private var backgroundCancellables = Set<AnyCancellable>()
     private var isBackgrounded = false
 
+    /// Called when the current track ends naturally or the user requests
+    /// next/previous through remote commands — the owner (AppState) advances
+    /// the queue. Keeps the engine queue-agnostic.
+    var onTrackEnded: (() -> Void)?
+    var onPreviousRequested: (() -> Void)?
+
     var statePublisher: AnyPublisher<PlayerState, Never> {
         stateSubject.eraseToAnyPublisher()
     }
@@ -50,11 +56,11 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     }
 
     func nextTrack() {
-        stop()
+        onTrackEnded?()
     }
 
     func previousTrack() {
-        stop()
+        onPreviousRequested?()
     }
 
     func setStream(url: URL, startTime: TimeInterval) {
@@ -76,11 +82,11 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
             }
             .store(in: &cancellables)
 
-        // Track end detection
+        // Track end detection — advance the queue through the owner.
         NotificationCenter.default
             .publisher(for: .AVPlayerItemDidPlayToEndTime, object: item)
             .sink { [weak self] _ in
-                self?.nextTrack()
+                self?.onTrackEnded?()
             }
             .store(in: &cancellables)
 
@@ -107,6 +113,8 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         stateSubject.send(state)
     }
 
+    /// Stops playback and resets transport fields, but PRESERVES the current
+    /// track metadata so the now-playing UI doesn't blank between tracks.
     func stop() {
         if let timeObserver {
             player.removeTimeObserver(timeObserver)
@@ -115,7 +123,14 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         cancellables.removeAll()
         player.replaceCurrentItem(with: nil)
         playerItem = nil
-        stateSubject.send(.empty)
+
+        var state = stateSubject.value
+        state.streamURL = nil
+        state.currentTime = 0
+        state.duration = 0
+        state.isStalled = false
+        state.isPlaying = false
+        stateSubject.send(state)
     }
 
     // MARK: - Background throttling
