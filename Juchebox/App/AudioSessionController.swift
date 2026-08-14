@@ -150,7 +150,7 @@ final class AudioSessionController: ObservableObject {
 
     // MARK: - Interruptions
 
-    private static let headphonePorts: Set<AVAudioSession.Port> = [
+    nonisolated private static let headphonePorts: Set<AVAudioSession.Port> = [
         .headphones,
         .headsetMic,
         .bluetoothA2DP,
@@ -168,11 +168,10 @@ final class AudioSessionController: ObservableObject {
                 object: nil,
                 queue: .main
             ) { [weak self] notification in
-                guard let self else { return }
                 if let userInfo = notification.userInfo,
                    let rawType = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt {
-                    Task { @MainActor in
-                        self.handleInterruption(rawType: rawType)
+                    Task { @MainActor [weak self] in
+                        self?.handleInterruption(rawType: rawType)
                     }
                 }
             }
@@ -184,7 +183,6 @@ final class AudioSessionController: ObservableObject {
                 object: nil,
                 queue: .main
             ) { [weak self] notification in
-                guard let self else { return }
                 let userInfo = notification.userInfo
                 let reasonValue = userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
                 let reason = reasonValue.flatMap(AVAudioSession.RouteChangeReason.init(rawValue:))
@@ -192,8 +190,8 @@ final class AudioSessionController: ObservableObject {
                 let wasHeadphones = previousRouteOutputs?.outputs.contains {
                     Self.headphonePorts.contains($0.portType)
                 } ?? false
-                Task { @MainActor in
-                    self.handleRouteChange(reason: reason, wasHeadphones: wasHeadphones)
+                Task { @MainActor [weak self] in
+                    self?.handleRouteChange(reason: reason, wasHeadphones: wasHeadphones)
                 }
             }
         )

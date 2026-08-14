@@ -59,7 +59,9 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         publishStalled(true)
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
         player.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-            self?.publishStalled(false)
+            Task { @MainActor [weak self] in
+                self?.publishStalled(false)
+            }
         }
     }
 
@@ -206,15 +208,17 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         let seconds = isBackgrounded ? 2.0 : 0.5
         let interval = CMTime(seconds: seconds, preferredTimescale: 600)
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            guard let self, let item = self.playerItem else { return }
-            var state = self.stateSubject.value
-            state.currentTime = time.seconds
-            let duration = item.duration
-            if duration.isNumeric {
-                state.duration = duration.seconds
+            Task { @MainActor [weak self] in
+                guard let self, let item = self.playerItem else { return }
+                var state = self.stateSubject.value
+                state.currentTime = time.seconds
+                let duration = item.duration
+                if duration.isNumeric {
+                    state.duration = duration.seconds
+                }
+                state.isStalled = self.player.timeControlStatus == .waitingToPlayAtSpecifiedRate
+                self.stateSubject.send(state)
             }
-            state.isStalled = self.player.timeControlStatus == .waitingToPlayAtSpecifiedRate
-            self.stateSubject.send(state)
         }
     }
 

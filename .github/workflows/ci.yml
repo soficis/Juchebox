@@ -20,10 +20,10 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app 2>/dev/null || sudo xcode-select -s /Applications/Xcode_16.2.app 2>/dev/null || sudo xcode-select -s /Applications/Xcode.app
 
       - name: Boot simulator
         run: |
@@ -59,10 +59,10 @@ jobs:
     needs: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app 2>/dev/null || sudo xcode-select -s /Applications/Xcode_16.2.app 2>/dev/null || sudo xcode-select -s /Applications/Xcode.app
 
       - name: Archive (unsigned, device SDK)
         run: |
@@ -87,14 +87,14 @@ jobs:
           ls -lh Juchebox-unsigned.ipa
 
       - name: Upload .ipa artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: Juchebox-unsigned-${{ github.sha }}
           path: build/Juchebox-unsigned.ipa
           retention-days: 14
 
       - name: Upload xcarchive (for re-signing with your own team)
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: Juchebox-xcarchive-${{ github.sha }}
           path: build/Juchebox.xcarchive
