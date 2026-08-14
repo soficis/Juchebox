@@ -1,8 +1,10 @@
+# macOS / Xcode
 .DS_Store
 DerivedData/
 build/
 *.xcuserstate
 xcuserdata/
+*.xcuserdatad/
 *.ipa
 *.dSYM.zip
 *.dSYM
@@ -10,7 +12,17 @@ xcuserdata/
 # Tooling artifacts
 .omo/
 .codegraph/
-*.xcuserdatad/
 
-# macOS
-.DS_Store
+# Private development docs (never publish)
+DEV.md
+HANDOFF*.md
+*.handoff
+
+# Secrets / credentials (belt-and-suspenders)
+*.pem
+*.key
+*.p12
+*.mobileprovision
+.env
+.env.*
+secrets.*

@@ -152,6 +152,8 @@ struct Song: Codable, Equatable, Identifiable, Sendable {
     let titles: LocalizedNames?
     let playCount: Int?
     let artists: [ArtistRef]?
+    let isLocked: Bool? = nil
+    let unlockDate: String? = nil
 
     enum CodingKeys: String, CodingKey {
         case id, title, titles, artists, duration
@@ -166,6 +168,8 @@ struct Song: Codable, Equatable, Identifiable, Sendable {
         case albumNames = "album_names"
         case coverPath = "cover_path"
         case playCount = "play_count"
+        case isLocked = "is_locked"
+        case unlockDate = "unlock_date"
     }
 
     var displayTitle: String { title ?? titles?.en ?? titles?.kp ?? "Unknown Track" }
@@ -325,6 +329,17 @@ struct CMSSection: Codable, Equatable, Sendable {
 enum JuchifyMediaURL {
     static let baseURL = URL(string: "https://juchify.com")!
 
+    /// Browser-like headers the stream-token/segment endpoints validate against.
+    /// The stream-token mint request AND every HLS media request must carry the
+    /// SAME User-Agent + Accept-Language, or segment/key requests 404
+    /// (fingerprint mismatch — verified live 2026-08-04).
+    static let streamUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    static let streamAcceptLanguage = "en-US,en;q=0.9"
+
+    static var streamHeaders: [String: String] {
+        ["User-Agent": streamUserAgent, "Accept-Language": streamAcceptLanguage]
+    }
+
     /// The web client's proxy builder (`module 64799`): any path becomes
     /// `/api/proxy/...`; paths already starting with `/api/` lose that prefix
     /// first (`/api/playlist/1` → `/api/proxy/playlist/1`).
@@ -344,8 +359,13 @@ enum JuchifyMediaURL {
         if path == "/kcbs-logo.png" {
             return URL(string: "https://juchify.com/kcbs-logo.png")
         }
+        // Absolute covers are honored only when they point at juchify.com; a
+        // server-supplied cover_path must not redirect image loads to arbitrary
+        // third-party HTTPS hosts (SECURITY-AUDIT F5). Any other absolute URL
+        // is rejected (nil → caller falls back to the placeholder).
         if path.hasPrefix("http") {
-            return URL(string: path)
+            guard let url = URL(string: path), url.host == "juchify.com" else { return nil }
+            return url
         }
         let base = "https://juchify.com"
         var result: String
@@ -377,6 +397,16 @@ enum JuchifyMediaURL {
     static func hlsURL(hlsPath: String?) -> URL? {
         guard let hlsPath, !hlsPath.isEmpty else { return nil }
         return URL(string: "https://juchify.com" + proxiedPath(hlsPath))
+    }
+
+    /// Encrypted HLS playlist URL with stream token: /api/proxy/playlist/{id}?token={jwt}.
+    /// AVPlayer natively handles the m3u8's EXT-X-KEY (AES-128) and fetches
+    /// the decryption key from /api/hls-key/{id}/{jwt} automatically.
+    static func playlistURL(hlsPath: String, token: String) -> URL? {
+        let base = URL(string: "https://juchify.com" + proxiedPath(hlsPath))
+        guard var components = URLComponents(url: base!, resolvingAgainstBaseURL: false) else { return nil }
+        components.queryItems = [URLQueryItem(name: "token", value: token)]
+        return components.url
     }
 }
 

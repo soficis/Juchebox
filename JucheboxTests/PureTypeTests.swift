@@ -42,6 +42,10 @@ final class PureTypeTests: XCTestCase {
         XCTAssertNotEqual(AppStorageKey.hasAcceptedUnofficialDisclaimer, AppStorageKey.appLanguage)
     }
 
+    func testAppStorageRecentSearchesKeyValue() {
+        XCTAssertEqual(AppStorageKey.recentSearches, "recentSearches")
+    }
+
     func testSongDurationFormatted() {
         let song = Song(id: 1, title: "T", trackNumber: nil, duration: 247,
                         filePath: nil, hlsPath: nil, artistID: nil, artistName: nil,
@@ -116,5 +120,35 @@ final class PureTypeTests: XCTestCase {
         let names = LocalizedNames(en: "We Are Koreans", kp: "우리는 조선사람")
         XCTAssertEqual(names.value(for: .english), "We Are Koreans")
         XCTAssertEqual(names.value(for: .korean), "우리는 조선사람")
+    }
+
+    func testSearchURLPercentEncodesQuerySpecialCharacters() {
+        // A query containing "&" must stay a single q= value (%26), not split
+        // into extra URL parameters (SECURITY-AUDIT F3).
+        let url = JuchifyAPIClient.searchURL(query: "rock & roll", language: .english, page: 1)
+        XCTAssertEqual(
+            url?.absoluteString,
+            "https://juchify.com/api/proxy/search?q=rock%20%26%20roll&lang=en&page=1"
+        )
+    }
+
+    func testSearchURLQueryCannotOverridePageOrLanguage() {
+        // Crafted query content like "&lang=kp&page=999" stays inside q; the
+        // client's lang/page values win.
+        let url = JuchifyAPIClient.searchURL(query: "x&lang=kp&page=999", language: .english, page: 1)
+        XCTAssertEqual(
+            url?.absoluteString,
+            "https://juchify.com/api/proxy/search?q=x%26lang%3Dkp%26page%3D999&lang=en&page=1"
+        )
+    }
+
+    func testMediaURLCoverAllowsJuchifyAbsoluteHost() {
+        let url = JuchifyMediaURL.coverURL(path: "https://juchify.com/storage/album_covers/album_29_afcf8ceb.webp", albumID: 29)
+        XCTAssertEqual(url?.absoluteString, "https://juchify.com/storage/album_covers/album_29_afcf8ceb.webp")
+    }
+
+    func testMediaURLCoverRejectsForeignAbsoluteHost() {
+        XCTAssertNil(JuchifyMediaURL.coverURL(path: "https://evil.example/tracker.png"))
+        XCTAssertNil(JuchifyMediaURL.coverURL(path: "https://juchify.com.evil.example/tracker.png"))
     }
 }

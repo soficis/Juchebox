@@ -1,5 +1,11 @@
 import Foundation
 
+enum RepeatMode: Equatable, Sendable {
+    case off
+    case all
+    case one
+}
+
 struct TrackInfo: Equatable, Sendable {
     let id: String?
     let title: String?

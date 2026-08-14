@@ -7,6 +7,8 @@ struct MiniPlayerBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var onTap: () -> Void
 
+    private let feedback = UIImpactFeedbackGenerator(style: .light)
+
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .top) {
@@ -15,8 +17,20 @@ struct MiniPlayerBar: View {
                     .fill(AppTheme.secondaryText.opacity(0.3))
                     .frame(height: 1)
 
+                // Progress hairline overlay (2pt accent, above the gold line)
+                GeometryReader { geo in
+                    Rectangle()
+                        .fill(AppTheme.accent)
+                        .frame(width: geo.size.width * progressFraction, height: 2)
+                }
+                .frame(height: 2)
+                .allowsHitTesting(false)
+
                 // Track info layer
                 HStack(spacing: AppSpacing.sm) {
+                    if appState.playerState.currentTrack != nil {
+                        artworkThumb
+                    }
                     trackInfo
                     Spacer()
                 }
@@ -47,6 +61,31 @@ struct MiniPlayerBar: View {
         .accessibilityLabel(playerAccessibilityLabel)
     }
 
+    // MARK: - Artwork
+
+    private var artworkThumb: some View {
+        CachedAsyncImage(
+            url: appState.playerState.currentTrack?.artworkURL,
+            fallbackURL: appState.playerState.currentTrack?.artworkFallbackURL
+        ) { image in
+            image.resizable().aspectRatio(contentMode: .fill)
+        } placeholder: {
+            ZStack {
+                AppTheme.surface
+                StarShape().fill(AppTheme.secondaryText.opacity(0.5))
+                    .frame(width: 12, height: 12)
+            }
+        }
+        .frame(width: 40, height: 40)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+    }
+
+    private var progressFraction: Double {
+        let duration = appState.playerState.duration
+        guard duration > 0 else { return 0 }
+        return min(max(appState.playerState.currentTime / duration, 0), 1)
+    }
+
     // MARK: - Track Info
 
     @ViewBuilder
@@ -74,6 +113,7 @@ struct MiniPlayerBar: View {
 
     private var playPauseButton: some View {
         Button {
+            feedback.impactOccurred()
             appState.playerCommand(.togglePlayPause)
         } label: {
             Image(systemName: appState.playerState.isPlaying ? "pause.circle.fill" : "play.circle.fill")
@@ -91,6 +131,7 @@ struct MiniPlayerBar: View {
 
     private var nextButton: some View {
         Button {
+            feedback.impactOccurred()
             appState.playerCommand(.nextTrack)
         } label: {
             Image(systemName: "forward.fill")

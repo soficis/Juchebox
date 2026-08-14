@@ -75,10 +75,16 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
         stop()
         setupBackgroundObservers()
 
-        var options: [String: Any] = [:]
+        // The segment/key endpoints validate User-Agent + Accept-Language against
+        // the stream token's fingerprint, so media requests MUST carry the same
+        // stream headers used when minting the token (JuchifyMediaURL.streamHeaders).
+        var headers = JuchifyMediaURL.streamHeaders
         if let token = tokenProvider?() {
-            options["AVURLAssetHTTPHeaderFieldsKey"] = ["Authorization": "Bearer \(token)"]
+            headers["Authorization"] = "Bearer \(token)"
         }
+        let options: [String: Any] = [
+            "AVURLAssetHTTPHeaderFieldsKey": headers
+        ]
         let asset = AVURLAsset(url: url, options: options)
         let item = AVPlayerItem(asset: asset)
         playerItem = item

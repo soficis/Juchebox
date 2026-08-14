@@ -29,6 +29,7 @@ struct LibraryView: View {
             guard authed else {
                 likedSongs = []
                 recentlyPlayed = []
+                appState.resetLikedSongIDs()
                 return
             }
             Task { await loadLibrary() }
@@ -53,10 +54,8 @@ struct LibraryView: View {
             if !likedSongs.isEmpty {
                 Section {
                     ForEach(likedSongs.prefix(20)) { song in
-                        SongRow(song: song) {
-                            appState.play(song: song, from: likedSongs)
-                        }
-                        .listRowBackground(AppTheme.background)
+                        songRow(for: song, in: likedSongs)
+                            .listRowBackground(AppTheme.background)
                     }
                 } header: {
                     sectionHeader(t(.libraryLikedSongs))
@@ -66,10 +65,8 @@ struct LibraryView: View {
             if !recentlyPlayed.isEmpty {
                 Section {
                     ForEach(recentlyPlayed.prefix(20)) { song in
-                        SongRow(song: song) {
-                            appState.play(song: song, from: recentlyPlayed)
-                        }
-                        .listRowBackground(AppTheme.background)
+                        songRow(for: song, in: recentlyPlayed)
+                            .listRowBackground(AppTheme.background)
                     }
                 } header: {
                     sectionHeader(t(.libraryRecentlyPlayed))
@@ -139,6 +136,27 @@ struct LibraryView: View {
 
     @State private var showsSignIn = false
 
+    private func songRow(for song: Song, in songs: [Song]) -> some View {
+        let onGoToAlbum: (() -> Void)?
+        if let albumID = song.albumID {
+            onGoToAlbum = { appState.navigationPath.append(.album(albumID)) }
+        } else {
+            onGoToAlbum = nil
+        }
+        return SongRow(
+            song: song,
+            isLiked: appState.isLiked(song.id),
+            onToggleLike: { Task { await appState.toggleLike(songID: song.id) } },
+            isCurrent: appState.currentSongID == song.id,
+            isPlaying: appState.playerState.isPlaying,
+            onPlayNext: { appState.addToQueueNext(song) },
+            onAddToQueue: { appState.addToQueue(song) },
+            onGoToAlbum: onGoToAlbum
+        ) {
+            appState.play(song: song, from: songs)
+        }
+    }
+
     private func loadLibrary() async {
         isLoading = true
         defer { isLoading = false }
@@ -149,6 +167,7 @@ struct LibraryView: View {
         } catch {
             // Keep whatever loaded; individual failures are non-fatal.
         }
+        appState.loadLikedSongIDs()
     }
 
     private func t(_ key: Translation.Key) -> String {

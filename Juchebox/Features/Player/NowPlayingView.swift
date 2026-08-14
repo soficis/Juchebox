@@ -7,10 +7,10 @@ struct NowPlayingView: View {
 
     @State private var scrubValue: Double = 0
     @State private var isScrubbing = false
-    @State private var isShuffleOn = false
-    @State private var repeatMode: RepeatMode = .off
+    @State private var showsQueue = false
+    @State private var artworkImage: UIImage?
 
-    enum RepeatMode { case off, all, one }
+    private let feedback = UIImpactFeedbackGenerator(style: .light)
 
     private var track: TrackInfo? { appState.playerState.currentTrack }
     private var duration: Double { max(appState.playerState.duration, 1) }
@@ -18,22 +18,27 @@ struct NowPlayingView: View {
     private var remaining: String { formatTime(max(duration - scrubValue, 0)) }
 
     var body: some View {
-        ZStack {
-            AppTheme.background.ignoresSafeArea()
+        ScrollView {
+            ZStack {
+                AppTheme.background.ignoresSafeArea()
 
-            if track == nil {
-                emptyState
-            } else {
-                playerContent
-            }
+                if track == nil {
+                    emptyState
+                } else {
+                    playerContent
+                }
 
-            if appState.playerState.isStalled {
-                ProgressView()
-                    .tint(AppTheme.secondaryText)
-                    .scaleEffect(1.4)
+                if appState.playerState.isStalled {
+                    ProgressView()
+                        .tint(AppTheme.secondaryText)
+                        .scaleEffect(1.4)
+                }
             }
         }
-        .transition(.opacity)
+        .scrollBounceBehavior(.basedOnSize)
+        .sheet(isPresented: $showsQueue) {
+            queueSheet
+        }
         .onChange(of: appState.playerState.currentTime) { _, new in
             guard !isScrubbing else { return }
             scrubValue = new
@@ -44,7 +49,7 @@ struct NowPlayingView: View {
 
     private var playerContent: some View {
         VStack(spacing: AppSpacing.lg) {
-            Spacer()
+            Spacer(minLength: 0)
             artworkView
             trackInfoView
 
@@ -59,38 +64,106 @@ struct NowPlayingView: View {
             progressView
             transportControls
             shuffleRepeatRow
-            Spacer()
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, AppSpacing.lg)
         .background(
-            RadialGradient(
-                colors: [AppTheme.accent.opacity(0.08), AppTheme.background],
-                center: .center, startRadius: 60, endRadius: 300
-            )
-            .ignoresSafeArea()
+            artworkBackground
+                .ignoresSafeArea(.all, edges: .top)
         )
     }
 
-    // MARK: - Artwork
+    // MARK: - Artwork Background
 
-    private var artworkView: some View {
+    private var artworkBackground: some View {
         Group {
             if let url = track?.artworkURL {
                 CachedAsyncImage(
                     url: url,
                     fallbackURL: track?.artworkFallbackURL
                 ) { image in
-                    image.resizable().aspectRatio(contentMode: .fill)
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                 } placeholder: {
-                    placeholderArtwork
+                    Color.clear
                 }
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+                .id(url)
+                .blur(radius: 40)
+                .overlay(AppTheme.background.opacity(0.75))
+                .ignoresSafeArea()
+            } else {
+                RadialGradient(
+                    colors: [AppTheme.accent.opacity(0.08), AppTheme.background],
+                    center: .center, startRadius: 60, endRadius: 300
+                )
+                .ignoresSafeArea()
+            }
+        }
+    }
+
+    // MARK: - Artwork
+
+    private var artworkView: some View {
+        let primary = track?.artworkURL
+        let fallback = track?.artworkFallbackURL
+        let cached = primary.flatMap { ImageCache.shared.image(for: $0) }
+            ?? (fallback.flatMap { ImageCache.shared.image(for: $0) })
+        return Group {
+            if let image = cached ?? artworkImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: 360, maxHeight: 360)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+                    .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
             } else {
                 placeholderArtwork
             }
         }
-        .frame(width: 200, height: 200)
+        .frame(maxWidth: 360)
+        .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityLabel(t(.playerArtworkAccessibility))
+        .onAppear { Task { await loadArtworkAsync() } }
+        .onChange(of: appState.playerState.currentTrack?.id) { _, _ in
+            Task { await loadArtworkAsync() }
+        }
+    }
+
+    /// Synchronous artwork resolution: shared-cache first, then the canonical
+    /// URL, then the raw fallback URL. The cache makes repeat looks instant.
+    private func loadArtworkSync() -> UIImage? {
+        guard let primary = track?.artworkURL else { return nil }
+        if let cached = ImageCache.shared.image(for: primary) {
+            return cached
+        }
+        if let fallback = track?.artworkFallbackURL,
+           fallback != primary,
+           let cached = ImageCache.shared.image(for: fallback) {
+            return cached
+        }
+        return nil
+    }
+
+    /// Async artwork load used on first appearance: fetches and caches when the
+    /// sync path has nothing yet, so the Now Playing artwork always resolves.
+    private func loadArtworkAsync() async {
+        guard let primary = track?.artworkURL,
+              artworkImage == nil,
+              ImageCache.shared.image(for: primary) == nil else { return }
+        if let data = try? await URLSession.shared.data(from: primary).0,
+           let image = UIImage(data: data) {
+            ImageCache.shared.insert(image, for: primary)
+            artworkImage = image
+            return
+        }
+        if let fallback = track?.artworkFallbackURL,
+           fallback != primary,
+           let data = try? await URLSession.shared.data(from: fallback).0,
+           let image = UIImage(data: data) {
+            ImageCache.shared.insert(image, for: fallback)
+            artworkImage = image
+        }
     }
 
     private var placeholderArtwork: some View {
@@ -111,11 +184,26 @@ struct NowPlayingView: View {
 
     private var trackInfoView: some View {
         VStack(spacing: AppSpacing.xs) {
-            Text(track?.title ?? t(.playerUnknownTitle))
-                .font(.system(.title2, design: .serif).weight(.black))
-                .foregroundColor(AppTheme.secondaryText)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
+            HStack(alignment: .center, spacing: AppSpacing.sm) {
+                Text(track?.title ?? t(.playerUnknownTitle))
+                    .font(.system(.title2, design: .serif).weight(.black))
+                    .foregroundColor(AppTheme.secondaryText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+
+                if let songID = appState.currentSongID {
+                    Button {
+                        Task { await appState.toggleLike(songID: songID) }
+                    } label: {
+                        Image(systemName: appState.isLiked(songID) ? "heart.fill" : "heart")
+                            .font(.system(size: 22))
+                            .foregroundStyle(appState.isLiked(songID) ? AppTheme.accent : AppTheme.mutedText)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(appState.isLiked(songID) ? t(.unlike) : t(.like))
+                }
+            }
 
             Text(track?.artist ?? t(.playerUnknownArtist))
                 .font(.system(.body))
@@ -161,14 +249,20 @@ struct NowPlayingView: View {
 
     private var transportControls: some View {
         HStack(spacing: AppSpacing.lg) {
-            Button { appState.playerCommand(.previousTrack) } label: {
+            Button {
+                feedback.impactOccurred()
+                appState.playerCommand(.previousTrack)
+            } label: {
                 Image(systemName: "backward.fill")
                     .font(.system(size: 44))
                     .foregroundColor(AppTheme.secondaryText)
             }
             .accessibilityLabel(t(.playerPreviousTrackButton))
 
-            Button { appState.playerCommand(.togglePlayPause) } label: {
+            Button {
+                feedback.impactOccurred()
+                appState.playerCommand(.togglePlayPause)
+            } label: {
                 Image(systemName: appState.playerState.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 56))
                     .foregroundColor(AppTheme.accent)
@@ -176,7 +270,10 @@ struct NowPlayingView: View {
             .accessibilityLabel(appState.playerState.isPlaying
                 ? t(.playerPauseButton) : t(.playerPlayButton))
 
-            Button { appState.playerCommand(.nextTrack) } label: {
+            Button {
+                feedback.impactOccurred()
+                appState.playerCommand(.nextTrack)
+            } label: {
                 Image(systemName: "forward.fill")
                     .font(.system(size: 44))
                     .foregroundColor(AppTheme.secondaryText)
@@ -189,31 +286,113 @@ struct NowPlayingView: View {
 
     private var shuffleRepeatRow: some View {
         HStack {
-            Button { isShuffleOn.toggle() } label: {
+            Button { appState.toggleShuffle() } label: {
                 Image(systemName: "shuffle")
                     .font(.system(size: 20))
-                    .foregroundColor(isShuffleOn ? AppTheme.secondaryText : AppTheme.mutedText)
+                    .foregroundColor(appState.isShuffleOn ? AppTheme.secondaryText : AppTheme.mutedText)
             }
             .accessibilityLabel(t(.playerShuffle))
 
             Spacer()
 
-            Button { cycleRepeatMode() } label: {
-                Image(systemName: repeatMode == .one ? "repeat.1" : "repeat")
+            Button { showsQueue = true } label: {
+                Image(systemName: "text.line.last.and.arrowtriangle.forward")
                     .font(.system(size: 20))
-                    .foregroundColor(repeatMode == .off ? AppTheme.mutedText : AppTheme.secondaryText)
+                    .foregroundColor(AppTheme.mutedText)
             }
-            .accessibilityLabel(repeatMode == .one ? t(.playerRepeatOne) : t(.playerRepeat))
+            .accessibilityLabel(t(.playerQueueTab))
+
+            Spacer()
+
+            Button { appState.cycleRepeatMode() } label: {
+                Image(systemName: appState.repeatMode == .one ? "repeat.1" : "repeat")
+                    .font(.system(size: 20))
+                    .foregroundColor(appState.repeatMode == .off ? AppTheme.mutedText : AppTheme.secondaryText)
+            }
+            .accessibilityLabel(appState.repeatMode == .one ? t(.playerRepeatOne) : t(.playerRepeat))
         }
         .padding(.horizontal, AppSpacing.xs)
     }
 
-    private func cycleRepeatMode() {
-        switch repeatMode {
-        case .off: repeatMode = .all
-        case .all: repeatMode = .one
-        case .one: repeatMode = .off
+    // MARK: - Queue Sheet
+
+    private var queueSheet: some View {
+        NavigationStack {
+            Group {
+                if appState.nowPlayingQueue.isEmpty {
+                    VStack {
+                        Spacer()
+                        Text(t(.playerQueueEmpty))
+                            .font(.system(.headline))
+                            .foregroundStyle(AppTheme.mutedText)
+                        Spacer()
+                    }
+                } else {
+                    List {
+                        ForEach(Array(appState.nowPlayingQueue.enumerated()), id: \.element.id) { index, song in
+                            queueRow(index: index, song: song)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .background(AppTheme.background)
+            .navigationTitle(t(.playerQueueTab))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(t(.doneButton)) {
+                        showsQueue = false
+                    }
+                    .foregroundStyle(AppTheme.secondaryText)
+                }
+            }
         }
+    }
+
+    private func queueRow(index: Int, song: Song) -> some View {
+        let isCurrent = index == appState.queueIndex
+        return Button {
+            feedback.impactOccurred()
+            appState.play(queue: appState.nowPlayingQueue, startAt: index)
+            showsQueue = false
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                CachedAsyncImage(url: song.artworkURL, fallbackURL: song.artworkFallbackURL) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    ZStack {
+                        AppTheme.surface
+                        StarShape().fill(AppTheme.secondaryText.opacity(0.5))
+                            .frame(width: 12, height: 12)
+                    }
+                }
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(song.displayTitle)
+                        .font(.system(.subheadline, design: .serif).weight(isCurrent ? .bold : .regular))
+                        .foregroundStyle(isCurrent ? AppTheme.secondaryText : AppTheme.primaryText)
+                        .lineLimit(1)
+                    Text(song.displayArtist)
+                        .font(.caption)
+                        .foregroundStyle(isCurrent ? AppTheme.secondaryText.opacity(0.7) : AppTheme.mutedText)
+                        .lineLimit(1)
+                }
+
+                if isCurrent {
+                    Spacer(minLength: 0)
+                    Image(systemName: "speaker.wave.2.fill")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.accent)
+                } else {
+                    Spacer()
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Empty State

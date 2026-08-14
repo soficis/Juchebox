@@ -9,6 +9,12 @@ struct SearchView: View {
 
     @State private var query = ""
     @FocusState private var isSearchFocused: Bool
+    /// Pending debounce task for the live search; cancelled on every keystroke.
+    @State private var searchTask: Task<Void, Never>?
+    /// The trimmed query that a network search was last actually fired for,
+    /// so a repeat (or trailing-space) query never triggers a duplicate call.
+    @State private var lastSearchedQuery = ""
+    @State private var recentSearches: [String] = UserDefaults.standard.stringArray(forKey: AppStorageKey.recentSearches) ?? []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -22,11 +28,126 @@ struct SearchView: View {
                 Spacer()
             } else if let results = catalog.searchResults {
                 resultsList(results)
+            } else if trimmedQuery.isEmpty {
+                if recentSearches.isEmpty {
+                    emptyPrompt
+                } else {
+                    recentSearchesView
+                }
             } else {
                 emptyPrompt
             }
         }
         .background(AppTheme.background)
+        .onChange(of: query) { _, newQuery in
+            scheduleSearch(for: newQuery)
+        }
+        .onChange(of: catalog.searchResults) { _, newResults in
+            if newResults != nil, !lastSearchedQuery.isEmpty {
+                recordRecent(lastSearchedQuery)
+            }
+        }
+        .onDisappear {
+            searchTask?.cancel()
+        }
+    }
+
+    private var trimmedQuery: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Search-as-you-type: cancel any in-flight debounce, then fire a search
+    /// 350ms after the last keystroke — but only for a new, non-empty query.
+    private func scheduleSearch(for rawQuery: String) {
+        searchTask?.cancel()
+        let trimmed = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            lastSearchedQuery = ""
+            catalog.clearSearch()
+            return
+        }
+        searchTask = Task {
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            guard !Task.isCancelled else { return }
+            let current = query.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !current.isEmpty, current != lastSearchedQuery else { return }
+            lastSearchedQuery = current
+            catalog.search(current)
+        }
+    }
+
+    /// Immediate-search path (Return key / recent-search tap): cancels any
+    /// pending debounce and fires the network call right away.
+    private func performImmediateSearch() {
+        searchTask?.cancel()
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != lastSearchedQuery else { return }
+        lastSearchedQuery = trimmed
+        catalog.search(trimmed)
+    }
+
+    // MARK: - Recent searches
+
+    private func recordRecent(_ rawQuery: String) {
+        let trimmed = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        var recents = recentSearches.filter {
+            $0.caseInsensitiveCompare(trimmed) != .orderedSame
+        }
+        recents.insert(trimmed, at: 0)
+        if recents.count > 10 {
+            recents = Array(recents.prefix(10))
+        }
+        recentSearches = recents
+        UserDefaults.standard.set(recents, forKey: AppStorageKey.recentSearches)
+    }
+
+    private func clearRecents() {
+        recentSearches = []
+        UserDefaults.standard.removeObject(forKey: AppStorageKey.recentSearches)
+    }
+
+    private var recentSearchesView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text(t(.recentSearches))
+                        .font(.system(.headline, design: .serif).weight(.bold))
+                        .foregroundStyle(AppTheme.primaryText)
+                    Spacer()
+                    Button(t(.clearRecents)) {
+                        clearRecents()
+                    }
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryText)
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.bottom, AppSpacing.sm)
+
+                ForEach(recentSearches, id: \.self) { recent in
+                    Button {
+                        query = recent
+                        performImmediateSearch()
+                    } label: {
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .foregroundStyle(AppTheme.mutedText)
+                            Text(recent)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.primaryText)
+                                .lineLimit(1)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                        .padding(.vertical, AppSpacing.sm)
+                        .padding(.horizontal, AppSpacing.md)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, AppSpacing.md)
+        }
     }
 
     // MARK: - Search field
@@ -42,7 +163,7 @@ struct SearchView: View {
                 .focused($isSearchFocused)
                 .submitLabel(.search)
                 .onSubmit {
-                    catalog.search(query)
+                    performImmediateSearch()
                 }
                 .accessibilityIdentifier(AccessibilityID.searchField)
 
@@ -74,10 +195,8 @@ struct SearchView: View {
             if !results.songs.isEmpty {
                 Section {
                     ForEach(results.songs) { song in
-                        SongRow(song: song) {
-                            appState.play(song: song, from: results.songs)
-                        }
-                        .listRowBackground(AppTheme.background)
+                        songRow(for: song, in: results.songs)
+                            .listRowBackground(AppTheme.background)
                     }
                 } header: {
                     sectionHeader(t(.searchSongs))
@@ -112,6 +231,27 @@ struct SearchView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+    }
+
+    private func songRow(for song: Song, in songs: [Song]) -> some View {
+        let onGoToAlbum: (() -> Void)?
+        if let albumID = song.albumID {
+            onGoToAlbum = { appState.navigationPath.append(.album(albumID)) }
+        } else {
+            onGoToAlbum = nil
+        }
+        return SongRow(
+            song: song,
+            isLiked: appState.isLiked(song.id),
+            onToggleLike: { Task { await appState.toggleLike(songID: song.id) } },
+            isCurrent: appState.currentSongID == song.id,
+            isPlaying: appState.playerState.isPlaying,
+            onPlayNext: { appState.addToQueueNext(song) },
+            onAddToQueue: { appState.addToQueue(song) },
+            onGoToAlbum: onGoToAlbum
+        ) {
+            appState.play(song: song, from: songs)
+        }
     }
 
     private func sectionHeader(_ text: String) -> some View {

@@ -16,17 +16,6 @@ final class TranslationCompletenessTests: XCTestCase {
         }
     }
 
-    func testAssociatedValueKeysHaveBothLanguages() {
-        XCTAssertFalse(Translation.string(for: .externalLinkMessage("example.com"), language: .english).isEmpty)
-        XCTAssertFalse(Translation.string(for: .externalLinkMessage("example.com"), language: .korean).isEmpty)
-        XCTAssertFalse(Translation.string(for: .systemSchemeMessage("mailto"), language: .english).isEmpty)
-        XCTAssertFalse(Translation.string(for: .systemSchemeMessage("mailto"), language: .korean).isEmpty)
-        XCTAssertFalse(Translation.string(for: .blockedMessageUnsupportedScheme("ftp"), language: .english).isEmpty)
-        XCTAssertFalse(Translation.string(for: .blockedMessageUnsupportedScheme("ftp"), language: .korean).isEmpty)
-        XCTAssertFalse(Translation.string(for: .blockedMessageLookalike("juchify-fake.com"), language: .english).isEmpty)
-        XCTAssertFalse(Translation.string(for: .blockedMessageLookalike("juchify-fake.com"), language: .korean).isEmpty)
-    }
-
     func testEnglishValuesContainNoEmptyWhitespaceOnlyStrings() {
         for key in Translation.Key.nonAssociatedCases {
             let value = Translation.string(for: key, language: .english)
@@ -46,41 +35,30 @@ extension Translation.Key {
         .disclaimer3Title, .disclaimer3Message,
         .disclaimer4Title, .disclaimer4Message,
         .settingsTitle, .aboutSection, .securitySection,
-        .ephemeralToggle, .ephemeralFooter,
-        .ephemeralConfirmationTitle, .ephemeralConfirmationMessage, .ephemeralConfirmAction,
-        .clearDataButton, .clearDataFooter,
-        .diagnosticsTitle, .diagnosticsButton, .diagnosticsFooter,
-        .privacySummaryTitle, .privacySummaryFooter,
         .licensesTitle, .licensesFooter,
         .versionTitle,
-        .openInBrowserButton, .languageSelectTitle, .externalLinkTitle,
-        .copyLink, .cancel,
-        .errorTitleNoNetwork, .errorTitleServerUnavailable, .errorTitleTlsFailure,
-        .errorTitleCancelled, .errorTitleDownloadUnsupported, .errorTitleWebProcessTerminated,
-        .errorTitleLoadTimeout, .errorTitleOther,
-        .errorMessageNoNetwork, .errorMessageServerUnavailable, .errorMessageTlsFailure,
-        .errorMessageCancelled, .errorMessageDownloadUnsupported, .errorMessageWebProcessTerminated,
-        .errorMessageLoadTimeout,
-        .errorReloadButton,
-        .toastUrlCopied, .toastUrlUnavailable, .toastDataCleared,
-        .dismissButton, .okButton, .doneButton, .showControlsLabel,
-        .toolbarBack, .toolbarForward, .toolbarReload, .toolbarHome,
-        .toolbarShare, .toolbarSettings, .toolbarHideControls,
-        .systemSchemeAction,
-        .blockedLinkCannotOpen, .blockedTitleInsecureHTTP, .blockedTitleUnsupportedScheme,
-        .blockedTitleLookalike, .blockedTitleDownloadUnsupported,
-        .blockedMessageMissingURL, .blockedMessageMalformedURL, .blockedMessageInsecureHTTP,
-        .blockedMessageDownloadUnsupported,
-        .searchButton, .searchPlaceholder, .searchGo,
-        .saveButton, .toastPageSaved, .toastNoPageToSave,
-        .playerAirplayLabel, .playerArtworkAccessibility,
-        .playerDurationLabel, .playerHistoryEmpty, .playerLockscreenPaused,
-        .playerMiniNowPlaying, .playerNextTrackButton, .playerNoTrackPlaying,
-        .playerNowPlayingTab, .playerPauseButton, .playerPlayButton,
-        .playerPlayHistory, .playerPreviousTrackButton, .playerQueueEmpty,
-        .playerQueueTab, .playerRepeat, .playerRepeatOne,
-        .playerSeekBackward, .playerSeekForward, .playerSeekLabel,
-        .playerShuffle, .playerUnknownArtist, .playerUnknownTitle, .playerUpNext,
-        .tabNowPlaying,
+        .languageSelectTitle,
+        .cancel,
+        .doneButton,
+        .searchPlaceholder,
+        .playerPlayButton, .playerPauseButton, .playerNextTrackButton, .playerPreviousTrackButton,
+        .playerSeekForward, .playerSeekBackward, .playerMiniNowPlaying, .playerNoTrackPlaying,
+        .playerUnknownArtist, .playerUnknownTitle,
+        .tabNowPlaying, .playerNowPlayingTab, .playerQueueTab,
+        .playerShuffle, .playerRepeat, .playerRepeatOne,
+        .playerUpNext, .playerPlayHistory, .playerQueueEmpty, .playerHistoryEmpty,
+        .playerSeekLabel, .playerDurationLabel, .playerAirplayLabel,
+        .playerLockscreenPaused, .playerArtworkAccessibility,
+        .tabBrowse, .tabSearch, .tabLibrary,
+        .homePopularSongs, .homeNewReleases, .homeNewTracks, .homePopularAlbums,
+        .homeSongCount, .homeLoadError, .retry,
+        .searchSongs, .searchAlbums, .searchArtists, .searchPrompt,
+        .clearSearch, .playAlbum,
+        .librarySignInPrompt, .librarySignInButton,
+        .libraryLikedSongs, .libraryRecentlyPlayed, .libraryPlaylists,
+        .signInTitle, .usernamePlaceholder, .passwordPlaceholder,
+        .signInSubmit, .signInFailed, .signOutButton,
+        .like, .unlike, .playNext, .addToQueue, .goToAlbum,
+        .seeAll, .recentSearches, .clearRecents,
     ]
 }

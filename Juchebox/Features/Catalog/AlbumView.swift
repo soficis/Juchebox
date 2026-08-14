@@ -38,10 +38,8 @@ struct AlbumView: View {
             if let songs = album.songs, !songs.isEmpty {
                 Section {
                     ForEach(Array(songs.enumerated()), id: \.element.id) { index, song in
-                        SongRow(song: song) {
-                            appState.play(queue: songs, startAt: index)
-                        }
-                        .listRowBackground(AppTheme.background)
+                        songRow(for: song, at: index, in: songs, coverPath: album.coverPath)
+                            .listRowBackground(AppTheme.background)
                     }
                 }
             }
@@ -100,6 +98,35 @@ struct AlbumView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.lg)
+    }
+
+    private func songRow(
+        for song: Song,
+        at index: Int,
+        in songs: [Song],
+        coverPath: String?
+    ) -> some View {
+        let onGoToAlbum: (() -> Void)?
+        if let albumID = song.albumID {
+            onGoToAlbum = { appState.navigationPath.append(.album(albumID)) }
+        } else {
+            onGoToAlbum = nil
+        }
+        return SongRow(
+            song: song,
+            coverPathOverride: coverPath,
+            coverAlbumIDOverride: albumID,
+            isLiked: appState.isLiked(song.id),
+            onToggleLike: { Task { await appState.toggleLike(songID: song.id) } },
+            isCurrent: appState.currentSongID == song.id,
+            isPlaying: appState.playerState.isPlaying,
+            trackNumber: index + 1,
+            onPlayNext: { appState.addToQueueNext(song) },
+            onAddToQueue: { appState.addToQueue(song) },
+            onGoToAlbum: onGoToAlbum
+        ) {
+            appState.play(queue: songs, startAt: index)
+        }
     }
 
     private var errorView: some View {

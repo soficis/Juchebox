@@ -59,8 +59,26 @@ final class JuchifyAPIClient: Sendable {
     }
 
     func search(_ query: String, language: AppLanguage = .english, page: Int = 1) async throws -> SearchResults {
-        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        return try await get("\(Self.proxyPath)/search?q=\(encoded)&lang=\(language.rawValue)&page=\(page)")
+        guard let url = Self.searchURL(query: query, language: language, page: page) else {
+            throw JuchifyAPIError.invalidURL
+        }
+        return try await get(url.absoluteString)
+    }
+
+    /// Builds the `/api/proxy/search` URL with `URLQueryItem` so `&`, `=`, `+`, `?`
+    /// inside the user's query are percent-encoded instead of being split into
+    /// extra URL parameters (SECURITY-AUDIT F3). `lang`/`page` are client-set and
+    /// cannot be overridden by query content.
+    static func searchURL(query: String, language: AppLanguage = .english, page: Int = 1) -> URL? {
+        guard var components = URLComponents(string: Self.baseURL.absoluteString + Self.proxyPath + "/search") else {
+            return nil
+        }
+        components.queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "lang", value: language.rawValue),
+            URLQueryItem(name: "page", value: String(page)),
+        ]
+        return components.url
     }
 
     func newReleases(limit: Int = 50) async throws -> [NewRelease] {
@@ -89,8 +107,29 @@ final class JuchifyAPIClient: Sendable {
         try await get("\(Self.proxyPath)/playlists/\(id)")
     }
 
-    func like(songID: Int) async throws {
-        try await post("\(Self.proxyPath)/songs/\(songID)/like", body: EmptyBody())
+    /// The site exposes ONE like endpoint that toggles; POST returns `{liked: Bool}`
+    /// with the new state (verified in web chunk 5155). No `/unlike` endpoint exists.
+    func toggleLike(songID: Int) async throws -> Bool {
+        let response: LikeStatusResponse = try await post("\(Self.proxyPath)/songs/\(songID)/like", body: EmptyBody())
+        return response.liked
+    }
+
+    /// Gets a short-lived JWT for playing a song via encrypted HLS.
+    /// The segment endpoints validate the request's User-Agent + Accept-Language
+    /// against the token's fingerprint, so the SAME stream headers must be sent
+    /// on the mint request and on every media request (AVPlayerController).
+    func getStreamToken(songID: Int) async throws -> String {
+        let response: StreamTokenResponse = try await post(
+            "\(Self.proxyPath)/stream-token",
+            body: ["songId": songID],
+            extraHeaders: JuchifyMediaURL.streamHeaders
+        )
+        return response.token
+    }
+
+    func isLiked(songID: Int) async throws -> Bool {
+        let response: LikeStatusResponse = try await get("\(Self.proxyPath)/songs/\(songID)/like")
+        return response.liked
     }
 
     // MARK: - Auth
@@ -106,10 +145,14 @@ final class JuchifyAPIClient: Sendable {
         try await request(path: path, method: "GET", body: nil)
     }
 
-    private func post<T: Decodable, B: Encodable>(_ path: String, body: B) async throws -> T {
+    private func post<T: Decodable, B: Encodable>(
+        _ path: String,
+        body: B,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> T {
         let encoder = JSONEncoder()
         let data = try encoder.encode(body)
-        return try await request(path: path, method: "POST", body: data)
+        return try await request(path: path, method: "POST", body: data, extraHeaders: extraHeaders)
     }
 
     private func post<B: Encodable>(_ path: String, body: B) async throws {
@@ -121,7 +164,8 @@ final class JuchifyAPIClient: Sendable {
     private func request<T: Decodable>(
         path: String,
         method: String,
-        body: Data?
+        body: Data?,
+        extraHeaders: [String: String] = [:]
     ) async throws -> T {
         guard let url = URL(string: path, relativeTo: Self.baseURL) else {
             throw JuchifyAPIError.invalidURL
@@ -132,6 +176,9 @@ final class JuchifyAPIClient: Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token = tokenProvider() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        for (name, value) in extraHeaders {
+            request.setValue(value, forHTTPHeaderField: name)
         }
         request.httpBody = body
 
@@ -197,6 +244,14 @@ struct Playlist: Decodable, Equatable, Sendable {
 
 private struct APIErrorEnvelope: Decodable {
     let error: String
+}
+
+private struct LikeStatusResponse: Decodable, Sendable {
+    let liked: Bool
+}
+
+private struct StreamTokenResponse: Decodable, Sendable {
+    let token: String
 }
 
 private struct EmptyBody: Encodable {}

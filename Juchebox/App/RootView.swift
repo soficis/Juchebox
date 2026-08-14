@@ -28,7 +28,8 @@ struct RootView: View {
 
                         ChollimaTabBar(
                             selectedTab: $appState.selectedTab,
-                            language: appLanguage
+                            language: appLanguage,
+                            isNowPlayingActive: appState.playerState.currentTrack != nil && appState.playerState.isPlaying
                         )
                     }
                     .background(AppTheme.background)
@@ -70,6 +71,7 @@ struct RootView: View {
 private struct ChollimaTabBar: View {
     @Binding var selectedTab: Int
     let language: AppLanguage
+    var isNowPlayingActive: Bool = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -104,7 +106,8 @@ private struct ChollimaTabBar: View {
                 title: t(.tabNowPlaying, language: language),
                 systemImage: selectedTab == 3 ? "music.note.fill" : "music.note",
                 isSelected: selectedTab == 3,
-                accessibilityIdentifier: AccessibilityID.nowPlayingTab
+                accessibilityIdentifier: AccessibilityID.nowPlayingTab,
+                isNowPlayingActive: isNowPlayingActive
             ) {
                 selectedTab = 3
             }
@@ -123,19 +126,25 @@ private struct ChollimaTabBar: View {
         systemImage: String,
         isSelected: Bool,
         accessibilityIdentifier: String? = nil,
+        isNowPlayingActive: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             VStack(spacing: 2) {
                 Image(systemName: systemImage)
                     .font(.system(size: 20, weight: .semibold))
+                    .symbolEffect(.pulse, options: .repeating, isActive: isNowPlayingActive)
                 Text(title)
                     .font(.system(size: 10, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
-            .foregroundStyle(isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
+            .foregroundStyle(
+                isNowPlayingActive
+                    ? AppTheme.accent
+                    : (isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
