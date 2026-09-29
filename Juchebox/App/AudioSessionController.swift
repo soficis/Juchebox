@@ -62,10 +62,7 @@ final class AudioSessionController: ObservableObject {
         info[MPNowPlayingInfoPropertyPlaybackRate] = state.isPlaying ? 1.0 : 0.0
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-
-        if #available(iOS 13.0, *) {
-            MPNowPlayingInfoCenter.default().playbackState = state.isPlaying ? .playing : .paused
-        }
+        MPNowPlayingInfoCenter.default().playbackState = state.isPlaying ? .playing : .paused
     }
 
     // MARK: - Remote commands
@@ -197,6 +194,14 @@ final class AudioSessionController: ObservableObject {
         )
     }
 
+    private func haltNowPlaying(_ playbackState: MPNowPlayingPlaybackState) {
+        if var info = MPNowPlayingInfoCenter.default().nowPlayingInfo {
+            info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        }
+        MPNowPlayingInfoCenter.default().playbackState = playbackState
+    }
+
     private func handleInterruption(rawType: UInt) {
         guard let type = AVAudioSession.InterruptionType(rawValue: rawType) else {
             return
@@ -206,14 +211,7 @@ final class AudioSessionController: ObservableObject {
         case .began:
             wasPlayingBeforeInterruption = playerController?.currentState().isPlaying ?? false
             notice = "Audio was interrupted by iOS."
-
-            if var info = MPNowPlayingInfoCenter.default().nowPlayingInfo {
-                info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
-                MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-            }
-            if #available(iOS 13.0, *) {
-                MPNowPlayingInfoCenter.default().playbackState = .interrupted
-            }
+            haltNowPlaying(.interrupted)
 
         case .ended:
             notice = "Audio interruption ended. Resume from the website controls if needed."
@@ -238,14 +236,7 @@ final class AudioSessionController: ObservableObject {
 
         if wasHeadphones {
             playerController?.pause()
-
-            if var info = MPNowPlayingInfoCenter.default().nowPlayingInfo {
-                info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
-                MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-            }
-            if #available(iOS 13.0, *) {
-                MPNowPlayingInfoCenter.default().playbackState = .paused
-            }
+            haltNowPlaying(.paused)
         }
     }
 

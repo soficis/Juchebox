@@ -93,7 +93,6 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
 
         startTimeObserver()
 
-        // Stall detection via KVO publisher
         player.publisher(for: \.timeControlStatus)
             .sink { [weak self] status in
                 guard let self else { return }
@@ -114,7 +113,6 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
             }
             .store(in: &cancellables)
 
-        // Track end detection — advance the queue through the owner.
         NotificationCenter.default
             .publisher(for: .AVPlayerItemDidPlayToEndTime, object: item)
             .sink { [weak self] _ in
