@@ -75,6 +75,7 @@ final class AudioSessionControllerAbuseTests: XCTestCase {
         postRouteChange(reason: "2")
         await settleNotificationHandlers()
 
+        XCTAssertNotNil(controller.notice)
         XCTAssertEqual(player.pauseCallCount, 0)
     }
 
@@ -96,6 +97,7 @@ final class AudioSessionControllerAbuseTests: XCTestCase {
         )
         await settleNotificationHandlers()
 
+        XCTAssertNotNil(controller.notice)
         XCTAssertEqual(player.pauseCallCount, 0)
     }
 }
@@ -150,6 +152,10 @@ final class AudioSessionControllerBehaviorTests: XCTestCase {
         // Longer than the 0.5s resume delay inside handleInterruption.
         try? await Task.sleep(for: .milliseconds(900))
 
+        XCTAssertEqual(
+            controller.notice,
+            "Audio interruption ended. Resume from the website controls if needed."
+        )
         XCTAssertEqual(player.playCallCount, 1)
     }
 

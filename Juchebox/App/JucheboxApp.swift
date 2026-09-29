@@ -38,8 +38,12 @@ struct JucheboxApp: App {
                 audioSessionController.start()
                 audioSessionController.configure(player: playerController)
                 appState.configurePlayer(controller: playerController)
-                playerController.tokenProvider = { [weak authStore] in
-                    authStore?.tokenProvider()
+                // Bind the store to a local before capturing: a weak capture of the
+                // StateObject property itself would retain a temporary, so the weak
+                // reference could be nil before the closure ever runs.
+                let store = authStore
+                playerController.tokenProvider = { [weak store] in
+                    store?.tokenProvider()
                 }
             }
         }

@@ -128,6 +128,7 @@ final class PlayerControllerMockTests: XCTestCase {
         let cancellable = mock.statePublisher.sink { state in
             receivedStates.append(state)
         }
+        defer { cancellable.cancel() }
 
         let testState = PlayerState(
             currentTrack: TrackInfo(id: "1", title: "Song", artist: nil, album: nil, albumId: nil, artistId: nil, duration: nil, artworkURL: nil),
