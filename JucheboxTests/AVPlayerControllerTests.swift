@@ -7,12 +7,59 @@ import XCTest
 // straight into CMTime with no validation, and `tokenProvider` is an
 // arbitrary closure. These tests feed each of those seams hostile input and
 // pin that the published state stays coherent.
+
+/// Builds a controller that trusts the non-resolving `.invalid` sample host, so
+/// the accepted path of `setStream` can be exercised without the suite sending
+/// traffic to the real site. Tests that never call `setStream` do not need it.
+@MainActor
+private func makeController() -> AVPlayerController {
+    let controller = AVPlayerController()
+    controller.trustedMediaHost = "juchify.invalid"
+    return controller
+}
+
 @MainActor
 final class AVPlayerControllerAbuseTests: XCTestCase {
 
     // `.invalid` is an RFC 2606 reserved TLD, so the asset can never resolve
     // and the suite never sends a request to the real site.
     private let sampleURL = URL(string: "https://juchify.invalid/stream.mp3")!
+
+    // ABUSE: a stream URL pointing at a host the app never constructed. This is the
+    // case the guard exists for — the Bearer token would otherwise be attached to an
+    // attacker-chosen origin. Uses the production default trusted host (unlike
+    // makeController) so the guard is exercised exactly as shipped.
+    func testSetStreamRefusesAHostOutsideTheAllowlist() {
+        let controller = AVPlayerController()
+        controller.tokenProvider = { "secret-token" }
+
+        controller.setStream(url: URL(string: "https://evil.example/stream.mp3")!, startTime: 0)
+
+        let state = controller.currentState()
+        XCTAssertNil(state.streamURL)
+        XCTAssertFalse(state.isPlaying)
+        XCTAssertNotNil(state.streamError)
+    }
+
+    // ABUSE: suffix confusion. "juchify.com.evil.example" contains the trusted
+    // string but is an entirely different registrable domain.
+    func testSetStreamRefusesASuffixConfusionHost() {
+        let controller = AVPlayerController()
+
+        controller.setStream(url: URL(string: "https://juchify.com.evil.example/s.mp3")!, startTime: 0)
+
+        XCTAssertNil(controller.currentState().streamURL)
+    }
+
+    // ABUSE: a hostless URL, which is what a `file:` or bare-relative asset would
+    // present. It must not slip through a host comparison that assumes a host exists.
+    func testSetStreamRefusesAHostlessURL() {
+        let controller = AVPlayerController()
+
+        controller.setStream(url: URL(string: "file:///etc/passwd")!, startTime: 0)
+
+        XCTAssertNil(controller.currentState().streamURL)
+    }
 
     // ABUSE: NaN startTime. The `startTime > 0` gate is the only thing standing
     // between a hostile value and `CMTime(seconds:)` — NaN there raises an
@@ -24,7 +71,7 @@ final class AVPlayerControllerAbuseTests: XCTestCase {
     // setStream overwrites it with the real buffering state, so it cannot
     // distinguish "seeked" from "did not seek".
     func testSetStreamWithNaNStartTimeSurvivesAndKeepsStateCoherent() {
-        let controller = AVPlayerController()
+        let controller = makeController()
 
         controller.setStream(url: sampleURL, startTime: .nan)
 
@@ -36,7 +83,7 @@ final class AVPlayerControllerAbuseTests: XCTestCase {
     // ABUSE: a negative start time must fail the same gate rather than seeking
     // to a position before the start of the asset.
     func testSetStreamWithNegativeStartTimeKeepsStateCoherent() {
-        let controller = AVPlayerController()
+        let controller = makeController()
 
         controller.setStream(url: sampleURL, startTime: -30)
 
@@ -50,7 +97,7 @@ final class AVPlayerControllerAbuseTests: XCTestCase {
     // public surface (AVPlayerController keeps `player` private), so this pins
     // the guarantee that is reachable: setStream stays coherent and survives.
     func testSetStreamToleratesHostileTokenWithoutCorruptingState() {
-        let controller = AVPlayerController()
+        let controller = makeController()
         controller.tokenProvider = { "abc\r\nX-Injected: 1" }
 
         controller.setStream(url: sampleURL, startTime: 0)
@@ -129,7 +176,7 @@ final class AVPlayerControllerBehaviorTests: XCTestCase {
     }
 
     func testSetStreamPublishesURLAndClearsPriorStreamError() {
-        let controller = AVPlayerController()
+        let controller = makeController()
         controller.reportStreamUnavailable()
         XCTAssertNotNil(controller.currentState().streamError)
 
@@ -142,7 +189,7 @@ final class AVPlayerControllerBehaviorTests: XCTestCase {
     }
 
     func testSetStreamWithPositiveStartTimeSeeks() {
-        let controller = AVPlayerController()
+        let controller = makeController()
 
         controller.setStream(url: sampleURL, startTime: 30)
 
@@ -152,7 +199,7 @@ final class AVPlayerControllerBehaviorTests: XCTestCase {
     // stop() clears transport fields but must keep currentTrack, or the
     // now-playing UI blanks between tracks.
     func testStopClearsTransportButPreservesCurrentTrack() {
-        let controller = AVPlayerController()
+        let controller = makeController()
         let track = TrackInfo(id: "1", title: "T", artist: "A", duration: 247)
         controller.setStream(url: sampleURL, startTime: 0)
         controller.setTrack(track)

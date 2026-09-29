@@ -275,6 +275,7 @@ private final class RecordingPlayerController: PlayerControllerProtocol {
     private(set) var seekTargets: [TimeInterval] = []
     private(set) var lastStreamURL: URL?
     private(set) var reportedUnavailable = false
+    private(set) var reportedError: String?
 
     func emit(_ state: PlayerState) { stateSubject.send(state) }
     func currentState() -> PlayerState { stateSubject.value }
@@ -294,6 +295,9 @@ private final class RecordingPlayerController: PlayerControllerProtocol {
     func reportStreamUnavailable() {
         reportedUnavailable = true
         onStreamFailed?()
+    }
+    func reportStreamError(_ message: String) {
+        reportedError = message
     }
     func stop() {}
 }

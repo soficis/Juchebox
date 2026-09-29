@@ -213,6 +213,11 @@ private final class MockPlayerController: PlayerControllerProtocol {
         subject.send(storedState)
     }
 
+    func reportStreamError(_ message: String) {
+        storedState.streamError = message
+        subject.send(storedState)
+    }
+
     func stop() {}
 
     func emitState(_ state: PlayerState) {

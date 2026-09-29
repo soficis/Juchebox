@@ -7,6 +7,8 @@ enum JuchifyAPIError: LocalizedError, Equatable, Sendable {
     case server(String) // {"error": "..."} payload
     case decoding
     case notAuthenticated
+    case blocked // 403 — the request was refused, retrying it unchanged will not help
+    case rateLimited(retryAfter: TimeInterval?) // 429, with the server's Retry-After hint if it sent one
 
     var errorDescription: String? {
         switch self {
@@ -15,6 +17,8 @@ enum JuchifyAPIError: LocalizedError, Equatable, Sendable {
         case .server(let message): message
         case .decoding: "Could not read the server response."
         case .notAuthenticated: "You need to sign in for this."
+        case .blocked: "The server refused this request."
+        case .rateLimited: "Too many requests — the server asked us to slow down."
         }
     }
 }
@@ -28,6 +32,14 @@ enum JuchifyAPIError: LocalizedError, Equatable, Sendable {
 final class JuchifyAPIClient: Sendable {
     static let baseURL = URL(string: "https://juchify.com")!
     static let proxyPath = "/api/proxy"
+
+    /// Announces this client on every JSON request so the operator can allowlist it
+    /// by header rather than inferring it from a request fingerprint. Sent only here
+    /// and never on media requests: the segment/key endpoints validate the exact
+    /// User-Agent + Accept-Language set the stream token was minted with
+    /// (JuchifyMediaURL.streamHeaders), so an extra header risks breaking playback.
+    static let clientHeaderField = "X-Client-Name"
+    static let clientIdentifier = "Juchebox-iOS"
 
     private let session: URLSession
     private let tokenProvider: @Sendable () -> String?
@@ -174,6 +186,7 @@ final class JuchifyAPIClient: Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(Self.clientIdentifier, forHTTPHeaderField: Self.clientHeaderField)
         if let token = tokenProvider() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
@@ -194,13 +207,23 @@ final class JuchifyAPIClient: Sendable {
         }
 
         guard (200..<300).contains(http.statusCode) else {
-            if let errorObject = try? JSONDecoder().decode(APIErrorEnvelope.self, from: data) {
-                throw JuchifyAPIError.server(errorObject.error)
-            }
-            if http.statusCode == 401 {
+            // Status code first. These three are actionable states the caller must
+            // be able to tell apart — re-authenticate, stop, or back off — and a
+            // 403/429/401 that also carries a JSON error body would otherwise be
+            // flattened into .server, losing that distinction entirely.
+            switch http.statusCode {
+            case 401:
                 throw JuchifyAPIError.notAuthenticated
+            case 403:
+                throw JuchifyAPIError.blocked
+            case 429:
+                throw JuchifyAPIError.rateLimited(retryAfter: Self.retryAfterSeconds(from: http))
+            default:
+                if let errorObject = try? JSONDecoder().decode(APIErrorEnvelope.self, from: data) {
+                    throw JuchifyAPIError.server(errorObject.error)
+                }
+                throw JuchifyAPIError.transport(http.statusCode)
             }
-            throw JuchifyAPIError.transport(http.statusCode)
         }
 
         do {
@@ -208,6 +231,17 @@ final class JuchifyAPIClient: Sendable {
         } catch {
             throw JuchifyAPIError.decoding
         }
+    }
+
+    /// `Retry-After` in its delta-seconds form. The HTTP-date form is deliberately
+    /// not parsed: it needs date arithmetic no caller currently consumes, and
+    /// returning no hint is safer than returning a wrong one. Clamped to a minute
+    /// so a buggy or hostile server cannot hand us an unusable wait.
+    private static func retryAfterSeconds(from response: HTTPURLResponse) -> TimeInterval? {
+        guard let raw = response.value(forHTTPHeaderField: "Retry-After"),
+              let seconds = TimeInterval(raw.trimmingCharacters(in: .whitespaces)),
+              seconds > 0 else { return nil }
+        return min(seconds, 60)
     }
 }
 

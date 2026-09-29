@@ -340,6 +340,14 @@ enum JuchifyMediaURL {
         ["User-Agent": streamUserAgent, "Accept-Language": streamAcceptLanguage]
     }
 
+    /// The only host permitted to receive a Bearer token. Callers all build from
+    /// `baseURL`, but the player engine attaches the credential and is the right
+    /// place to fail closed — without this note it reads as redundant and gets
+    /// deleted (SECURITY-AUDIT F5, the same rule `coverURL` enforces below).
+    static func isTrustedMediaHost(_ url: URL) -> Bool {
+        url.host == baseURL.host
+    }
+
     /// The web client's proxy builder (`module 64799`): any path becomes
     /// `/api/proxy/...`; paths already starting with `/api/` lose that prefix
     /// first (`/api/playlist/1` → `/api/proxy/playlist/1`).
@@ -364,7 +372,7 @@ enum JuchifyMediaURL {
         // third-party HTTPS hosts (SECURITY-AUDIT F5). Any other absolute URL
         // is rejected (nil → caller falls back to the placeholder).
         if path.hasPrefix("http") {
-            guard let url = URL(string: path), url.host == "juchify.com" else { return nil }
+            guard let url = URL(string: path), isTrustedMediaHost(url) else { return nil }
             return url
         }
         let base = "https://juchify.com"

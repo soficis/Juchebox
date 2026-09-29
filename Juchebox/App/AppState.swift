@@ -102,17 +102,30 @@ final class AppState: ObservableObject {
         prefetchStreamURLs(for: nowPlayingQueue)
     }
 
-    /// Pre-enriches every queued song that lacks a stream URL so next/previous
-    /// switches don't wait on per-track fetches. Stale-guarded per song.
+    /// Pre-enriches the next few queued songs that lack a stream URL so the
+    /// immediate next/previous switches don't wait on a per-track fetch.
+    ///
+    /// Capped and paced deliberately. Uncapped, this is one album request per queued
+    /// song — a long queue becomes a burst, which is the shape a rate limiter exists
+    /// to reject, and a rejection here surfaces as a track that will not play. Only
+    /// the next few are ever needed; anything past the window falls back to the
+    /// on-demand fetch in `playCurrent()`, which is the pre-existing path for a song
+    /// that was never enriched. Stale-guarded per song.
     private func prefetchStreamURLs(for queue: [Song]) {
-        let stubs = queue.enumerated().filter { $0.element.streamURL == nil }
+        let prefetchWindow = 5
+        let prefetchPacing = Duration.milliseconds(400)
+        let stubs = queue.enumerated().filter { $0.element.streamURL == nil }.prefix(prefetchWindow)
         guard !stubs.isEmpty else { return }
         Task {
-            for (offset, stub) in stubs {
-                guard let enriched = try? await enrichedSong(stub) else { continue }
-                guard nowPlayingQueue.indices.contains(offset),
-                      nowPlayingQueue[offset].id == stub.id else { continue }
-                nowPlayingQueue[offset] = enriched
+            for (index, stub) in stubs.enumerated() {
+                if index > 0 {
+                    try? await Task.sleep(for: prefetchPacing)
+                }
+                let song = stub.element
+                guard let enriched = try? await enrichedSong(song) else { continue }
+                guard nowPlayingQueue.indices.contains(stub.offset),
+                      nowPlayingQueue[stub.offset].id == song.id else { continue }
+                nowPlayingQueue[stub.offset] = enriched
             }
         }
     }
@@ -220,6 +233,10 @@ final class AppState: ObservableObject {
         }
         let song = nowPlayingQueue[index]
 
+        // Why the user should be told, if this queue runs out. Mid-queue we
+        // auto-advance instead, because one refused track is not worth an error.
+        var refusal: String?
+
         if hlsFallbackUsedForSongID != songID {
             hlsFallbackUsedForSongID = songID
             // Try stream-token + encrypted HLS
@@ -230,10 +247,16 @@ final class AppState: ObservableObject {
                         playerController?.setStream(url: playlistURL, startTime: 0)
                         return
                     }
+                    refusal = "The server would not issue a stream for this track."
                 } catch {
                     #if DEBUG
                     print("[AppState] stream-token fallback failed for song \(songID): \(error)")
                     #endif
+                    // transport(-1) is "no HTTP response at all"; its description
+                    // ("Server responded -1.") means nothing to a listener.
+                    refusal = (error as? JuchifyAPIError) == .transport(-1)
+                        ? "Could not reach the stream service."
+                        : (error as? JuchifyAPIError)?.errorDescription ?? "Could not reach the stream service."
                 }
             }
         }
@@ -246,6 +269,7 @@ final class AppState: ObservableObject {
             failedInCycle.removeAll()
             consecutiveFailures = 0
             playerController?.pause()
+            if let refusal { playerController?.reportStreamError(refusal) }
             return
         }
 
@@ -254,6 +278,7 @@ final class AppState: ObservableObject {
         } else {
             failedInCycle.removeAll()
             playerController?.pause()
+            if let refusal { playerController?.reportStreamError(refusal) }
         }
     }
 

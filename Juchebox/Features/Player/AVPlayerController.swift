@@ -27,6 +27,12 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     /// (`/api/proxy/playlist/{id}`) require it server-side.
     var tokenProvider: (() -> String?)?
 
+    /// The only host `setStream` will attach that token to. Settable so tests can
+    /// point it at a non-resolving host and exercise the accepted path without
+    /// sending traffic to the real site; not attacker-reachable, and production
+    /// never changes it.
+    var trustedMediaHost = JuchifyMediaURL.baseURL.host ?? ""
+
     var statePublisher: AnyPublisher<PlayerState, Never> {
         stateSubject.eraseToAnyPublisher()
     }
@@ -81,6 +87,20 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     func setStream(url: URL, startTime: TimeInterval) {
         stop()
         setupBackgroundObservers()
+
+        // Fail closed before the Bearer token is attached. Every caller builds its
+        // URL from JuchifyMediaURL, so this is not reachable today; it stops a future
+        // caller forwarding the token elsewhere. Note the absent onStreamFailed: every
+        // other failure path here fires it, and adding it would re-enter the owner's
+        // retry cycle. Refusing an untrusted host is not a transient failure.
+        guard url.host == trustedMediaHost else {
+            var state = stateSubject.value
+            state.streamURL = nil
+            state.isPlaying = false
+            state.streamError = "Refused to play this track: it points off-site."
+            stateSubject.send(state)
+            return
+        }
 
         // The segment/key endpoints validate User-Agent + Accept-Language against
         // the stream token's fingerprint, so media requests MUST carry the same
@@ -153,11 +173,15 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     /// used when enrichment never produced a stream URL. Routes through the same
     /// failure machinery as a real load failure.
     func reportStreamUnavailable() {
+        reportStreamError("No stream available for this track.")
+        onStreamFailed?()
+    }
+
+    func reportStreamError(_ message: String) {
         var state = stateSubject.value
-        state.streamError = "No stream available for this track."
+        state.streamError = message
         state.isPlaying = false
         stateSubject.send(state)
-        onStreamFailed?()
     }
 
     /// Stops playback and resets transport fields, but PRESERVES the current
