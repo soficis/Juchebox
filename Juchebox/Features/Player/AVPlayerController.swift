@@ -56,8 +56,13 @@ final class AVPlayerController: ObservableObject, PlayerControllerProtocol {
     }
 
     func seek(to time: TimeInterval) {
+        // A non-finite target yields an invalid CMTime that has no resolvable
+        // position, so the seek is refused outright rather than handing CoreMedia
+        // a value it cannot service. Negative targets clamp to the track start.
+        guard time.isFinite else { return }
+        let target = max(0, time)
         publishStalled(true)
-        let cmTime = CMTime(seconds: time, preferredTimescale: 600)
+        let cmTime = CMTime(seconds: target, preferredTimescale: 600)
         player.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.publishStalled(false)

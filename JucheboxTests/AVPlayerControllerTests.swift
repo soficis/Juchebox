@@ -62,14 +62,13 @@ final class AVPlayerControllerAbuseTests: XCTestCase {
 
     // ABUSE: NaN reaching seek(to:) directly, which AudioSessionController's
     // changePlaybackPositionCommand can do via positionEvent.positionTime.
-    // CMTime coerces NaN rather than rejecting it; pin that it does not corrupt
-    // the published timeline.
-    func testSeekWithNaNDoesNotCorruptPublishedState() {
+    // A non-finite target must be refused outright, so no seek is published.
+    func testSeekWithNaNIsRefused() {
         let controller = AVPlayerController()
 
         controller.seek(to: .nan)
 
-        XCTAssertTrue(controller.currentState().isStalled)
+        XCTAssertFalse(controller.currentState().isStalled)
         XCTAssertEqual(controller.currentState().currentTime, 0)
     }
 

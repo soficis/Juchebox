@@ -8,6 +8,7 @@ final class AudioSessionController: ObservableObject {
     @Published var notice: String?
 
     nonisolated(unsafe) private var observers: [any NSObjectProtocol] = []
+    nonisolated(unsafe) private var commandTargets: [(command: MPRemoteCommand, token: Any)] = []
     private var cancellables = Set<AnyCancellable>()
     private weak var playerController: (any PlayerControllerProtocol)?
     private var wasPlayingBeforeInterruption = false
@@ -71,66 +72,88 @@ final class AudioSessionController: ObservableObject {
         let center = MPRemoteCommandCenter.shared()
 
         center.playCommand.isEnabled = true
-        center.playCommand.addTarget { [weak self] _ in
+        addTarget(to: center.playCommand) { [weak self] _ in
             self?.playerController?.play()
             return .success
         }
 
         center.pauseCommand.isEnabled = true
-        center.pauseCommand.addTarget { [weak self] _ in
+        addTarget(to: center.pauseCommand) { [weak self] _ in
             self?.playerController?.pause()
             return .success
         }
 
         center.togglePlayPauseCommand.isEnabled = true
-        center.togglePlayPauseCommand.addTarget { [weak self] _ in
+        addTarget(to: center.togglePlayPauseCommand) { [weak self] _ in
             self?.playerController?.togglePlayPause()
             return .success
         }
 
         center.nextTrackCommand.isEnabled = true
-        center.nextTrackCommand.addTarget { [weak self] _ in
+        addTarget(to: center.nextTrackCommand) { [weak self] _ in
             self?.playerController?.nextTrack()
             return .success
         }
 
         center.previousTrackCommand.isEnabled = true
-        center.previousTrackCommand.addTarget { [weak self] _ in
+        addTarget(to: center.previousTrackCommand) { [weak self] _ in
             self?.playerController?.previousTrack()
             return .success
         }
 
         center.changePlaybackPositionCommand.isEnabled = true
-        center.changePlaybackPositionCommand.addTarget { [weak self] event in
+        addTarget(to: center.changePlaybackPositionCommand) { [weak self] event in
             guard let self,
-                  let positionEvent = event as? MPChangePlaybackPositionCommandEvent else {
+                  let positionEvent = event as? MPChangePlaybackPositionCommandEvent,
+                  let player = self.playerController else {
                 return .commandFailed
             }
-            self.playerController?.seek(to: positionEvent.positionTime)
+            let state = player.currentState()
+            player.seek(to: self.clampedSeekPosition(positionEvent.positionTime, in: state))
             return .success
         }
 
         center.skipForwardCommand.isEnabled = true
         center.skipForwardCommand.preferredIntervals = [NSNumber(value: 15)]
-        center.skipForwardCommand.addTarget { [weak self] _ in
+        addTarget(to: center.skipForwardCommand) { [weak self] _ in
             guard let self, let player = self.playerController else {
                 return .commandFailed
             }
-            let currentTime = player.currentState().currentTime
-            player.seek(to: currentTime + 15)
+            let state = player.currentState()
+            player.seek(to: self.clampedSeekPosition(state.currentTime + 15, in: state))
             return .success
         }
 
         center.skipBackwardCommand.isEnabled = true
         center.skipBackwardCommand.preferredIntervals = [NSNumber(value: 15)]
-        center.skipBackwardCommand.addTarget { [weak self] _ in
+        addTarget(to: center.skipBackwardCommand) { [weak self] _ in
             guard let self, let player = self.playerController else {
                 return .commandFailed
             }
-            let currentTime = player.currentState().currentTime
-            player.seek(to: max(0, currentTime - 15))
+            let state = player.currentState()
+            player.seek(to: self.clampedSeekPosition(state.currentTime - 15, in: state))
             return .success
         }
+    }
+
+    // The tokens handed back by addTarget are the only handle that identifies a
+    // target as ours; MPRemoteCommandCenter is a process-wide singleton, so a
+    // nil-token removal would strip handlers registered by every other component.
+    private func addTarget(
+        to command: MPRemoteCommand,
+        handler: @escaping (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus
+    ) {
+        commandTargets.append((command, command.addTarget(handler: handler)))
+    }
+
+    // Lock-screen events are OS-supplied and can carry negative, non-finite or
+    // past-the-end positions, so every remote seek is clamped to a range the
+    // player can service.
+    private func clampedSeekPosition(_ requested: TimeInterval, in state: PlayerState) -> TimeInterval {
+        guard requested.isFinite else { return state.currentTime }
+        let lowerBounded = max(0, requested)
+        guard state.duration > 0 else { return lowerBounded }
+        return min(lowerBounded, state.duration)
     }
 
     // MARK: - Audio session
@@ -244,15 +267,11 @@ final class AudioSessionController: ObservableObject {
 
     // Only touches the thread-safe MPRemoteCommandCenter singleton — safe from deinit.
     nonisolated private func removeRemoteCommandTargets() {
-        let center = MPRemoteCommandCenter.shared()
-        center.playCommand.removeTarget(nil)
-        center.pauseCommand.removeTarget(nil)
-        center.togglePlayPauseCommand.removeTarget(nil)
-        center.nextTrackCommand.removeTarget(nil)
-        center.previousTrackCommand.removeTarget(nil)
-        center.changePlaybackPositionCommand.removeTarget(nil)
-        center.skipForwardCommand.removeTarget(nil)
-        center.skipBackwardCommand.removeTarget(nil)
+        let targets = commandTargets
+        commandTargets = []
+        for (command, token) in targets {
+            command.removeTarget(token)
+        }
     }
 
     deinit {
