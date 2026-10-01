@@ -1,28 +1,88 @@
-# macOS / Xcode
+# macOS / OS artifacts
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode & Apple build artifacts
 DerivedData/
 build/
+*.build
+Index.noindex/
 *.xcuserstate
 xcuserdata/
 *.xcuserdatad/
+*.xcscmblueprint
+*.xccheckout
+*.xcresult
 *.ipa
 *.dSYM.zip
 *.dSYM
+*.app
+*.app.dSYM
+*.framework
 
-# Tooling artifacts
+# Swift Package Manager & caches
+.build/
+.swiftpm/
+
+# Tooling, scratch, and AI artifacts
 .omo/
 .codegraph/
+.gemini/
+.agents/
+.claude/
+scratch/
+tmp/
+temp/
+*.log
+*.tmp
+*.bak
+*.bak-*
+*.old
+*.orig
+*.swp
+*.swo
+*~
 
-# Private development docs (never publish)
+# IDEs
+.vscode/
+.idea/
+
+# Private development docs and handoffs (never publish)
 DEV.md
-HANDOFF*.md
+*DEV.md
+MAC_DEV.md
+*HANDOFF*.md
+*handoff*.md
+*Handoff*.md
 *.handoff
+SSH_HANDOFF.md
+docs/*HANDOFF*.md
+docs/*handoff*.md
+docs/SSH_HANDOFF.md
+NOTES.md
+TODO.md
+docs/NOTES.md
+docs/TODO.md
 
-# Secrets / credentials (belt-and-suspenders)
+# Secrets, credentials, certificates, and tokens (never publish)
 *.pem
 *.key
 *.p12
+*.p8
+*.cer
+*.crt
+*.der
 *.mobileprovision
+*.provisionprofile
 .env
 .env.*
+*.env
 secrets.*
+*.secret
+*secret*
+*credential*
+auth.json
+*.token

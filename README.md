@@ -1,3 +1,5 @@
+<div align="center">
+
 # Juchebox (주체박스)
 
 **The People's Portal to Juchify.** A native iOS music app for the world's most exclusive catalog.
@@ -6,6 +8,8 @@
 ![iOS 17+](https://img.shields.io/badge/iOS_17+-1776D6?style=flat-square&logo=apple&logoColor=white)
 ![GPLv3](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 ![Dependencies](https://img.shields.io/badge/Dependencies-none-brightgreen?style=flat-square)
+
+</div>
 
 ---
 
@@ -86,7 +90,7 @@ No telemetry. No analytics. No ads. Zero third-party dependencies.
 xcodebuild -project Juchebox.xcodeproj -scheme Juchebox \
   -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# Run the full test suite (34 unit + 6 UI)
+# Run the full test suite (79 unit + 6 UI)
 xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 
@@ -94,7 +98,7 @@ xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
 open Juchebox.xcodeproj
 ```
 
-**Signing for a device:** the project carries a placeholder `DEVELOPMENT_TEAM` in all build configs. Set your own Apple Development Team in Signing & Capabilities, or remove the placeholder and let Xcode pick one.
+**Signing for a device:** the project carries no development team, so Xcode will prompt you to pick one on first build. Or pass it on the command line without touching the project: append `DEVELOPMENT_TEAM=<your-team-id>` to the `xcodebuild` invocation above.
 
 **Installing on your iPhone:** Juchebox is not on the App Store. Build from this source and run it on your own device with your own signing, either directly from Xcode or with a standard sideloading tool. A free Apple ID is enough for personal devices; note that free certificates expire, so you will need to re-sign and reinstall periodically.
 
@@ -125,7 +129,6 @@ Base URL `https://juchify.com`, catalog routes through the same `/api/proxy/` re
 | `GET /api/proxy/search?q=...&lang=en&page=N` | Songs, albums, artists, pagination |
 | `GET /api/proxy/releases/new?limit=N` | Newly released songs |
 | `GET /api/proxy/random-song` | A random song |
-| `GET /api/proxy/cms/homepage-sections/{1-4}/data?lang=en` | Curated homepage sections |
 
 Auth is optional and used only for likes and the library: `POST /api/auth/login` with `{username, password}` returns `{token, user}`. The token is sent as an `Authorization: Bearer` header for liked songs, recently played, playlists, and like toggling.
 
