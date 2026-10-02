@@ -26,8 +26,14 @@ struct SearchView: View {
                 Spacer()
                 ProgressView().tint(AppTheme.secondaryText)
                 Spacer()
+            } else if let error = catalog.errorMessage {
+                errorView(error)
             } else if let results = catalog.searchResults {
-                resultsList(results)
+                if results.songs.isEmpty && results.albums.isEmpty && results.artists.isEmpty {
+                    noResultsView
+                } else {
+                    resultsList(results)
+                }
             } else if trimmedQuery.isEmpty {
                 if recentSearches.isEmpty {
                     emptyPrompt
@@ -39,13 +45,18 @@ struct SearchView: View {
             }
         }
         .background(AppTheme.background)
+        .onAppear {
+            if trimmedQuery.isEmpty {
+                isSearchFocused = true
+            }
+        }
+        .onChange(of: appState.selectedTab) { _, tab in
+            if tab == 1 && trimmedQuery.isEmpty {
+                isSearchFocused = true
+            }
+        }
         .onChange(of: query) { _, newQuery in
             scheduleSearch(for: newQuery)
-        }
-        .onChange(of: catalog.searchResults) { _, newResults in
-            if newResults != nil, !lastSearchedQuery.isEmpty {
-                recordRecent(lastSearchedQuery)
-            }
         }
         .onDisappear {
             searchTask?.cancel()
@@ -81,7 +92,9 @@ struct SearchView: View {
     private func performImmediateSearch() {
         searchTask?.cancel()
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed != lastSearchedQuery else { return }
+        guard !trimmed.isEmpty else { return }
+        recordRecent(trimmed)
+        guard trimmed != lastSearchedQuery else { return }
         lastSearchedQuery = trimmed
         catalog.search(trimmed)
     }
@@ -209,6 +222,9 @@ struct SearchView: View {
                         NavigationLink(value: CatalogRoute.album(album.id)) {
                             AlbumRow(album: album)
                         }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            recordRecent(trimmedQuery)
+                        })
                         .listRowBackground(AppTheme.background)
                     }
                 } header: {
@@ -222,6 +238,9 @@ struct SearchView: View {
                         NavigationLink(value: CatalogRoute.artist(artist.id)) {
                             ArtistRow(artist: artist)
                         }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            recordRecent(trimmedQuery)
+                        })
                         .listRowBackground(AppTheme.background)
                     }
                 } header: {
@@ -250,6 +269,7 @@ struct SearchView: View {
             onAddToQueue: { appState.addToQueue(song) },
             onGoToAlbum: onGoToAlbum
         ) {
+            recordRecent(trimmedQuery)
             appState.play(song: song, from: songs)
         }
     }
@@ -259,9 +279,48 @@ struct SearchView: View {
             .font(.system(.headline, design: .serif).weight(.bold))
             .foregroundStyle(AppTheme.secondaryText)
             .textCase(nil)
+            .accessibilityAddTraits(.isHeader)
     }
 
-    // MARK: - Empty
+    // MARK: - Empty & Error States
+
+    private var noResultsView: some View {
+        VStack(spacing: AppSpacing.md) {
+            Spacer()
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 44))
+                .foregroundStyle(AppTheme.mutedText)
+            Text(t(.searchNoResults))
+                .font(.system(.headline, design: .serif).weight(.bold))
+                .foregroundStyle(AppTheme.primaryText)
+            Text(t(.searchNoResultsHint))
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.mutedText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.lg)
+            Spacer()
+        }
+    }
+
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: AppSpacing.md) {
+            Spacer()
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 40))
+                .foregroundStyle(AppTheme.warning)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.mutedText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, AppSpacing.lg)
+            Button(t(.retry)) {
+                performImmediateSearch()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(AppTheme.accent)
+            Spacer()
+        }
+    }
 
     private var emptyPrompt: some View {
         VStack(spacing: AppSpacing.md) {
@@ -301,7 +360,7 @@ struct AlbumRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(album.displayTitle)
-                    .font(.subheadline)
+                    .font(.system(.subheadline, design: .serif).weight(.semibold))
                     .foregroundStyle(AppTheme.primaryText)
                     .lineLimit(1)
                 Text(album.artistName ?? "")
@@ -336,7 +395,7 @@ struct ArtistRow: View {
             .clipShape(Circle())
 
             Text(artist.name ?? artist.names?.en ?? "")
-                .font(.subheadline)
+                .font(.system(.subheadline, design: .serif).weight(.semibold))
                 .foregroundStyle(AppTheme.primaryText)
             Spacer()
         }

@@ -11,6 +11,8 @@ struct LibraryView: View {
     @State private var likedSongs: [Song] = []
     @State private var recentlyPlayed: [Song] = []
     @State private var isLoading = false
+    @State private var loadError: String? = nil
+    @State private var showsSignOutConfirmation = false
 
     var body: some View {
         Group {
@@ -39,58 +41,123 @@ struct LibraryView: View {
     // MARK: - Signed-in content
 
     private var content: some View {
-        List {
-            Section {
-                Button {
-                    appState.play(queue: likedSongs, startAt: 0)
-                } label: {
-                    Label(t(.libraryLikedSongs), systemImage: "heart.fill")
-                        .foregroundStyle(AppTheme.accentOnDark)
-                }
-                .listRowBackground(AppTheme.surface)
-                .disabled(likedSongs.isEmpty)
-            }
-
-            if !likedSongs.isEmpty {
-                Section {
-                    ForEach(likedSongs.prefix(20)) { song in
-                        songRow(for: song, in: likedSongs)
-                            .listRowBackground(AppTheme.background)
+        Group {
+            if !isLoading && likedSongs.isEmpty && recentlyPlayed.isEmpty {
+                emptyStateView
+            } else {
+                List {
+                    if let error = loadError {
+                        HStack {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.warning)
+                            Spacer()
+                            Button(t(.retry)) {
+                                Task { await loadLibrary() }
+                            }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.secondaryText)
+                        }
+                        .padding(.vertical, AppSpacing.xs)
+                        .listRowBackground(AppTheme.surface)
                     }
-                } header: {
-                    sectionHeader(t(.libraryLikedSongs))
-                }
-            }
 
-            if !recentlyPlayed.isEmpty {
-                Section {
-                    ForEach(recentlyPlayed.prefix(20)) { song in
-                        songRow(for: song, in: recentlyPlayed)
-                            .listRowBackground(AppTheme.background)
+                    if !likedSongs.isEmpty {
+                        Section {
+                            ForEach(likedSongs) { song in
+                                songRow(for: song, in: likedSongs)
+                                    .listRowBackground(AppTheme.background)
+                            }
+                        } header: {
+                            HStack {
+                                sectionHeader(t(.libraryLikedSongs))
+                                Spacer()
+                                Button {
+                                    appState.play(queue: likedSongs, startAt: 0)
+                                } label: {
+                                    Label(t(.playerPlayButton), systemImage: "play.fill")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(AppTheme.secondaryText)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
                     }
-                } header: {
-                    sectionHeader(t(.libraryRecentlyPlayed))
-                }
-            }
 
-            if isLoading {
-                HStack {
-                    Spacer()
-                    ProgressView().tint(AppTheme.secondaryText)
-                    Spacer()
-                }
-                .listRowBackground(AppTheme.background)
-            }
+                    if !recentlyPlayed.isEmpty {
+                        Section {
+                            ForEach(recentlyPlayed) { song in
+                                songRow(for: song, in: recentlyPlayed)
+                                    .listRowBackground(AppTheme.background)
+                            }
+                        } header: {
+                            sectionHeader(t(.libraryRecentlyPlayed))
+                        }
+                    }
 
-            Section {
-                Button(t(.signOutButton), role: .destructive) {
-                    authStore.signOut()
+                    if isLoading {
+                        HStack {
+                            Spacer()
+                            ProgressView().tint(AppTheme.secondaryText)
+                            Spacer()
+                        }
+                        .listRowBackground(AppTheme.background)
+                    }
+
+                    Section {
+                        Button(t(.signOutButton), role: .destructive) {
+                            showsSignOutConfirmation = true
+                        }
+                        .listRowBackground(AppTheme.surface)
+                    }
                 }
-                .listRowBackground(AppTheme.surface)
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .refreshable {
+                    await loadLibrary()
+                }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .confirmationDialog(
+            t(.signOutConfirmTitle),
+            isPresented: $showsSignOutConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(t(.signOutButton), role: .destructive) {
+                authStore.signOut()
+            }
+            Button(t(.cancel), role: .cancel) {}
+        }
+    }
+
+    private var emptyStateView: some View {
+        ScrollView {
+            VStack(spacing: AppSpacing.md) {
+                Spacer(minLength: 80)
+                Image(systemName: "music.note.list")
+                    .font(.system(size: 48))
+                    .foregroundStyle(AppTheme.mutedText)
+                Text(t(.libraryEmpty))
+                    .font(.system(.headline, design: .serif).weight(.bold))
+                    .foregroundStyle(AppTheme.primaryText)
+                Text(t(.libraryEmptyHint))
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.mutedText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, AppSpacing.xl)
+                Spacer(minLength: 40)
+
+                Button(t(.signOutButton), role: .destructive) {
+                    showsSignOutConfirmation = true
+                }
+                .buttonStyle(.bordered)
+                .padding(.bottom, AppSpacing.lg)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .refreshable {
+            await loadLibrary()
+        }
     }
 
     private func sectionHeader(_ text: String) -> some View {
@@ -98,6 +165,7 @@ struct LibraryView: View {
             .font(.system(.headline, design: .serif).weight(.bold))
             .foregroundStyle(AppTheme.secondaryText)
             .textCase(nil)
+            .accessibilityAddTraits(.isHeader)
     }
 
     // MARK: - Signed-out prompt
@@ -159,13 +227,23 @@ struct LibraryView: View {
 
     private func loadLibrary() async {
         isLoading = true
+        loadError = nil
         defer { isLoading = false }
+        var hasError = false
         do {
-            async let liked = appState.apiClient.likedSongs()
-            async let recent = appState.apiClient.recentlyPlayed()
-            (likedSongs, recentlyPlayed) = try await (liked, recent)
+            likedSongs = try await appState.apiClient.likedSongs()
         } catch {
-            // Keep whatever loaded; individual failures are non-fatal.
+            hasError = true
+        }
+
+        do {
+            recentlyPlayed = try await appState.apiClient.recentlyPlayed()
+        } catch {
+            hasError = true
+        }
+
+        if hasError && likedSongs.isEmpty && recentlyPlayed.isEmpty {
+            loadError = t(.homeLoadError)
         }
         appState.loadLikedSongIDs()
     }
@@ -207,6 +285,7 @@ struct SignInView: View {
                         RoundedRectangle(cornerRadius: AppRadius.md)
                             .stroke(AppTheme.hairline, lineWidth: 1)
                     )
+                    .textContentType(.username)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .accessibilityIdentifier(AccessibilityID.usernameField)
@@ -221,6 +300,12 @@ struct SignInView: View {
                         RoundedRectangle(cornerRadius: AppRadius.md)
                             .stroke(AppTheme.hairline, lineWidth: 1)
                     )
+                    .textContentType(.password)
+                    .submitLabel(.go)
+                    .onSubmit {
+                        guard !isSubmitting, !username.isEmpty, !password.isEmpty else { return }
+                        Task { await submit() }
+                    }
                     .accessibilityIdentifier(AccessibilityID.passwordField)
 
                 if failed {
@@ -250,6 +335,19 @@ struct SignInView: View {
             Spacer()
         }
         .background(AppTheme.background)
+        .overlay(alignment: .topTrailing) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(AppTheme.secondaryText)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .padding(AppSpacing.md)
+            .accessibilityLabel(t(.cancel))
+        }
     }
 
     private func submit() async {

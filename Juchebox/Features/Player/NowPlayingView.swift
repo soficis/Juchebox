@@ -12,9 +12,10 @@ struct NowPlayingView: View {
     private let feedback = UIImpactFeedbackGenerator(style: .light)
 
     private var track: TrackInfo? { appState.playerState.currentTrack }
+    @ScaledMetric private var timeLabelWidth: CGFloat = 48
     private var duration: Double { max(appState.playerState.duration, 1) }
     private var elapsed: String { formatTime(scrubValue) }
-    private var remaining: String { formatTime(max(duration - scrubValue, 0)) }
+    private var remaining: String { "−" + formatTime(max(duration - scrubValue, 0)) }
 
     var body: some View {
         ScrollView {
@@ -141,26 +142,11 @@ struct NowPlayingView: View {
 
     private var trackInfoView: some View {
         VStack(spacing: AppSpacing.xs) {
-            HStack(alignment: .center, spacing: AppSpacing.sm) {
-                Text(track?.title ?? t(.playerUnknownTitle))
-                    .font(.system(.title2, design: .serif).weight(.black))
-                    .foregroundColor(AppTheme.secondaryText)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-
-                if let songID = appState.currentSongID {
-                    Button {
-                        Task { await appState.toggleLike(songID: songID) }
-                    } label: {
-                        Image(systemName: appState.isLiked(songID) ? "heart.fill" : "heart")
-                            .font(.system(size: 22))
-                            .foregroundStyle(appState.isLiked(songID) ? AppTheme.accentOnDark : AppTheme.mutedText)
-                            .frame(width: 44, height: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(appState.isLiked(songID) ? t(.unlike) : t(.like))
-                }
-            }
+            Text(track?.title ?? t(.playerUnknownTitle))
+                .font(.system(.title2, design: .serif).weight(.black))
+                .foregroundColor(AppTheme.secondaryText)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
 
             Text(track?.artist ?? t(.playerUnknownArtist))
                 .font(.system(.body))
@@ -185,7 +171,7 @@ struct NowPlayingView: View {
             Text(elapsed)
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(AppTheme.secondaryText)
-                .frame(width: 44, alignment: .leading)
+                .frame(minWidth: timeLabelWidth, alignment: .leading)
 
             Slider(value: $scrubValue, in: 0...duration) { editing in
                 isScrubbing = editing
@@ -194,11 +180,13 @@ struct NowPlayingView: View {
                 }
             }
             .tint(AppTheme.accent)
+            .accessibilityLabel(t(.playerSeekLabel))
+            .accessibilityValue("\(elapsed) of \(formatTime(duration))")
 
             Text(remaining)
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(AppTheme.secondaryText)
-                .frame(width: 44, alignment: .trailing)
+                .frame(minWidth: timeLabelWidth, alignment: .trailing)
         }
     }
 
@@ -239,34 +227,87 @@ struct NowPlayingView: View {
         }
     }
 
-    // MARK: - Shuffle / Repeat
+    // MARK: - Shuffle / Repeat / Actions
 
     private var shuffleRepeatRow: some View {
         HStack {
-            Button { appState.toggleShuffle() } label: {
-                Image(systemName: "shuffle")
-                    .font(.system(size: 20))
-                    .foregroundColor(appState.isShuffleOn ? AppTheme.secondaryText : AppTheme.mutedText)
+            Button {
+                feedback.impactOccurred()
+                appState.toggleShuffle()
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "shuffle")
+                        .font(.system(size: 20))
+                        .foregroundColor(appState.isShuffleOn ? AppTheme.secondaryText : AppTheme.mutedText)
+                    if appState.isShuffleOn {
+                        Circle()
+                            .fill(AppTheme.accentOnDark)
+                            .frame(width: 5, height: 5)
+                            .offset(x: 4, y: -2)
+                    }
+                }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .accessibilityLabel(t(.playerShuffle))
+            .accessibilityValue(appState.isShuffleOn ? "On" : "Off")
 
             Spacer()
 
-            Button { showsQueue = true } label: {
+            Button {
+                feedback.impactOccurred()
+                showsQueue = true
+            } label: {
                 Image(systemName: "text.line.last.and.arrowtriangle.forward")
                     .font(.system(size: 20))
                     .foregroundColor(AppTheme.mutedText)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .accessibilityLabel(t(.playerQueueTab))
 
             Spacer()
 
-            Button { appState.cycleRepeatMode() } label: {
-                Image(systemName: appState.repeatMode == .one ? "repeat.1" : "repeat")
-                    .font(.system(size: 20))
-                    .foregroundColor(appState.repeatMode == .off ? AppTheme.mutedText : AppTheme.secondaryText)
+            if let songID = appState.currentSongID {
+                Button {
+                    feedback.impactOccurred()
+                    Task { await appState.toggleLike(songID: songID) }
+                } label: {
+                    Image(systemName: appState.isLiked(songID) ? "heart.fill" : "heart")
+                        .font(.system(size: 20))
+                        .foregroundStyle(appState.isLiked(songID) ? AppTheme.accentOnDark : AppTheme.mutedText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(appState.isLiked(songID) ? t(.unlike) : t(.like))
+
+                Spacer()
             }
+
+            Button {
+                feedback.impactOccurred()
+                appState.cycleRepeatMode()
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: appState.repeatMode == .one ? "repeat.1" : "repeat")
+                        .font(.system(size: 20))
+                        .foregroundColor(appState.repeatMode == .off ? AppTheme.mutedText : AppTheme.secondaryText)
+                    if appState.repeatMode != .off {
+                        Circle()
+                            .fill(AppTheme.accentOnDark)
+                            .frame(width: 5, height: 5)
+                            .offset(x: 4, y: -2)
+                    }
+                }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
             .accessibilityLabel(appState.repeatMode == .one ? t(.playerRepeatOne) : t(.playerRepeat))
+            .accessibilityValue(appState.repeatMode == .off ? "Off" : (appState.repeatMode == .one ? "Repeat One" : "Repeat All"))
         }
         .padding(.horizontal, AppSpacing.xs)
     }

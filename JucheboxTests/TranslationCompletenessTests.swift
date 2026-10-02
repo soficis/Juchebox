@@ -58,7 +58,9 @@ extension Translation.Key {
         .libraryLikedSongs, .libraryRecentlyPlayed, .libraryPlaylists,
         .signInTitle, .usernamePlaceholder, .passwordPlaceholder,
         .signInSubmit, .signInFailed, .signOutButton,
-        .like, .unlike, .playNext, .addToQueue, .goToAlbum,
+        .like, .unlike, .playNext, .addToQueue, .goToAlbum, .moreActions, .songLocked,
         .seeAll, .recentSearches, .clearRecents,
+        .libraryEmpty, .libraryEmptyHint, .signOutConfirmTitle,
+        .searchNoResults, .searchNoResultsHint,
     ]
 }
