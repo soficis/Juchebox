@@ -390,7 +390,7 @@ struct SongRow: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(song.displayTitle)
                             .font(.system(.subheadline, design: .serif).weight(.semibold))
-                            .foregroundStyle(isCurrent ? AppTheme.accent : AppTheme.primaryText)
+                            .foregroundStyle(isCurrent ? AppTheme.accentOnDark : AppTheme.primaryText)
                             .lineLimit(1)
                         Text(song.displayArtist)
                             .font(.caption)
@@ -444,7 +444,7 @@ struct SongRow: View {
                 Button(action: onToggleLike) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
                         .font(.system(size: 17))
-                        .foregroundStyle(isLiked ? AppTheme.accent : AppTheme.mutedText)
+                        .foregroundStyle(isLiked ? AppTheme.accentOnDark : AppTheme.mutedText)
                         .frame(width: 32, height: 44)
                 }
                 .buttonStyle(.borderless)
@@ -467,7 +467,7 @@ struct SongRow: View {
             if isCurrent {
                 Image(systemName: isPlaying ? "waveform" : "play.fill")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(AppTheme.accent)
+                    .foregroundStyle(AppTheme.accentOnDark)
                     .padding(3)
                     .background(Circle().fill(AppTheme.elevatedSurface.opacity(0.9)))
                     .padding(2)

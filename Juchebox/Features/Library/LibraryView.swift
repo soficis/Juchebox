@@ -45,7 +45,7 @@ struct LibraryView: View {
                     appState.play(queue: likedSongs, startAt: 0)
                 } label: {
                     Label(t(.libraryLikedSongs), systemImage: "heart.fill")
-                        .foregroundStyle(AppTheme.accent)
+                        .foregroundStyle(AppTheme.accentOnDark)
                 }
                 .listRowBackground(AppTheme.surface)
                 .disabled(likedSongs.isEmpty)

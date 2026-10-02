@@ -197,7 +197,7 @@ struct NowPlayingView: View {
                     } label: {
                         Image(systemName: appState.isLiked(songID) ? "heart.fill" : "heart")
                             .font(.system(size: 22))
-                            .foregroundStyle(appState.isLiked(songID) ? AppTheme.accent : AppTheme.mutedText)
+                            .foregroundStyle(appState.isLiked(songID) ? AppTheme.accentOnDark : AppTheme.mutedText)
                             .frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
@@ -214,7 +214,7 @@ struct NowPlayingView: View {
             if let album = track?.album {
                 Text(album)
                     .font(.system(.subheadline))
-                    .foregroundColor(AppTheme.mutedText.opacity(0.7))
+                    .foregroundColor(AppTheme.mutedText)
                     .lineLimit(1)
                     .multilineTextAlignment(.center)
             }
@@ -265,7 +265,7 @@ struct NowPlayingView: View {
             } label: {
                 Image(systemName: appState.playerState.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 56))
-                    .foregroundColor(AppTheme.accent)
+                    .foregroundColor(AppTheme.accentOnDark)
             }
             .accessibilityLabel(appState.playerState.isPlaying
                 ? t(.playerPauseButton) : t(.playerPlayButton))
@@ -385,7 +385,7 @@ struct NowPlayingView: View {
                     Spacer(minLength: 0)
                     Image(systemName: "speaker.wave.2.fill")
                         .font(.caption)
-                        .foregroundStyle(AppTheme.accent)
+                        .foregroundStyle(AppTheme.accentOnDark)
                 } else {
                     Spacer()
                 }

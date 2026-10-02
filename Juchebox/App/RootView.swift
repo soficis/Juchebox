@@ -140,11 +140,7 @@ private struct ChollimaTabBar: View {
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
-            .foregroundStyle(
-                isNowPlayingActive
-                    ? AppTheme.accent
-                    : (isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
-            )
+            .foregroundStyle(isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)

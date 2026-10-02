@@ -30,6 +30,8 @@
 		A1B2C3D4E5F607182900B107 /* AudioSessionControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F107 /* AudioSessionControllerTests.swift */; };
 		A1B2C3D4E5F607182900B108 /* AVPlayerControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F108 /* AVPlayerControllerTests.swift */; };
 		A1B2C3D4E5F607182900B109 /* JuchifyAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F109 /* JuchifyAPIClientTests.swift */; };
+		A1B2C3D4E5F607182900B10A /* AppThemeContrastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F10A /* AppThemeContrastTests.swift */; };
+		A1B2C3D4E5F607182900B10B /* TabBarSymbolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F10B /* TabBarSymbolsTests.swift */; };
 		A1B2C3D4E5F607182900B008 /* JuchifyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F008 /* JuchifyModels.swift */; };
 		A1B2C3D4E5F607182900B009 /* JuchifyAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F009 /* JuchifyAPIClient.swift */; };
 		A1B2C3D4E5F607182900B00A /* CatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607182900F00A /* CatalogStore.swift */; };
@@ -83,6 +85,8 @@
 		A1B2C3D4E5F607182900F107 /* AudioSessionControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionControllerTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F108 /* AVPlayerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerControllerTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900F109 /* JuchifyAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JuchifyAPIClientTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F10A /* AppThemeContrastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppThemeContrastTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F607182900F10B /* TabBarSymbolsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarSymbolsTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F607182900P001 /* Juchebox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Juchebox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F607182900P002 /* JucheboxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B2C3D4E5F607182900P003 /* JucheboxUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JucheboxUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -243,6 +247,8 @@
 				A1B2C3D4E5F607182900F107 /* AudioSessionControllerTests.swift */,
 				A1B2C3D4E5F607182900F108 /* AVPlayerControllerTests.swift */,
 				A1B2C3D4E5F607182900F109 /* JuchifyAPIClientTests.swift */,
+				A1B2C3D4E5F607182900F10A /* AppThemeContrastTests.swift */,
+				A1B2C3D4E5F607182900F10B /* TabBarSymbolsTests.swift */,
 			);
 			path = JucheboxTests;
 			sourceTree = "<group>";
@@ -458,6 +464,8 @@
 				A1B2C3D4E5F607182900B107 /* AudioSessionControllerTests.swift in Sources */,
 				A1B2C3D4E5F607182900B108 /* AVPlayerControllerTests.swift in Sources */,
 				A1B2C3D4E5F607182900B109 /* JuchifyAPIClientTests.swift in Sources */,
+				A1B2C3D4E5F607182900B10A /* AppThemeContrastTests.swift in Sources */,
+				A1B2C3D4E5F607182900B10B /* TabBarSymbolsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

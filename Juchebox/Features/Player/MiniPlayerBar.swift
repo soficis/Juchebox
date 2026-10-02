@@ -119,7 +119,7 @@ struct MiniPlayerBar: View {
             Image(systemName: appState.playerState.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                 .resizable()
                 .frame(width: 44, height: 44)
-                .foregroundStyle(AppTheme.accent)
+                .foregroundStyle(AppTheme.accentOnDark)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
