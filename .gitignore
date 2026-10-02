@@ -33,6 +33,9 @@ xcuserdata/
 .gemini/
 .agents/
 .claude/
+.anchor/
+.superpowers/
+docs/superpowers/
 scratch/
 tmp/
 temp/
