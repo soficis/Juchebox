@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
   pull_request:
-    branches: [main, master]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -99,3 +99,32 @@ jobs:
           name: Juchebox-xcarchive-${{ github.sha }}
           path: build/Juchebox.xcarchive
           retention-days: 14
+
+      - name: Package xcarchive zip
+        run: |
+          cd build
+          zip -r Juchebox-xcarchive.zip Juchebox.xcarchive -x "._*" -x ".DS_Store" -x "__MACOSX"
+          ls -lh Juchebox-xcarchive.zip
+
+      - name: Determine Release Tag
+        id: release_meta
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            tag="${GITHUB_REF#refs/tags/}"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+            echo "title=Juchebox $tag" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=v1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+            echo "title=Juchebox v1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tag }}
+          name: ${{ steps.release_meta.outputs.title }}
+          generate_release_notes: true
+          files: |
+            build/Juchebox-unsigned.ipa
+            build/Juchebox-xcarchive.zip
