@@ -70,43 +70,51 @@ final class JucheboxUITests: XCTestCase {
         let app = launchAcceptedApp()
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
 
-        // 1. Home
+        // 1. Home tab
         XCTAssertTrue(app.buttons["homeTab"].waitForExistence(timeout: 10))
         Thread.sleep(forTimeInterval: 2.0)
         let homeImg = XCUIScreen.main.screenshot().pngRepresentation
         try homeImg.write(to: documents.appendingPathComponent("home.png"))
-        try? homeImg.write(to: URL(fileURLWithPath: "/tmp/home.png"))
 
-        // 2. Search
-        app.buttons["searchTab"].tap()
-        XCTAssertTrue(app.textFields["searchField"].waitForExistence(timeout: 5))
-        Thread.sleep(forTimeInterval: 1.0)
-        let searchImg = XCUIScreen.main.screenshot().pngRepresentation
-        try searchImg.write(to: documents.appendingPathComponent("search.png"))
-        try? searchImg.write(to: URL(fileURLWithPath: "/tmp/search.png"))
+        // 2. Start playback to reveal Mini Player
+        if app.staticTexts["We Are Koreans"].waitForExistence(timeout: 3) {
+            app.staticTexts["We Are Koreans"].tap()
+        } else if app.staticTexts["Mother"].exists {
+            app.staticTexts["Mother"].tap()
+        }
+        Thread.sleep(forTimeInterval: 2.0)
 
-        // 3. Library
-        app.buttons["libraryTab"].tap()
-        XCTAssertTrue(app.buttons["signInButton"].waitForExistence(timeout: 5))
-        Thread.sleep(forTimeInterval: 1.0)
-        let libImg = XCUIScreen.main.screenshot().pngRepresentation
-        try libImg.write(to: documents.appendingPathComponent("library.png"))
-        try? libImg.write(to: URL(fileURLWithPath: "/tmp/library.png"))
-
-        // 4. Now Playing
-        app.buttons["nowPlayingTab"].tap()
-        XCTAssertTrue(app.staticTexts["No track playing"].waitForExistence(timeout: 5))
-        Thread.sleep(forTimeInterval: 1.0)
-        let npImg = XCUIScreen.main.screenshot().pngRepresentation
-        try npImg.write(to: documents.appendingPathComponent("now-playing.png"))
-        try? npImg.write(to: URL(fileURLWithPath: "/tmp/now-playing.png"))
-
-        // 5. Mini Player (switch to home)
-        app.buttons["homeTab"].tap()
-        Thread.sleep(forTimeInterval: 1.5)
+        // Capture Home with Mini Player visible
         let miniImg = XCUIScreen.main.screenshot().pngRepresentation
         try miniImg.write(to: documents.appendingPathComponent("mini-player.png"))
-        try? miniImg.write(to: URL(fileURLWithPath: "/tmp/mini-player.png"))
+
+        // 3. Now Playing tab (with active playing track)
+        app.buttons["nowPlayingTab"].tap()
+        Thread.sleep(forTimeInterval: 2.0)
+        let npImg = XCUIScreen.main.screenshot().pngRepresentation
+        try npImg.write(to: documents.appendingPathComponent("now-playing.png"))
+
+        // 4. Search tab (type query and show results without keyboard)
+        app.buttons["searchTab"].tap()
+        let field = app.textFields["searchField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText("arirang\n")
+        if app.keyboards.buttons["Search"].exists {
+            app.keyboards.buttons["Search"].tap()
+        } else if app.keyboards.buttons["search"].exists {
+            app.keyboards.buttons["search"].tap()
+        }
+        Thread.sleep(forTimeInterval: 2.5)
+        let searchImg = XCUIScreen.main.screenshot().pngRepresentation
+        try searchImg.write(to: documents.appendingPathComponent("search.png"))
+
+        // 5. Library tab (clean sign-in state, no keyboard)
+        app.buttons["libraryTab"].tap()
+        XCTAssertTrue(app.buttons["signInButton"].waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 1.5)
+        let libImg = XCUIScreen.main.screenshot().pngRepresentation
+        try libImg.write(to: documents.appendingPathComponent("library.png"))
     }
 
     private func launchAcceptedApp() -> XCUIApplication {
