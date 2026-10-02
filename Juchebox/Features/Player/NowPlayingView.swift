@@ -8,7 +8,6 @@ struct NowPlayingView: View {
     @State private var scrubValue: Double = 0
     @State private var isScrubbing = false
     @State private var showsQueue = false
-    @State private var artworkImage: UIImage?
 
     private let feedback = UIImpactFeedbackGenerator(style: .light)
 
@@ -105,65 +104,23 @@ struct NowPlayingView: View {
     // MARK: - Artwork
 
     private var artworkView: some View {
-        let primary = track?.artworkURL
-        let fallback = track?.artworkFallbackURL
-        let cached = primary.flatMap { ImageCache.shared.image(for: $0) }
-            ?? (fallback.flatMap { ImageCache.shared.image(for: $0) })
-        return Group {
-            if let image = cached ?? artworkImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: 360, maxHeight: 360)
-                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
-                    .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
-            } else {
-                placeholderArtwork
-            }
+        CachedAsyncImage(
+            url: track?.artworkURL,
+            fallbackURL: track?.artworkFallbackURL
+        ) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: 360, maxHeight: 360)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+                .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
+        } placeholder: {
+            placeholderArtwork
         }
+        .id(track?.id)
         .frame(maxWidth: 360)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityLabel(t(.playerArtworkAccessibility))
-        .onAppear { Task { await loadArtworkAsync() } }
-        .onChange(of: appState.playerState.currentTrack?.id) { _, _ in
-            Task { await loadArtworkAsync() }
-        }
-    }
-
-    /// Synchronous artwork resolution: shared-cache first, then the canonical
-    /// URL, then the raw fallback URL. The cache makes repeat looks instant.
-    private func loadArtworkSync() -> UIImage? {
-        guard let primary = track?.artworkURL else { return nil }
-        if let cached = ImageCache.shared.image(for: primary) {
-            return cached
-        }
-        if let fallback = track?.artworkFallbackURL,
-           fallback != primary,
-           let cached = ImageCache.shared.image(for: fallback) {
-            return cached
-        }
-        return nil
-    }
-
-    /// Async artwork load used on first appearance: fetches and caches when the
-    /// sync path has nothing yet, so the Now Playing artwork always resolves.
-    private func loadArtworkAsync() async {
-        guard let primary = track?.artworkURL,
-              artworkImage == nil,
-              ImageCache.shared.image(for: primary) == nil else { return }
-        if let data = try? await URLSession.shared.data(from: primary).0,
-           let image = UIImage(data: data) {
-            ImageCache.shared.insert(image, for: primary)
-            artworkImage = image
-            return
-        }
-        if let fallback = track?.artworkFallbackURL,
-           fallback != primary,
-           let data = try? await URLSession.shared.data(from: fallback).0,
-           let image = UIImage(data: data) {
-            ImageCache.shared.insert(image, for: fallback)
-            artworkImage = image
-        }
     }
 
     private var placeholderArtwork: some View {

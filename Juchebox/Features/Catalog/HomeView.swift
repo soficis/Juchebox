@@ -580,20 +580,30 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     }
 
     private func load() async {
+        #if DEBUG
         NSLog("[CachedAsyncImage] candidates: %@", candidates.map(\.absoluteString))
+        #endif
         for target in candidates {
             if let cached = ImageCache.shared.image(for: target) {
+                #if DEBUG
                 NSLog("[CachedAsyncImage] cache hit: %@", target.absoluteString)
+                #endif
                 image = cached
                 return
             }
+            #if DEBUG
             NSLog("[CachedAsyncImage] fetching: %@", target.absoluteString)
+            #endif
             guard let data = try? await URLSession.shared.data(from: target).0,
                   let decoded = UIImage(data: data) else {
+                #if DEBUG
                 NSLog("[CachedAsyncImage] failed: %@", target.absoluteString)
+                #endif
                 continue
             }
+            #if DEBUG
             NSLog("[CachedAsyncImage] success: %@ (%d bytes)", target.absoluteString, data.count)
+            #endif
             ImageCache.shared.insert(decoded, for: target)
             image = decoded
             return
