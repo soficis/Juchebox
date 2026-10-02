@@ -66,6 +66,49 @@ final class JucheboxUITests: XCTestCase {
         XCTAssertTrue(versionValue.waitForExistence(timeout: 3), "Version value not reachable by scrolling")
     }
 
+    func testCaptureScreenshotsForReadme() throws {
+        let app = launchAcceptedApp()
+        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+
+        // 1. Home
+        XCTAssertTrue(app.buttons["homeTab"].waitForExistence(timeout: 10))
+        Thread.sleep(forTimeInterval: 2.0)
+        let homeImg = XCUIScreen.main.screenshot().pngRepresentation
+        try homeImg.write(to: documents.appendingPathComponent("home.png"))
+        try? homeImg.write(to: URL(fileURLWithPath: "/tmp/home.png"))
+
+        // 2. Search
+        app.buttons["searchTab"].tap()
+        XCTAssertTrue(app.textFields["searchField"].waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 1.0)
+        let searchImg = XCUIScreen.main.screenshot().pngRepresentation
+        try searchImg.write(to: documents.appendingPathComponent("search.png"))
+        try? searchImg.write(to: URL(fileURLWithPath: "/tmp/search.png"))
+
+        // 3. Library
+        app.buttons["libraryTab"].tap()
+        XCTAssertTrue(app.buttons["signInButton"].waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 1.0)
+        let libImg = XCUIScreen.main.screenshot().pngRepresentation
+        try libImg.write(to: documents.appendingPathComponent("library.png"))
+        try? libImg.write(to: URL(fileURLWithPath: "/tmp/library.png"))
+
+        // 4. Now Playing
+        app.buttons["nowPlayingTab"].tap()
+        XCTAssertTrue(app.staticTexts["No track playing"].waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 1.0)
+        let npImg = XCUIScreen.main.screenshot().pngRepresentation
+        try npImg.write(to: documents.appendingPathComponent("now-playing.png"))
+        try? npImg.write(to: URL(fileURLWithPath: "/tmp/now-playing.png"))
+
+        // 5. Mini Player (switch to home)
+        app.buttons["homeTab"].tap()
+        Thread.sleep(forTimeInterval: 1.5)
+        let miniImg = XCUIScreen.main.screenshot().pngRepresentation
+        try miniImg.write(to: documents.appendingPathComponent("mini-player.png"))
+        try? miniImg.write(to: URL(fileURLWithPath: "/tmp/mini-player.png"))
+    }
+
     private func launchAcceptedApp() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--accept-onboarding"]
