@@ -9,6 +9,8 @@ struct SettingsView: View {
         AppLanguage(rawValue: appLanguageRaw) ?? .english
     }
 
+    @State private var showsSignOutConfirmation = false
+
     var body: some View {
         NavigationStack {
             List {
@@ -62,7 +64,7 @@ struct SettingsView: View {
                 if authStore.isAuthenticated {
                     Section {
                         Button(t(.signOutButton, language: appLanguage), role: .destructive) {
-                            authStore.signOut()
+                            showsSignOutConfirmation = true
                         }
                         .listRowBackground(AppTheme.surface)
                     }
@@ -71,6 +73,16 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(AppTheme.background)
             .navigationTitle(t(.settingsTitle, language: appLanguage))
+            .confirmationDialog(
+                t(.signOutConfirmTitle, language: appLanguage),
+                isPresented: $showsSignOutConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(t(.signOutButton, language: appLanguage), role: .destructive) {
+                    authStore.signOut()
+                }
+                Button(t(.cancel, language: appLanguage), role: .cancel) {}
+            }
         }
     }
 

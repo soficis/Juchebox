@@ -8,14 +8,14 @@ struct NowPlayingView: View {
     @State private var scrubValue: Double = 0
     @State private var isScrubbing = false
     @State private var showsQueue = false
-    @State private var artworkImage: UIImage?
 
     private let feedback = UIImpactFeedbackGenerator(style: .light)
 
     private var track: TrackInfo? { appState.playerState.currentTrack }
+    @ScaledMetric private var timeLabelWidth: CGFloat = 48
     private var duration: Double { max(appState.playerState.duration, 1) }
     private var elapsed: String { formatTime(scrubValue) }
-    private var remaining: String { formatTime(max(duration - scrubValue, 0)) }
+    private var remaining: String { "−" + formatTime(max(duration - scrubValue, 0)) }
 
     var body: some View {
         ScrollView {
@@ -105,65 +105,23 @@ struct NowPlayingView: View {
     // MARK: - Artwork
 
     private var artworkView: some View {
-        let primary = track?.artworkURL
-        let fallback = track?.artworkFallbackURL
-        let cached = primary.flatMap { ImageCache.shared.image(for: $0) }
-            ?? (fallback.flatMap { ImageCache.shared.image(for: $0) })
-        return Group {
-            if let image = cached ?? artworkImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: 360, maxHeight: 360)
-                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
-                    .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
-            } else {
-                placeholderArtwork
-            }
+        CachedAsyncImage(
+            url: track?.artworkURL,
+            fallbackURL: track?.artworkFallbackURL
+        ) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: 360, maxHeight: 360)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+                .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
+        } placeholder: {
+            placeholderArtwork
         }
+        .id(track?.id)
         .frame(maxWidth: 360)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityLabel(t(.playerArtworkAccessibility))
-        .onAppear { Task { await loadArtworkAsync() } }
-        .onChange(of: appState.playerState.currentTrack?.id) { _, _ in
-            Task { await loadArtworkAsync() }
-        }
-    }
-
-    /// Synchronous artwork resolution: shared-cache first, then the canonical
-    /// URL, then the raw fallback URL. The cache makes repeat looks instant.
-    private func loadArtworkSync() -> UIImage? {
-        guard let primary = track?.artworkURL else { return nil }
-        if let cached = ImageCache.shared.image(for: primary) {
-            return cached
-        }
-        if let fallback = track?.artworkFallbackURL,
-           fallback != primary,
-           let cached = ImageCache.shared.image(for: fallback) {
-            return cached
-        }
-        return nil
-    }
-
-    /// Async artwork load used on first appearance: fetches and caches when the
-    /// sync path has nothing yet, so the Now Playing artwork always resolves.
-    private func loadArtworkAsync() async {
-        guard let primary = track?.artworkURL,
-              artworkImage == nil,
-              ImageCache.shared.image(for: primary) == nil else { return }
-        if let data = try? await URLSession.shared.data(from: primary).0,
-           let image = UIImage(data: data) {
-            ImageCache.shared.insert(image, for: primary)
-            artworkImage = image
-            return
-        }
-        if let fallback = track?.artworkFallbackURL,
-           fallback != primary,
-           let data = try? await URLSession.shared.data(from: fallback).0,
-           let image = UIImage(data: data) {
-            ImageCache.shared.insert(image, for: fallback)
-            artworkImage = image
-        }
     }
 
     private var placeholderArtwork: some View {
@@ -184,26 +142,11 @@ struct NowPlayingView: View {
 
     private var trackInfoView: some View {
         VStack(spacing: AppSpacing.xs) {
-            HStack(alignment: .center, spacing: AppSpacing.sm) {
-                Text(track?.title ?? t(.playerUnknownTitle))
-                    .font(.system(.title2, design: .serif).weight(.black))
-                    .foregroundColor(AppTheme.secondaryText)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-
-                if let songID = appState.currentSongID {
-                    Button {
-                        Task { await appState.toggleLike(songID: songID) }
-                    } label: {
-                        Image(systemName: appState.isLiked(songID) ? "heart.fill" : "heart")
-                            .font(.system(size: 22))
-                            .foregroundStyle(appState.isLiked(songID) ? AppTheme.accent : AppTheme.mutedText)
-                            .frame(width: 44, height: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(appState.isLiked(songID) ? t(.unlike) : t(.like))
-                }
-            }
+            Text(track?.title ?? t(.playerUnknownTitle))
+                .font(.system(.title2, design: .serif).weight(.black))
+                .foregroundColor(AppTheme.secondaryText)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
 
             Text(track?.artist ?? t(.playerUnknownArtist))
                 .font(.system(.body))
@@ -214,7 +157,7 @@ struct NowPlayingView: View {
             if let album = track?.album {
                 Text(album)
                     .font(.system(.subheadline))
-                    .foregroundColor(AppTheme.mutedText.opacity(0.7))
+                    .foregroundColor(AppTheme.mutedText)
                     .lineLimit(1)
                     .multilineTextAlignment(.center)
             }
@@ -228,7 +171,7 @@ struct NowPlayingView: View {
             Text(elapsed)
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(AppTheme.secondaryText)
-                .frame(width: 44, alignment: .leading)
+                .frame(minWidth: timeLabelWidth, alignment: .leading)
 
             Slider(value: $scrubValue, in: 0...duration) { editing in
                 isScrubbing = editing
@@ -237,11 +180,13 @@ struct NowPlayingView: View {
                 }
             }
             .tint(AppTheme.accent)
+            .accessibilityLabel(t(.playerSeekLabel))
+            .accessibilityValue("\(elapsed) of \(formatTime(duration))")
 
             Text(remaining)
                 .font(.system(.caption, design: .monospaced))
                 .foregroundColor(AppTheme.secondaryText)
-                .frame(width: 44, alignment: .trailing)
+                .frame(minWidth: timeLabelWidth, alignment: .trailing)
         }
     }
 
@@ -265,7 +210,7 @@ struct NowPlayingView: View {
             } label: {
                 Image(systemName: appState.playerState.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 56))
-                    .foregroundColor(AppTheme.accent)
+                    .foregroundColor(AppTheme.accentOnDark)
             }
             .accessibilityLabel(appState.playerState.isPlaying
                 ? t(.playerPauseButton) : t(.playerPlayButton))
@@ -282,34 +227,87 @@ struct NowPlayingView: View {
         }
     }
 
-    // MARK: - Shuffle / Repeat
+    // MARK: - Shuffle / Repeat / Actions
 
     private var shuffleRepeatRow: some View {
         HStack {
-            Button { appState.toggleShuffle() } label: {
-                Image(systemName: "shuffle")
-                    .font(.system(size: 20))
-                    .foregroundColor(appState.isShuffleOn ? AppTheme.secondaryText : AppTheme.mutedText)
+            Button {
+                feedback.impactOccurred()
+                appState.toggleShuffle()
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "shuffle")
+                        .font(.system(size: 20))
+                        .foregroundColor(appState.isShuffleOn ? AppTheme.secondaryText : AppTheme.mutedText)
+                    if appState.isShuffleOn {
+                        Circle()
+                            .fill(AppTheme.accentOnDark)
+                            .frame(width: 5, height: 5)
+                            .offset(x: 4, y: -2)
+                    }
+                }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .accessibilityLabel(t(.playerShuffle))
+            .accessibilityValue(appState.isShuffleOn ? "On" : "Off")
 
             Spacer()
 
-            Button { showsQueue = true } label: {
+            Button {
+                feedback.impactOccurred()
+                showsQueue = true
+            } label: {
                 Image(systemName: "text.line.last.and.arrowtriangle.forward")
                     .font(.system(size: 20))
                     .foregroundColor(AppTheme.mutedText)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .accessibilityLabel(t(.playerQueueTab))
 
             Spacer()
 
-            Button { appState.cycleRepeatMode() } label: {
-                Image(systemName: appState.repeatMode == .one ? "repeat.1" : "repeat")
-                    .font(.system(size: 20))
-                    .foregroundColor(appState.repeatMode == .off ? AppTheme.mutedText : AppTheme.secondaryText)
+            if let songID = appState.currentSongID {
+                Button {
+                    feedback.impactOccurred()
+                    Task { await appState.toggleLike(songID: songID) }
+                } label: {
+                    Image(systemName: appState.isLiked(songID) ? "heart.fill" : "heart")
+                        .font(.system(size: 20))
+                        .foregroundStyle(appState.isLiked(songID) ? AppTheme.accentOnDark : AppTheme.mutedText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(appState.isLiked(songID) ? t(.unlike) : t(.like))
+
+                Spacer()
             }
+
+            Button {
+                feedback.impactOccurred()
+                appState.cycleRepeatMode()
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: appState.repeatMode == .one ? "repeat.1" : "repeat")
+                        .font(.system(size: 20))
+                        .foregroundColor(appState.repeatMode == .off ? AppTheme.mutedText : AppTheme.secondaryText)
+                    if appState.repeatMode != .off {
+                        Circle()
+                            .fill(AppTheme.accentOnDark)
+                            .frame(width: 5, height: 5)
+                            .offset(x: 4, y: -2)
+                    }
+                }
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
             .accessibilityLabel(appState.repeatMode == .one ? t(.playerRepeatOne) : t(.playerRepeat))
+            .accessibilityValue(appState.repeatMode == .off ? "Off" : (appState.repeatMode == .one ? "Repeat One" : "Repeat All"))
         }
         .padding(.horizontal, AppSpacing.xs)
     }
@@ -385,7 +383,7 @@ struct NowPlayingView: View {
                     Spacer(minLength: 0)
                     Image(systemName: "speaker.wave.2.fill")
                         .font(.caption)
-                        .foregroundStyle(AppTheme.accent)
+                        .foregroundStyle(AppTheme.accentOnDark)
                 } else {
                     Spacer()
                 }

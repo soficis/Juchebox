@@ -69,11 +69,12 @@ No telemetry. No analytics. No ads. Zero third-party dependencies.
 - **Optional sign-in** with a Juchify account for liked songs and recently played. Browsing and playback work fine with no account at all.
 - **Keychain token storage**: your auth token lives in the iOS Keychain, never in UserDefaults.
 
-### Design & Language
+### Design & Accessibility
 
-- **Chollima Radio theme**: coal-black `#0A0A0A` canvas, crimson `#CD2027` accent, gold `#D4A843` headings, serif display type, SF Symbols throughout.
+- **Chollima Radio theme**: coal-black `#0A0A0A` canvas, accessible crimson `#EC4D52` (`accentOnDark`) foregrounds, crimson `#CD2027` background fills, gold `#D4A843` headings, serif display type, SF Symbols throughout.
 - **Bilingual UI**: every screen ships in English and 조선말 (Munhwaŏ), with catalog metadata rendered from the API's own EN/KP name maps.
-- **Accessible by default**: VoiceOver labels on every control, Dynamic Type reflow, 44pt touch targets, and reduced-motion support.
+- **Accessible by default**: WCAG 2.1 AA contrast ($\ge 4.5:1$ text, $\ge 3.0:1$ controls), VoiceOver labels on every control, Dynamic Type reflow capped gracefully at accessibility sizes, $\ge 44\text{pt}$ touch targets throughout, and reduced-motion support.
+- **Isolated Per-Tab Navigation**: independent `NavigationStack` per tab with scroll position and view state preservation, plus tap-to-pop-to-root on the active tab.
 
 ### Privacy
 
@@ -90,7 +91,7 @@ No telemetry. No analytics. No ads. Zero third-party dependencies.
 xcodebuild -project Juchebox.xcodeproj -scheme Juchebox \
   -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# Run the full test suite (79 unit + 6 UI)
+# Run the full test suite (84 unit + 7 UI = 91 tests)
 xcodebuild test -project Juchebox.xcodeproj -scheme Juchebox \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 

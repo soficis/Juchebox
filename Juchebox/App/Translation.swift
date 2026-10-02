@@ -76,6 +76,7 @@ enum Translation {
         case playerLockscreenPaused
         case playerArtworkAccessibility
 
+        case tabHome
         case tabBrowse
         case tabSearch
         case tabLibrary
@@ -109,10 +110,19 @@ enum Translation {
         case playNext
         case addToQueue
         case goToAlbum
+        case moreActions
+        case songLocked
 
         case seeAll
         case recentSearches
         case clearRecents
+
+        case libraryEmpty
+        case libraryEmptyHint
+        case signOutConfirmTitle
+
+        case searchNoResults
+        case searchNoResultsHint
 
         var englishValue: String {
             switch self {
@@ -121,12 +131,12 @@ enum Translation {
             case .acceptButton: return "Forward!"
             case .disclaimer1Title: return "Self-Reliant & Independent App"
             case .disclaimer1Message: return "This app is not affiliated with or endorsed by Juchify, Chollima Front, or any music rightsholder."
-            case .disclaimer2Title: return "Revolutionary Web Exploration"
-            case .disclaimer2Message: return "Opens the public website in WebKit without changing its behavior."
+            case .disclaimer2Title: return "Native Catalog Access"
+            case .disclaimer2Message: return "Connects directly to the public catalog API without WebKit or embedded browsers."
             case .disclaimer3Title: return "Material Protection"
-            case .disclaimer3Message: return "Does not download, record, extract, cache, or redistribute tracks."
+            case .disclaimer3Message: return "Does not download or store audio tracks."
             case .disclaimer4Title: return "People's Security"
-            case .disclaimer4Message: return "No analytics SDK, backend, proxy, JavaScript bridge, or trackers."
+            case .disclaimer4Message: return "No analytics, no telemetry, and no independent backend servers."
             case .settingsTitle: return "Party Directives"
             case .aboutSection: return "About the Explorer"
             case .securitySection: return "Security Settings"
@@ -136,7 +146,7 @@ enum Translation {
             case .languageSelectTitle: return "Language Selection"
             case .cancel: return "Cancel"
             case .doneButton: return "Done"
-            case .searchPlaceholder: return "Search or enter address"
+            case .searchPlaceholder: return "Search songs, albums, artists"
             case .playerPlayButton: return "Play"
             case .playerPauseButton: return "Pause"
             case .playerNextTrackButton: return "Next Track"
@@ -162,6 +172,7 @@ enum Translation {
             case .playerAirplayLabel: return "AirPlay"
             case .playerLockscreenPaused: return "Paused"
             case .playerArtworkAccessibility: return "Album artwork"
+            case .tabHome: return "Home"
             case .tabBrowse: return "Browse"
             case .tabSearch: return "Search"
             case .tabLibrary: return "Library"
@@ -194,9 +205,16 @@ enum Translation {
             case .playNext: return "Play Next"
             case .addToQueue: return "Add to Queue"
             case .goToAlbum: return "Go to Album"
+            case .moreActions: return "More Actions"
+            case .songLocked: return "Locked"
             case .seeAll: return "See All"
             case .recentSearches: return "Recent Searches"
             case .clearRecents: return "Clear"
+            case .libraryEmpty: return "Your Library is Empty"
+            case .libraryEmptyHint: return "Songs and albums you like will appear here."
+            case .signOutConfirmTitle: return "Are you sure you want to sign out?"
+            case .searchNoResults: return "No Results Found"
+            case .searchNoResultsHint: return "Try searching for another song, album, or artist."
             }
         }
 
@@ -207,12 +225,12 @@ enum Translation {
             case .acceptButton: return "리해하였으며 전진합네다!"
             case .disclaimer1Title: return "자주적이며 독립적인 응용프로그람"
             case .disclaimer1Message: return "본 프로그람은 주체음악 보급을 위한 자주적이며 독립적인 응용프로그람올시다."
-            case .disclaimer2Title: return "그물페지 직접열람"
-            case .disclaimer2Message: return "본 프로그람은 외부 콤퓨터망 페지를 직접 화면에 띄우며, 어떠한 조작행위도 가하지 않습네다."
+            case .disclaimer2Title: return "직접 통신 체계"
+            case .disclaimer2Message: return "웹브라우저 없이 공개 봉사기 인터페이스와 직접 통신합니다."
             case .disclaimer3Title: return "자료 내리적재 금지"
-            case .disclaimer3Message: return "곡이나 화상자료를 보관하거나 배포하지 않습네다."
+            case .disclaimer3Message: return "음악 자료를 내려받거나 저장하지 않습니다."
             case .disclaimer4Title: return "인민보안"
-            case .disclaimer4Message: return "자료 보관기능이나 자동적인 진단 전송 기능은 존재하지 않습네다."
+            case .disclaimer4Message: return "분석 도구와 추적기가 없으며 자체의 뒤선 봉사기를 두지 않습니다."
             case .settingsTitle: return "조절부 (당지침)"
             case .aboutSection: return "탐색기에 관하여"
             case .securitySection: return "보안 설정"
@@ -222,7 +240,7 @@ enum Translation {
             case .languageSelectTitle: return "조선말 / 외부어 선택"
             case .cancel: return "취소"
             case .doneButton: return "완료"
-            case .searchPlaceholder: return "검색 또는 주소 입력"
+            case .searchPlaceholder: return "노래, 앨범, 예술가 검색"
             case .playerPlayButton: return "재생"
             case .playerPauseButton: return "중지"
             case .playerNextTrackButton: return "다음곡"
@@ -248,6 +266,7 @@ enum Translation {
             case .playerAirplayLabel: return "에어플레이"
             case .playerLockscreenPaused: return "중지됨"
             case .playerArtworkAccessibility: return "음반화상"
+            case .tabHome: return "첫페지"
             case .tabBrowse: return "탐색"
             case .tabSearch: return "검색"
             case .tabLibrary: return "음악고"
@@ -280,9 +299,16 @@ enum Translation {
             case .playNext: return "다음에 재생"
             case .addToQueue: return "대기렬에 추가"
             case .goToAlbum: return "앨범 보기"
+            case .moreActions: return "추가 조작"
+            case .songLocked: return "잠김"
             case .seeAll: return "모두 보기"
             case .recentSearches: return "최근 검색"
             case .clearRecents: return "지우기"
+            case .libraryEmpty: return "음악고가 비어있습니다"
+            case .libraryEmptyHint: return "선호하는 노래와 앨범이 여기에 보존됩니다."
+            case .signOutConfirmTitle: return "정말 퇴장하시겠습니까?"
+            case .searchNoResults: return "검색 결과 없음"
+            case .searchNoResultsHint: return "다른 노래, 음반 또는 예술가를 검색해 보십시오."
             }
         }
     }

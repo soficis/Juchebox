@@ -49,7 +49,7 @@ extension Translation.Key {
         .playerUpNext, .playerPlayHistory, .playerQueueEmpty, .playerHistoryEmpty,
         .playerSeekLabel, .playerDurationLabel, .playerAirplayLabel,
         .playerLockscreenPaused, .playerArtworkAccessibility,
-        .tabBrowse, .tabSearch, .tabLibrary,
+        .tabHome, .tabBrowse, .tabSearch, .tabLibrary,
         .homePopularSongs, .homeNewReleases, .homeNewTracks, .homePopularAlbums,
         .homeSongCount, .homeLoadError, .retry,
         .searchSongs, .searchAlbums, .searchArtists, .searchPrompt,
@@ -58,7 +58,9 @@ extension Translation.Key {
         .libraryLikedSongs, .libraryRecentlyPlayed, .libraryPlaylists,
         .signInTitle, .usernamePlaceholder, .passwordPlaceholder,
         .signInSubmit, .signInFailed, .signOutButton,
-        .like, .unlike, .playNext, .addToQueue, .goToAlbum,
+        .like, .unlike, .playNext, .addToQueue, .goToAlbum, .moreActions, .songLocked,
         .seeAll, .recentSearches, .clearRecents,
+        .libraryEmpty, .libraryEmptyHint, .signOutConfirmTitle,
+        .searchNoResults, .searchNoResultsHint,
     ]
 }

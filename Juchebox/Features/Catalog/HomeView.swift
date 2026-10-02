@@ -55,7 +55,7 @@ struct HomeView: View {
                     if !feed.newTracks.isEmpty {
                         songSection(
                             title: t(.homeNewTracks),
-                            songs: feed.newTracks
+                            songs: Array(feed.newTracks.dropFirst())
                         )
                     }
 
@@ -111,7 +111,7 @@ struct HomeView: View {
                         ForEach(albums, id: \.id) { album in
                             Button {
                                 expandedSection = nil
-                                appState.navigationPath.append(.album(album.id))
+                                appState.navigate(to: .album(album.id))
                             } label: {
                                 AlbumRow(album: album)
                             }
@@ -180,7 +180,9 @@ struct HomeView: View {
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(AppTheme.secondaryText)
                     .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel(t(.settingsTitle))
             .accessibilityIdentifier(AccessibilityID.settingsTab)
         }
         .padding(.top, AppSpacing.md)
@@ -210,6 +212,23 @@ struct HomeView: View {
                         startPoint: .center, endPoint: .bottom
                     )
 
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Circle()
+                                .fill(AppTheme.surface.opacity(0.85))
+                                .frame(width: 44, height: 44)
+                                .overlay {
+                                    Image(systemName: "play.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(AppTheme.secondaryText)
+                                        .offset(x: 1.5)
+                                }
+                                .padding(AppSpacing.md)
+                        }
+                        Spacer()
+                    }
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text(hero.displayTitle)
                             .font(.system(.title2, design: .serif).weight(.black))
@@ -229,6 +248,7 @@ struct HomeView: View {
                 )
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("\(hero.displayTitle), \(hero.displayArtist)")
         }
     }
 
@@ -240,13 +260,18 @@ struct HomeView: View {
                 Text(title)
                     .font(.system(.headline, design: .serif).weight(.bold))
                     .foregroundStyle(AppTheme.primaryText)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if songs.count > 6 {
-                    Button(t(.seeAll)) {
+                    Button {
                         expandedSection = .songs(title: title, songs: songs)
+                    } label: {
+                        Text(t(.seeAll))
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.secondaryText)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
                     }
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.secondaryText)
                     .buttonStyle(.plain)
                 }
             }
@@ -260,7 +285,7 @@ struct HomeView: View {
     private func songRow(for song: Song, in songs: [Song]) -> some View {
         let onGoToAlbum: (() -> Void)?
         if let albumID = song.albumID {
-            onGoToAlbum = { appState.navigationPath.append(.album(albumID)) }
+            onGoToAlbum = { appState.navigate(to: .album(albumID)) }
         } else {
             onGoToAlbum = nil
         }
@@ -284,13 +309,18 @@ struct HomeView: View {
                 Text(title)
                     .font(.system(.headline, design: .serif).weight(.bold))
                     .foregroundStyle(AppTheme.primaryText)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if albums.count > 12 {
-                    Button(t(.seeAll)) {
+                    Button {
                         expandedSection = .albums(title: title, albums: albums)
+                    } label: {
+                        Text(t(.seeAll))
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.secondaryText)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
                     }
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.secondaryText)
                     .buttonStyle(.plain)
                 }
             }
@@ -390,7 +420,7 @@ struct SongRow: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(song.displayTitle)
                             .font(.system(.subheadline, design: .serif).weight(.semibold))
-                            .foregroundStyle(isCurrent ? AppTheme.accent : AppTheme.primaryText)
+                            .foregroundStyle(isCurrent ? AppTheme.accentOnDark : AppTheme.primaryText)
                             .lineLimit(1)
                         Text(song.displayArtist)
                             .font(.caption)
@@ -404,7 +434,7 @@ struct SongRow: View {
                         Image(systemName: "lock.fill")
                             .font(.caption2)
                             .foregroundStyle(AppTheme.mutedText)
-                            .accessibilityLabel("Locked")
+                            .accessibilityLabel(t(.songLocked))
                     }
 
                     Text(song.durationFormatted)
@@ -415,40 +445,58 @@ struct SongRow: View {
             }
             .buttonStyle(.plain)
             .contextMenu {
-                if let onPlayNext {
-                    Button(action: onPlayNext) {
-                        Label(t(.playNext), systemImage: "text.line.first.and.arrowtriangle.forward")
-                    }
-                }
-                if let onAddToQueue {
-                    Button(action: onAddToQueue) {
-                        Label(t(.addToQueue), systemImage: "text.badge.plus")
-                    }
-                }
-                if song.albumID != nil, let onGoToAlbum {
-                    Button(action: onGoToAlbum) {
-                        Label(t(.goToAlbum), systemImage: "square.stack")
-                    }
-                }
-                if let onToggleLike {
-                    Button(action: onToggleLike) {
-                        Label(
-                            isLiked ? t(.unlike) : t(.like),
-                            systemImage: isLiked ? "heart.fill" : "heart"
-                        )
-                    }
-                }
+                menuContent
             }
 
             if let onToggleLike {
                 Button(action: onToggleLike) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
                         .font(.system(size: 17))
-                        .foregroundStyle(isLiked ? AppTheme.accent : AppTheme.mutedText)
-                        .frame(width: 32, height: 44)
+                        .foregroundStyle(isLiked ? AppTheme.accentOnDark : AppTheme.mutedText)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(isLiked ? t(.unlike) : t(.like))
+            }
+
+            Menu {
+                menuContent
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 16))
+                    .foregroundStyle(AppTheme.mutedText)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(t(.moreActions))
+        }
+    }
+
+    @ViewBuilder
+    private var menuContent: some View {
+        if let onPlayNext {
+            Button(action: onPlayNext) {
+                Label(t(.playNext), systemImage: "text.line.first.and.arrowtriangle.forward")
+            }
+        }
+        if let onAddToQueue {
+            Button(action: onAddToQueue) {
+                Label(t(.addToQueue), systemImage: "text.badge.plus")
+            }
+        }
+        if song.albumID != nil, let onGoToAlbum {
+            Button(action: onGoToAlbum) {
+                Label(t(.goToAlbum), systemImage: "square.stack")
+            }
+        }
+        if let onToggleLike {
+            Button(action: onToggleLike) {
+                Label(
+                    isLiked ? t(.unlike) : t(.like),
+                    systemImage: isLiked ? "heart.fill" : "heart"
+                )
             }
         }
     }
@@ -467,7 +515,7 @@ struct SongRow: View {
             if isCurrent {
                 Image(systemName: isPlaying ? "waveform" : "play.fill")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(AppTheme.accent)
+                    .foregroundStyle(AppTheme.accentOnDark)
                     .padding(3)
                     .background(Circle().fill(AppTheme.elevatedSurface.opacity(0.9)))
                     .padding(2)
@@ -580,20 +628,30 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     }
 
     private func load() async {
+        #if DEBUG
         NSLog("[CachedAsyncImage] candidates: %@", candidates.map(\.absoluteString))
+        #endif
         for target in candidates {
             if let cached = ImageCache.shared.image(for: target) {
+                #if DEBUG
                 NSLog("[CachedAsyncImage] cache hit: %@", target.absoluteString)
+                #endif
                 image = cached
                 return
             }
+            #if DEBUG
             NSLog("[CachedAsyncImage] fetching: %@", target.absoluteString)
+            #endif
             guard let data = try? await URLSession.shared.data(from: target).0,
                   let decoded = UIImage(data: data) else {
+                #if DEBUG
                 NSLog("[CachedAsyncImage] failed: %@", target.absoluteString)
+                #endif
                 continue
             }
+            #if DEBUG
             NSLog("[CachedAsyncImage] success: %@ (%d bytes)", target.absoluteString, data.count)
+            #endif
             ImageCache.shared.insert(decoded, for: target)
             image = decoded
             return

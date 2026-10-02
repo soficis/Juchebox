@@ -51,14 +51,18 @@ struct MiniPlayerBar: View {
         }
         .buttonStyle(.plain)
         .background(AppTheme.elevatedSurface)
-        .frame(height: appState.isPlayerBarVisible ? 48 : 0)
-        .opacity(appState.isPlayerBarVisible ? 1 : 0)
+        .frame(height: isBarVisible ? 48 : 0)
+        .opacity(isBarVisible ? 1 : 0)
         .animation(
             reduceMotion ? .none : .easeInOut(duration: AppMotion.defaultDuration),
-            value: appState.isPlayerBarVisible
+            value: isBarVisible
         )
-        .accessibilityElement(children: .ignore)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(playerAccessibilityLabel)
+    }
+
+    private var isBarVisible: Bool {
+        appState.isPlayerBarVisible && appState.playerState.currentTrack != nil && appState.selectedTab != 3
     }
 
     // MARK: - Artwork
@@ -101,11 +105,6 @@ struct MiniPlayerBar: View {
                     .foregroundStyle(AppTheme.mutedText)
                     .lineLimit(1)
             }
-        } else {
-            Text(t(.playerNoTrackPlaying, language: appLanguage))
-                .font(.system(.callout, design: .serif).weight(.bold))
-                .foregroundStyle(AppTheme.mutedText)
-                .lineLimit(1)
         }
     }
 
@@ -118,8 +117,11 @@ struct MiniPlayerBar: View {
         } label: {
             Image(systemName: appState.playerState.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                 .resizable()
+                .scaledToFit()
+                .frame(width: 32, height: 32)
+                .foregroundStyle(AppTheme.accentOnDark)
                 .frame(width: 44, height: 44)
-                .foregroundStyle(AppTheme.accent)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(
@@ -136,8 +138,11 @@ struct MiniPlayerBar: View {
         } label: {
             Image(systemName: "forward.fill")
                 .resizable()
-                .frame(width: 44, height: 44)
+                .scaledToFit()
+                .frame(width: 26, height: 26)
                 .foregroundStyle(AppTheme.secondaryText)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(t(.playerNextTrackButton, language: appLanguage))

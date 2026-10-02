@@ -9,6 +9,8 @@ struct RootView: View {
     @AppStorage(AppStorageKey.hasAcceptedUnofficialDisclaimer) private var hasAcceptedUnofficialDisclaimer = false
     @AppStorage(AppStorageKey.appLanguage) private var appLanguageRaw = AppLanguage.english.rawValue
 
+    @State private var visited: Set<Int> = [0]
+
     private var appLanguage: AppLanguage {
         AppLanguage(rawValue: appLanguageRaw) ?? .english
     }
@@ -16,31 +18,27 @@ struct RootView: View {
     var body: some View {
         Group {
             if hasAcceptedUnofficialDisclaimer {
-                NavigationStack(path: $appState.navigationPath) {
-                    VStack(spacing: 0) {
-                        ZStack {
-                            tabContent
-                        }
-
-                        MiniPlayerBar(appState: appState) {
-                            appState.selectedTab = 3
-                        }
-
-                        ChollimaTabBar(
-                            selectedTab: $appState.selectedTab,
-                            language: appLanguage,
-                            isNowPlayingActive: appState.playerState.currentTrack != nil && appState.playerState.isPlaying
-                        )
+                VStack(spacing: 0) {
+                    ZStack {
+                        tabHost
                     }
-                    .background(AppTheme.background)
-                    .navigationDestination(for: CatalogRoute.self) { route in
-                        switch route {
-                        case .album(let id):
-                            AlbumView(appState: appState, albumID: id)
-                        case .artist(let id):
-                            ArtistView(appState: appState, artistID: id)
-                        }
+
+                    MiniPlayerBar(appState: appState) {
+                        appState.selectedTab = 3
                     }
+
+                    ChollimaTabBar(
+                        selectedTab: $appState.selectedTab,
+                        language: appLanguage,
+                        isNowPlayingActive: appState.playerState.currentTrack != nil && appState.playerState.isPlaying,
+                        onReselectTab: { tab in
+                            appState.popToRoot(for: tab)
+                        }
+                    )
+                }
+                .background(AppTheme.background)
+                .onChange(of: appState.selectedTab) { _, newTab in
+                    visited.insert(newTab)
                 }
             } else {
                 OnboardingView {
@@ -52,18 +50,54 @@ struct RootView: View {
     }
 
     @ViewBuilder
-    private var tabContent: some View {
-        switch appState.selectedTab {
-        case 0:
-            HomeView(appState: appState, catalog: catalog)
-        case 1:
-            SearchView(appState: appState, catalog: catalog)
-        case 2:
-            LibraryView(appState: appState, authStore: authStore, catalog: catalog)
-        case 3:
+    private var tabHost: some View {
+        if visited.contains(0) {
+            tabStack(for: 0) {
+                HomeView(appState: appState, catalog: catalog)
+            }
+            .opacity(appState.selectedTab == 0 ? 1 : 0)
+            .allowsHitTesting(appState.selectedTab == 0)
+            .accessibilityHidden(appState.selectedTab != 0)
+        }
+
+        if visited.contains(1) {
+            tabStack(for: 1) {
+                SearchView(appState: appState, catalog: catalog)
+            }
+            .opacity(appState.selectedTab == 1 ? 1 : 0)
+            .allowsHitTesting(appState.selectedTab == 1)
+            .accessibilityHidden(appState.selectedTab != 1)
+        }
+
+        if visited.contains(2) {
+            tabStack(for: 2) {
+                LibraryView(appState: appState, authStore: authStore, catalog: catalog)
+            }
+            .opacity(appState.selectedTab == 2 ? 1 : 0)
+            .allowsHitTesting(appState.selectedTab == 2)
+            .accessibilityHidden(appState.selectedTab != 2)
+        }
+
+        if visited.contains(3) {
             NowPlayingView(appState: appState)
-        default:
-            HomeView(appState: appState, catalog: catalog)
+                .opacity(appState.selectedTab == 3 ? 1 : 0)
+                .allowsHitTesting(appState.selectedTab == 3)
+                .accessibilityHidden(appState.selectedTab != 3)
+        }
+    }
+
+    private func tabStack<Content: View>(for tabIndex: Int, @ViewBuilder content: () -> Content) -> some View {
+        NavigationStack(path: appState.pathBinding(for: tabIndex)) {
+            content()
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationDestination(for: CatalogRoute.self) { route in
+                    switch route {
+                    case .album(let id):
+                        AlbumView(appState: appState, albumID: id)
+                    case .artist(let id):
+                        ArtistView(appState: appState, artistID: id)
+                    }
+                }
         }
     }
 }
@@ -72,16 +106,24 @@ private struct ChollimaTabBar: View {
     @Binding var selectedTab: Int
     let language: AppLanguage
     var isNowPlayingActive: Bool = false
+    var onReselectTab: ((Int) -> Void)? = nil
+
+    @ScaledMetric(relativeTo: .caption2) private var iconSize: CGFloat = 20
+    @ScaledMetric private var barHeight: CGFloat = 56
 
     var body: some View {
         HStack(spacing: 0) {
             tabButton(
-                title: t(.tabBrowse, language: language),
-                systemImage: selectedTab == 0 ? "globe.americas.fill" : "globe",
+                title: t(.tabHome, language: language),
+                systemImage: selectedTab == 0 ? "house.fill" : "house",
                 isSelected: selectedTab == 0,
                 accessibilityIdentifier: AccessibilityID.homeTab
             ) {
-                selectedTab = 0
+                if selectedTab == 0 {
+                    onReselectTab?(0)
+                } else {
+                    selectedTab = 0
+                }
             }
 
             tabButton(
@@ -90,29 +132,43 @@ private struct ChollimaTabBar: View {
                 isSelected: selectedTab == 1,
                 accessibilityIdentifier: AccessibilityID.searchTab
             ) {
-                selectedTab = 1
+                if selectedTab == 1 {
+                    onReselectTab?(1)
+                } else {
+                    selectedTab = 1
+                }
             }
 
             tabButton(
                 title: t(.tabLibrary, language: language),
-                systemImage: selectedTab == 2 ? "music.note.list.fill" : "music.note.list",
+                systemImage: "music.note.list",
                 isSelected: selectedTab == 2,
                 accessibilityIdentifier: AccessibilityID.libraryTab
             ) {
-                selectedTab = 2
+                if selectedTab == 2 {
+                    onReselectTab?(2)
+                } else {
+                    selectedTab = 2
+                }
             }
 
             tabButton(
                 title: t(.tabNowPlaying, language: language),
-                systemImage: selectedTab == 3 ? "music.note.fill" : "music.note",
+                systemImage: selectedTab == 3 ? "play.circle.fill" : "music.note",
                 isSelected: selectedTab == 3,
                 accessibilityIdentifier: AccessibilityID.nowPlayingTab,
                 isNowPlayingActive: isNowPlayingActive
             ) {
-                selectedTab = 3
+                if selectedTab == 3 {
+                    onReselectTab?(3)
+                } else {
+                    selectedTab = 3
+                }
             }
         }
-        .frame(height: 56)
+        .frame(minHeight: barHeight)
+        .fixedSize(horizontal: false, vertical: true)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .background(AppTheme.surface)
         .overlay(alignment: .top) {
             Rectangle()
@@ -131,23 +187,27 @@ private struct ChollimaTabBar: View {
     ) -> some View {
         Button(action: action) {
             VStack(spacing: 2) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 20, weight: .semibold))
-                    .symbolEffect(.pulse, options: .repeating, isActive: isNowPlayingActive)
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: iconSize, weight: .semibold))
+                    if isNowPlayingActive {
+                        Circle()
+                            .fill(AppTheme.accentOnDark)
+                            .frame(width: 6, height: 6)
+                            .offset(x: 4, y: -2)
+                    }
+                }
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.caption2.weight(.medium))
             }
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
-            .foregroundStyle(
-                isNowPlayingActive
-                    ? AppTheme.accent
-                    : (isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
-            )
+            .foregroundStyle(isSelected ? AppTheme.secondaryText : AppTheme.mutedText)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : [.isButton])
         .accessibilityIdentifier(accessibilityIdentifier ?? "")
     }
 }
