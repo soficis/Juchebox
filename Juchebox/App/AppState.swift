@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 /// Central app state for the native catalog player.
 /// Holds player state, navigation, and wires the API client + auth.
@@ -24,8 +25,23 @@ final class AppState: ObservableObject {
     // MARK: - Catalog navigation
 
     @Published var selectedTab: Int = 0
-    @Published var navigationPath: [CatalogRoute] = []
+    @Published var paths: [Int: [CatalogRoute]] = [:]
     @Published var showSettings = false
+
+    func pathBinding(for tab: Int) -> Binding<[CatalogRoute]> {
+        Binding(
+            get: { self.paths[tab, default: []] },
+            set: { self.paths[tab] = $0 }
+        )
+    }
+
+    func navigate(to route: CatalogRoute) {
+        paths[selectedTab, default: []].append(route)
+    }
+
+    func popToRoot(for tab: Int) {
+        paths[tab] = []
+    }
 
     // MARK: - Dependencies
 

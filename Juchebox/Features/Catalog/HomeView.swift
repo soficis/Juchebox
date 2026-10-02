@@ -111,7 +111,7 @@ struct HomeView: View {
                         ForEach(albums, id: \.id) { album in
                             Button {
                                 expandedSection = nil
-                                appState.navigationPath.append(.album(album.id))
+                                appState.navigate(to: .album(album.id))
                             } label: {
                                 AlbumRow(album: album)
                             }
@@ -260,7 +260,7 @@ struct HomeView: View {
     private func songRow(for song: Song, in songs: [Song]) -> some View {
         let onGoToAlbum: (() -> Void)?
         if let albumID = song.albumID {
-            onGoToAlbum = { appState.navigationPath.append(.album(albumID)) }
+            onGoToAlbum = { appState.navigate(to: .album(albumID)) }
         } else {
             onGoToAlbum = nil
         }

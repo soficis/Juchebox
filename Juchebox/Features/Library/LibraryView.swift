@@ -139,7 +139,7 @@ struct LibraryView: View {
     private func songRow(for song: Song, in songs: [Song]) -> some View {
         let onGoToAlbum: (() -> Void)?
         if let albumID = song.albumID {
-            onGoToAlbum = { appState.navigationPath.append(.album(albumID)) }
+            onGoToAlbum = { appState.navigate(to: .album(albumID)) }
         } else {
             onGoToAlbum = nil
         }
