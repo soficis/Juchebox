@@ -26,14 +26,11 @@ final class PureTypeTests: XCTestCase {
 
     func testAppLanguageRawValues() {
         XCTAssertEqual(AppLanguage.english.rawValue, "en")
-        XCTAssertEqual(AppLanguage.korean.rawValue, "kp")
-        XCTAssertEqual(AppLanguage.allCases.count, 2)
+        XCTAssertEqual(AppLanguage.allCases.count, 1)
     }
 
     func testAppLanguageDisplayNames() {
         XCTAssertEqual(AppLanguage.english.displayName(currentLanguage: .english), "English")
-        XCTAssertEqual(AppLanguage.korean.displayName(currentLanguage: .english), "조선말")
-        XCTAssertEqual(AppLanguage.english.displayName(currentLanguage: .korean), "미제승냥이말")
     }
 
     func testAppStorageKeysExist() {
@@ -119,7 +116,9 @@ final class PureTypeTests: XCTestCase {
     func testLocalizedNamesValueForLanguage() {
         let names = LocalizedNames(en: "We Are Koreans", kp: "우리는 조선사람")
         XCTAssertEqual(names.value(for: .english), "We Are Koreans")
-        XCTAssertEqual(names.value(for: .korean), "우리는 조선사람")
+
+        let fallbackNames = LocalizedNames(en: nil, kp: "우리는 조선사람")
+        XCTAssertEqual(fallbackNames.value(for: .english), "우리는 조선사람")
     }
 
     func testSearchURLPercentEncodesQuerySpecialCharacters() {

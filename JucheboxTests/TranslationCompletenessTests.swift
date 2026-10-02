@@ -9,13 +9,6 @@ final class TranslationCompletenessTests: XCTestCase {
         }
     }
 
-    func testAllNonAssociatedKeysHaveKoreanValue() {
-        for key in Translation.Key.nonAssociatedCases {
-            let value = Translation.string(for: key, language: .korean)
-            XCTAssertFalse(value.isEmpty, "Key \(key) has empty Korean value")
-        }
-    }
-
     func testEnglishValuesContainNoEmptyWhitespaceOnlyStrings() {
         for key in Translation.Key.nonAssociatedCases {
             let value = Translation.string(for: key, language: .english)

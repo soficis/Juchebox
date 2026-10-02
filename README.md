@@ -17,7 +17,7 @@
 
 Juchebox is a native SwiftUI music app that plays the Juchify streaming service (juchify.com) the way a real music player should. It talks directly to the same public JSON API the Juchify website itself uses. No private endpoints, no scraping, no backend of its own, no WebView.
 
-The full catalog is there: about 5,500 songs, most of them North Korean, streamed through native AVPlayer playback with lock-screen Now Playing, background audio, and Control Center controls. The newest tracks stream as direct MP3 files; everything else plays through the site's own stream-token encrypted HLS flow. The interface is bilingual (English and 조선말) and themed as **Chollima Radio (천리마방송)**: Spotify's dark immersive grammar rebuilt in DPRK revolutionary-poster material, in crimson, gold, and coal black.
+The full catalog is there: about 5,500 songs, most of them North Korean, streamed through native AVPlayer playback with lock-screen Now Playing, background audio, and Control Center controls. The newest tracks stream as direct MP3 files; everything else plays through the site's own stream-token encrypted HLS flow. The interface is themed as **Chollima Radio (천리마방송)**: Spotify's dark immersive grammar rebuilt in DPRK revolutionary-poster material, in crimson, gold, and coal black.
 
 No telemetry. No analytics. No ads. Zero third-party dependencies.
 
@@ -72,7 +72,7 @@ No telemetry. No analytics. No ads. Zero third-party dependencies.
 ### Design & Accessibility
 
 - **Chollima Radio theme**: coal-black `#0A0A0A` canvas, accessible crimson `#EC4D52` (`accentOnDark`) foregrounds, crimson `#CD2027` background fills, gold `#D4A843` headings, serif display type, SF Symbols throughout.
-- **Bilingual UI**: every screen ships in English and 조선말 (Munhwaŏ), with catalog metadata rendered from the API's own EN/KP name maps.
+- **English UI**: clean native English interface, with catalog metadata rendered from the API's own EN/KP name maps.
 - **Accessible by default**: WCAG 2.1 AA contrast ($\ge 4.5:1$ text, $\ge 3.0:1$ controls), VoiceOver labels on every control, Dynamic Type reflow capped gracefully at accessibility sizes, $\ge 44\text{pt}$ touch targets throughout, and reduced-motion support.
 - **Isolated Per-Tab Navigation**: independent `NavigationStack` per tab with scroll position and view state preservation, plus tap-to-pop-to-root on the active tab.
 

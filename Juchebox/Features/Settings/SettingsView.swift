@@ -14,18 +14,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    Picker(t(.languageSelectTitle, language: appLanguage), selection: $appLanguageRaw) {
-                        ForEach(AppLanguage.allCases) { lang in
-                            Text(lang.displayName(currentLanguage: appLanguage))
-                                .tag(lang.rawValue)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .listRowBackground(AppTheme.surface)
-                } header: {
-                    Text(t(.languageSelectTitle, language: appLanguage))
-                }
 
                 Section {
                     VStack(alignment: .leading, spacing: 8) {

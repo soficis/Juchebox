@@ -54,6 +54,8 @@ temp/
 .idea/
 
 # Private development docs and handoffs (never publish)
+docs/
+tasks/
 DEV.md
 *DEV.md
 MAC_DEV.md
@@ -62,13 +64,8 @@ MAC_DEV.md
 *Handoff*.md
 *.handoff
 SSH_HANDOFF.md
-docs/*HANDOFF*.md
-docs/*handoff*.md
-docs/SSH_HANDOFF.md
 NOTES.md
 TODO.md
-docs/NOTES.md
-docs/TODO.md
 
 # Secrets, credentials, certificates, and tokens (never publish)
 *.pem

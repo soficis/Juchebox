@@ -35,25 +35,6 @@ struct OnboardingView: View {
                         .padding(.top, 16)
                         .shadow(color: Color.black.opacity(0.6), radius: 10, x: 0, y: 5)
 
-                    // Language Selector
-                    HStack {
-                        Spacer()
-                        Picker(t(.languageSelectTitle, language: appLanguage), selection: $appLanguageRaw) {
-                            ForEach(AppLanguage.allCases) { lang in
-                                Text(lang.displayName(currentLanguage: appLanguage))
-                                    .tag(lang.rawValue)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 260)
-                        .background(Color.black.opacity(0.4))
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(AppTheme.secondaryText.opacity(0.5), lineWidth: 1)
-                        }
-                    }
-                    .padding(.horizontal, 4)
 
                     // Hero Section: Juchebox Vector Logo
                     VStack(spacing: 12) {

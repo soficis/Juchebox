@@ -14,11 +14,8 @@ struct LocalizedNames: Codable, Equatable, Sendable {
         case kp = "KP"
     }
 
-    func value(for language: AppLanguage) -> String? {
-        switch language {
-        case .english: en ?? kp
-        case .korean: kp ?? en
-        }
+    func value(for language: AppLanguage = .english) -> String? {
+        en ?? kp
     }
 }
 
