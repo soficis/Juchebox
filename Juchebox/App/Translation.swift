@@ -76,6 +76,7 @@ enum Translation {
         case playerLockscreenPaused
         case playerArtworkAccessibility
 
+        case tabHome
         case tabBrowse
         case tabSearch
         case tabLibrary
@@ -162,6 +163,7 @@ enum Translation {
             case .playerAirplayLabel: return "AirPlay"
             case .playerLockscreenPaused: return "Paused"
             case .playerArtworkAccessibility: return "Album artwork"
+            case .tabHome: return "Home"
             case .tabBrowse: return "Browse"
             case .tabSearch: return "Search"
             case .tabLibrary: return "Library"
@@ -248,6 +250,7 @@ enum Translation {
             case .playerAirplayLabel: return "에어플레이"
             case .playerLockscreenPaused: return "중지됨"
             case .playerArtworkAccessibility: return "음반화상"
+            case .tabHome: return "첫페지"
             case .tabBrowse: return "탐색"
             case .tabSearch: return "검색"
             case .tabLibrary: return "음악고"

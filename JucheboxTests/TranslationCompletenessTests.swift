@@ -49,7 +49,7 @@ extension Translation.Key {
         .playerUpNext, .playerPlayHistory, .playerQueueEmpty, .playerHistoryEmpty,
         .playerSeekLabel, .playerDurationLabel, .playerAirplayLabel,
         .playerLockscreenPaused, .playerArtworkAccessibility,
-        .tabBrowse, .tabSearch, .tabLibrary,
+        .tabHome, .tabBrowse, .tabSearch, .tabLibrary,
         .homePopularSongs, .homeNewReleases, .homeNewTracks, .homePopularAlbums,
         .homeSongCount, .homeLoadError, .retry,
         .searchSongs, .searchAlbums, .searchArtists, .searchPrompt,

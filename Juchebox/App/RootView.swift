@@ -108,11 +108,14 @@ private struct ChollimaTabBar: View {
     var isNowPlayingActive: Bool = false
     var onReselectTab: ((Int) -> Void)? = nil
 
+    @ScaledMetric(relativeTo: .caption2) private var iconSize: CGFloat = 20
+    @ScaledMetric private var barHeight: CGFloat = 56
+
     var body: some View {
         HStack(spacing: 0) {
             tabButton(
-                title: t(.tabBrowse, language: language),
-                systemImage: selectedTab == 0 ? "globe.americas.fill" : "globe",
+                title: t(.tabHome, language: language),
+                systemImage: selectedTab == 0 ? "house.fill" : "house",
                 isSelected: selectedTab == 0,
                 accessibilityIdentifier: AccessibilityID.homeTab
             ) {
@@ -138,7 +141,7 @@ private struct ChollimaTabBar: View {
 
             tabButton(
                 title: t(.tabLibrary, language: language),
-                systemImage: selectedTab == 2 ? "music.note.list.fill" : "music.note.list",
+                systemImage: "music.note.list",
                 isSelected: selectedTab == 2,
                 accessibilityIdentifier: AccessibilityID.libraryTab
             ) {
@@ -151,15 +154,21 @@ private struct ChollimaTabBar: View {
 
             tabButton(
                 title: t(.tabNowPlaying, language: language),
-                systemImage: selectedTab == 3 ? "music.note.fill" : "music.note",
+                systemImage: selectedTab == 3 ? "play.circle.fill" : "music.note",
                 isSelected: selectedTab == 3,
                 accessibilityIdentifier: AccessibilityID.nowPlayingTab,
                 isNowPlayingActive: isNowPlayingActive
             ) {
-                selectedTab = 3
+                if selectedTab == 3 {
+                    onReselectTab?(3)
+                } else {
+                    selectedTab = 3
+                }
             }
         }
-        .frame(height: 56)
+        .frame(minHeight: barHeight)
+        .fixedSize(horizontal: false, vertical: true)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .background(AppTheme.surface)
         .overlay(alignment: .top) {
             Rectangle()
@@ -178,11 +187,18 @@ private struct ChollimaTabBar: View {
     ) -> some View {
         Button(action: action) {
             VStack(spacing: 2) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 20, weight: .semibold))
-                    .symbolEffect(.pulse, options: .repeating, isActive: isNowPlayingActive)
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: iconSize, weight: .semibold))
+                    if isNowPlayingActive {
+                        Circle()
+                            .fill(AppTheme.accentOnDark)
+                            .frame(width: 6, height: 6)
+                            .offset(x: 4, y: -2)
+                    }
+                }
                 Text(title)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.caption2.weight(.medium))
             }
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
@@ -191,6 +207,7 @@ private struct ChollimaTabBar: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : [.isButton])
         .accessibilityIdentifier(accessibilityIdentifier ?? "")
     }
 }

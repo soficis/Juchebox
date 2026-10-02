@@ -4,10 +4,19 @@ import UIKit
 
 final class TabBarSymbolsTests: XCTestCase {
     func testTabBarSymbolsExistInSystem() {
-        // Will be expanded in Task 5
-        let symbols = ["magnifyingglass"]
+        let symbols = [
+            "house",
+            "house.fill",
+            "magnifyingglass",
+            "music.note.list",
+            "music.note",
+            "play.circle.fill"
+        ]
         for name in symbols {
-            XCTAssertNotNil(UIImage(systemName: name), "Symbol \(name) must exist in SF Symbols")
+            XCTAssertNotNil(
+                UIImage(systemName: name),
+                "SF Symbol '\(name)' must exist in system"
+            )
         }
     }
 }
